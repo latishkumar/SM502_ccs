@@ -620,11 +620,11 @@ void main(void)
              }    
          #if defined OPT_INT     
              if(local_comm_exchange_mode_flag==0 && (P3IN & BIT0)){
-               configure_uart_port(1,3); //change to USB
+               configure_uart_port(1,3);  //change to USB
                local_comm_exchange_mode_flag=1;
              }
              else if(local_comm_exchange_mode_flag==1 && !(P3IN & BIT0)){              
-               configure_uart_port(1,0);//change to OPT 
+               configure_uart_port(1,0); //change to OPT
                local_comm_exchange_mode_flag=0;
              }
              
