@@ -69,7 +69,7 @@
 /* Display a signed 16 bit integer, as a decimal number,
    with leading zero suppression. "after" is the number
    of digits which are after the decimal point. The leading
-   zero suppression allows for this.  */
+   zero suppression allows for this. */
 void LCDdec16(int16_t value, int pos, int digits, int after)
 {
     int i;
