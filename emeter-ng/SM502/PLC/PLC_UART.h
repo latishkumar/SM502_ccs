@@ -24,6 +24,7 @@
 #define RX_DIR_IN  (P1DIR&=~BIT4)
 #define RX_DIR_OUT (P1DIR|=BIT4)
 #define PLC_SELCT_UARTA1 (P1SEL |=BIT4 | BIT5) 
+
    
 #else 
 
@@ -41,6 +42,8 @@
 
 
 #define PLC_Frame_Timeout 86 //msec for max of 50 byte data
+#define __monitor
+
 
 void enablePLC_UART();
 void disablePLC_UART();

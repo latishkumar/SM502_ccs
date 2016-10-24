@@ -8,6 +8,7 @@
 #include <stdint.h>
 
 #define MaxScheduledTasks 16
+#define __monitor
 
 typedef struct 
 {
