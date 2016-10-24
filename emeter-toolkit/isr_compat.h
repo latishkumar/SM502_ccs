@@ -78,8 +78,7 @@ __interrupt void b(void)
 #define ISR(a,b) __interrupt void b(void); \
 a ## _ISR(b) \
 __interrupt void b(void)
-#else
-    #error Compiler not recognised.
+
 #endif
 
 #endif
