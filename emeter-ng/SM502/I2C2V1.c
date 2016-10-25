@@ -9,6 +9,7 @@
 
 #include "I2C2.h"
 
+#define I2C2_SDA BIT1
 
 
 void I2C2Init()

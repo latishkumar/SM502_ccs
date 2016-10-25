@@ -47,6 +47,7 @@ void KeepAlive()
    
 }
 uint8_t jump_cancel_getMACPIB=0;
+
 void GET_MAC_PIB_Request(uint8_t att_id)
 {
     PLC_Message message;

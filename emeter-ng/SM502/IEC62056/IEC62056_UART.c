@@ -13,7 +13,7 @@
    
    
 #if defined(DLMS) || defined(DLMS_IEC_21)
-#include "iec62056_46_link.h"
+#include "../../DLMS/core/iec62056_46_link.h"
 #include "../../DLMS/DLMS.h"
 #include "../../DLMS/uart_comms.h"
 extern iec62056_46_link_t link[];
