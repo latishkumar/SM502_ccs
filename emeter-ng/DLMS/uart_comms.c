@@ -2,8 +2,8 @@
 
 #include <isr_compat.h>
 
-#include "iec62056_46_link.h"
-#include "iec62056_46_user.h"
+#include "core/iec62056_46_link.h" /*PATH CORRECTION*/
+#include "core/iec62056_46_user.h" /*PATH CORRECTION*/
 #include "uart_comms.h"
 
 #define NULL ((void *) 0)

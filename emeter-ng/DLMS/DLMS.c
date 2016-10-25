@@ -1,10 +1,10 @@
 
 #include <stdint.h>
 #include <isr_compat.h>
-#include "iec62056_46_link.h"
-#include "iec62056_46_user.h"
+#include "core/iec62056_46_link.h"  /*PATH CORRECTION*/
+#include "core/iec62056_46_user.h"  /*PATH CORRECTION*/
 #include "uart_comms.h"
-#include "msgs.h"
+#include "core/msgs.h"  /*PATH CORRECTION*/
 #include "../SM502/IEC62056/IEC62056_UART.h"
 #include "../SM502/PLC/PLC_UART.h"
 //#include "../SM502/IEC62056/IEC62056.h"

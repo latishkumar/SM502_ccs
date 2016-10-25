@@ -4,7 +4,7 @@
 #include <msp430.h>
 
 //#include <emeter-toolkit.h>
-#include "../SM502/Logger.h"
+#include "SM502/Logger.h" /*PATH CORRECTION*/
 //#include "emeter-structs.h"
 #include "SM502/Status.h"
 #include "SM502/PLC/PLC.h"

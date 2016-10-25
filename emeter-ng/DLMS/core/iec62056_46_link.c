@@ -75,7 +75,7 @@
 #include "obis.h"
 #include "iec62056_46_link.h"
 #include "iec62056_46_user.h"
-#include "uart_comms.h"
+#include "../uart_comms.h"
 extern async_hdlc_tx_t tx[];
 
 #ifndef IEC_PORT

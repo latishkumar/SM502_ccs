@@ -1,6 +1,6 @@
 
 #include <stdint.h>
-#include <msgs.h>
+#include "core/msgs.h"  /*PATH CORRECTION*/
 #include <string.h>
 #include "../SM502/Logger.h"
 #include "../SM502/Tamper.h"

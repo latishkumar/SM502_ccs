@@ -67,10 +67,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "cosem.h"
-#include "obis.h"
-#include "iec62056_46_link.h"
-#include "msgs.h"
+#include "core/cosem.h" /*PATH CORRECTION*/
+#include "core/obis.h"/*PATH CORRECTION*/
+#include "core/iec62056_46_link.h"/*PATH CORRECTION*/
+#include "core/msgs.h"/*PATH CORRECTION*/
 #include "config.h"
 #include "../SM502/Logger.h"
 #include "../emeter-rtc.h"
