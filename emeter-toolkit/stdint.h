@@ -35,6 +35,10 @@
 #define __MSP430__
 #endif
 
+#if defined(__TI_COMPILER_VERSION__)
+#define __extension__ /**/
+#endif
+
 #if defined(__MSP430__)
 /*
  *  ISO C99: 7.18 Integer types <stdint.h>
@@ -44,14 +48,14 @@
 typedef signed char                             int8_t;
 typedef int                                     int16_t;
 typedef long int                                int32_t;
-#if defined(__GNUC__)  ||  defined(__IAR_SYSTEMS_ICC__)
+#if defined(__GNUC__)  ||  defined(__IAR_SYSTEMS_ICC__)  ||  (defined(__TI_COMPILER_VERSION__)  &&  __TI_COMPILER_VERSION__ >= 4000000)
 __extension__ typedef long long int             int64_t;
 #endif
 
 typedef unsigned char                           uint8_t;
 typedef unsigned int                            uint16_t;
 typedef unsigned long int                       uint32_t;
-#if defined(__GNUC__)  ||  defined(__IAR_SYSTEMS_ICC__)
+#if defined(__GNUC__)  ||  defined(__IAR_SYSTEMS_ICC__)  ||  (defined(__TI_COMPILER_VERSION__)  &&  __TI_COMPILER_VERSION__ >= 4000000)
 __extension__ typedef unsigned long long int    uint64_t;
 #endif
 #endif
@@ -62,7 +66,7 @@ __extension__ typedef unsigned long long int    uint64_t;
 typedef signed char                             int_least8_t;
 typedef int                                     int_least16_t;
 typedef long int                                int_least32_t;
-#if defined(__GNUC__)  ||  defined(__IAR_SYSTEMS_ICC__) 
+#if defined(__GNUC__)  ||  defined(__IAR_SYSTEMS_ICC__)  ||  (defined(__TI_COMPILER_VERSION__)  &&  __TI_COMPILER_VERSION__ >= 4000000)
 __extension__ typedef long long int             int_least64_t;
 #endif
 
@@ -70,7 +74,7 @@ __extension__ typedef long long int             int_least64_t;
 typedef unsigned char                           uint_least8_t;
 typedef unsigned int                            uint_least16_t;
 typedef unsigned long int                       uint_least32_t;
-#if defined(__GNUC__)  ||  defined(__IAR_SYSTEMS_ICC__)
+#if defined(__GNUC__)  ||  defined(__IAR_SYSTEMS_ICC__)  ||  (defined(__TI_COMPILER_VERSION__)  &&  __TI_COMPILER_VERSION__ >= 4000000)
 __extension__ typedef unsigned long long int    uint_least64_t;
 #endif
 
@@ -81,7 +85,7 @@ __extension__ typedef unsigned long long int    uint_least64_t;
 typedef signed char                             int_fast8_t;
 typedef int                                     int_fast16_t;
 typedef long int                                int_fast32_t;
-#if defined(__GNUC__)  ||  defined(__IAR_SYSTEMS_ICC__) 
+#if defined(__GNUC__)  ||  defined(__IAR_SYSTEMS_ICC__)  ||  (defined(__TI_COMPILER_VERSION__)  &&  __TI_COMPILER_VERSION__ >= 4000000)
 __extension__ typedef long long int             int_fast64_t;
 #endif
 
@@ -89,7 +93,7 @@ __extension__ typedef long long int             int_fast64_t;
 typedef unsigned char                           uint_fast8_t;
 typedef unsigned int                            uint_fast16_t;
 typedef unsigned long int                       uint_fast32_t;
-#if defined(__GNUC__)  ||  defined(__IAR_SYSTEMS_ICC__)
+#if defined(__GNUC__)  ||  defined(__IAR_SYSTEMS_ICC__)  ||  (defined(__TI_COMPILER_VERSION__)  &&  __TI_COMPILER_VERSION__ >= 4000000)
 __extension__ typedef unsigned long long int    uint_fast64_t;
 #endif
 
@@ -125,7 +129,7 @@ __extension__ typedef long long int             int64_t;
 typedef unsigned char                           uint8_t;
 typedef unsigned short int                      uint16_t;
 typedef unsigned long int                       uint32_t;
-#if defined(__GNUC__)  
+#if defined(__GNUC__)  ||  defined(__IAR_SYSTEMS_ICC__)  ||  (defined(__TI_COMPILER_VERSION__)  &&  __TI_COMPILER_VERSION__ >= 4000000)
 __extension__ typedef unsigned long long int    uint64_t;
 #endif
 #endif
@@ -136,7 +140,7 @@ __extension__ typedef unsigned long long int    uint64_t;
 typedef signed char                             int_least8_t;
 typedef short int                               int_least16_t;
 typedef long int                                int_least32_t;
-#if defined(__GNUC__)  
+#if defined(__GNUC__)  ||  defined(__IAR_SYSTEMS_ICC__)  ||  (defined(__TI_COMPILER_VERSION__)  &&  __TI_COMPILER_VERSION__ >= 4000000)
 __extension__ typedef long long int             int_least64_t;
 #endif
 
@@ -144,7 +148,7 @@ __extension__ typedef long long int             int_least64_t;
 typedef unsigned char                           uint_least8_t;
 typedef unsigned short int                      uint_least16_t;
 typedef unsigned long int                       uint_least32_t;
-#if defined(__GNUC__)  
+#if defined(__GNUC__)  ||  defined(__IAR_SYSTEMS_ICC__)  ||  (defined(__TI_COMPILER_VERSION__)  &&  __TI_COMPILER_VERSION__ >= 4000000)
 __extension__ typedef unsigned long long int    uint_least64_t;
 #endif
 
@@ -155,7 +159,7 @@ __extension__ typedef unsigned long long int    uint_least64_t;
 typedef signed char                             int_fast8_t;
 typedef int                                     int_fast16_t;
 typedef long int                                int_fast32_t;
-#if defined(__GNUC__)  
+#if defined(__GNUC__)  ||  defined(__IAR_SYSTEMS_ICC__)  ||  (defined(__TI_COMPILER_VERSION__)  &&  __TI_COMPILER_VERSION__ >= 4000000)
 __extension__ typedef long long int             int_fast64_t;
 #endif
 
@@ -163,7 +167,7 @@ __extension__ typedef long long int             int_fast64_t;
 typedef unsigned char                           uint_fast8_t;
 typedef unsigned int                            uint_fast16_t;
 typedef unsigned long int                       uint_fast32_t;
-#if defined(__GNUC__)  ||  defined(__IAR_SYSTEMS_ICC__)
+#if defined(__GNUC__)  ||  defined(__IAR_SYSTEMS_ICC__)  ||  (defined(__TI_COMPILER_VERSION__)  &&  __TI_COMPILER_VERSION__ >= 4000000)
 __extension__ typedef unsigned long long int    uint_fast64_t;
 #endif
 
@@ -177,9 +181,12 @@ typedef unsigned int                            uintptr_t;
 
 
 /* Largest integral types.  */
-#if defined(__GNUC__)  ||  defined(__IAR_SYSTEMS_ICC__)
+#if defined(__GNUC__)  ||  defined(__IAR_SYSTEMS_ICC__)  ||  (defined(__TI_COMPILER_VERSION__)  &&  __TI_COMPILER_VERSION__ >= 4000000)
 __extension__ typedef long long int             intmax_t;
 __extension__ typedef unsigned long long int    uintmax_t;
+#else
+__extension__ typedef long int                  intmax_t;
+__extension__ typedef unsigned long int         uintmax_t;
 #endif
 #endif
 

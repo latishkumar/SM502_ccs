@@ -73,7 +73,7 @@ __interrupt void b(void)
 #elif defined(__CROSSWORKS_MSP430)
     /* This is the Rowley Crossworks compiler */
 #define ISR(a,b) void b __interrupt[a ## _VECTOR](void)
-#elif defined(__TI_COMPILER_VERSION)
+#elif defined(__TI_COMPILER_VERSION__)
     /* This is the Code Composer Essentials compiler. */
 #define ISR(a,b) __interrupt void b(void); \
 a ## _ISR(b) \
