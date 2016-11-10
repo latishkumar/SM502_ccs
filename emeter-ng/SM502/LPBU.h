@@ -3,7 +3,12 @@
 #define LPBU_H
 #include <stdint.h>
 
-#define __infoAmem__ _Pragma("location=\"INFOB\"")
+#define __infoAmem__ _Pragma("LOCATION(\"INFOB\")")
+//0x007F, 0x1900)")
+
+//#pragma LOCATION(0x007F, 0x1900)
+//location="/INFOB/"
+//what needs to change?
 /**
 * Low power back up flash structure 
 */
@@ -64,5 +69,6 @@ struct info_mem_a_s
     } seg_a;
 };
 
+//__infoAmem__ extern const struct info_mem_a_s backup;
 __infoAmem__ extern const struct info_mem_a_s backup;
 #endif
