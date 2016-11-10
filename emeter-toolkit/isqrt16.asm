@@ -1,5 +1,5 @@
 ;******************************************************************************
-;  isqrt16.s43 (IAR version) - 16 bit square root
+;  isqrt16.s43 (CCS version) - 16 bit square root
 ;
 ;  Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/ 
 ; 
@@ -33,31 +33,29 @@
 ;
 ;******************************************************************************
 
-#include "io.h"
-#include "macros.m43"
-
-#if !defined(__IAR_SYSTEMS_ASM__)  ||  !(((__TID__ >> 8) & 0x7f) == 43)
-#error This file is compatible with the IAR MSP430 assembler.
-#endif
-
-#if __VER__ < 400
-#error This file is compatible with the IAR MSP430 assembler 4.0 or later.
-#endif
+    .cdecls C,LIST,"msp430.h"
+    .include "if_macros.asm"
 
 ; Parameters
-#define h           R12
-#define result      R12
+    .asg    R12,h
 
 ; Temporary variables
-#define x           R13
-#define y           R14
-#define i           R15
+	.asg	R13,x
+	.asg	R14,y
+	.asg	R12,result
+	.asg	R15,i
+
+     .if $DEFINED(__LARGE_CODE_MODEL__) | $DEFINED(__LARGE_DATA_MODEL__)
+STACK_USED .set 4
+     .else
+STACK_USED .set 2
+     .endif
 
 ;uint16_t isqrt16(uint16_t h);
-    public isqrt16
-
-    RSEG CODE
-isqrt16
+    .global isqrt16
+    .text
+    .align  2
+isqrt16:    .asmfunc stack_usage(STACK_USED)
     ;The answer is calculated as a 16 bit value, where the last
     ;8 bits are fractional.
     mov.w   #0,x
@@ -80,4 +78,5 @@ isqrt16_2
     jne     isqrt16_1
     mov.w   x,result
     xret
-    end
+    .endasmfunc
+    .end

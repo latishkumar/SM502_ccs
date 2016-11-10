@@ -1,5 +1,5 @@
 ;******************************************************************************
-;  isqrt32.s43 (IAR version) - 32 bit square root to 32 bit fractional result
+;  isqrt32.asm (CCS version) -
 ;
 ;  Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/ 
 ; 
@@ -33,51 +33,39 @@
 ;
 ;******************************************************************************
 
-#include "io.h"
-#include "macros.m43"
-
-#if !defined(__IAR_SYSTEMS_ASM__)  ||  !(((__TID__ >> 8) & 0x7f) == 43)
-#error This file is compatible with the IAR MSP430 assembler.
-#endif
-
-#if __VER__ < 400
-#error This file is compatible with the IAR MSP430 assembler 4.0 or later.
-#endif
+    .cdecls C,LIST,"msp430.h"
+    .include "if_macros.asm"
 
 ; Parameters
-#define h_ls        R12
-#define h_ms        R13
+    .asg    R12,h_ls
+    .asg    R13,h_ms
 
 ; Temporary variables
-#define i           R9
-#define y_ls        R10
-#define y_ms        R11
-#define result_ls   R12
-#define result_ms   R13
-#define x_ls        R14
-#define x_ms        R15
+    .asg    R8,x_ls
+    .asg    R9,x_ms
+    .asg    R10,y_ls
+    .asg    R11,y_ms
+    .asg    R12,result_ls
+    .asg    R13,result_ms
+    .asg    R14,i
+
+     .if $DEFINED(__LARGE_CODE_MODEL__) | $DEFINED(__LARGE_DATA_MODEL__)
+STACK_USED .set 12
+     .else
+STACK_USED .set 6
+     .endif
 
 ;uint32_t isqrt32(uint32_t h);
-    public isqrt32
-
-    RSEG CODE
-isqrt32
-    ;The answer is calculated as a 32 bit value, where the last
-    ;16 bits are fractional.
-    ;Calling with negative numbers is not a good idea :-)
-#if __CORE__==__430X_CORE__
-    pushm.w #3,R11
-#else
-    push.w  R9
-    push.w  R10
-    push.w  R11
-#endif
+    .global isqrt32
+    .text
+    .align  2
+isqrt32:    .asmfunc stack_usage(STACK_USED)
+    pushmm  4,11
     mov.w   #0,x_ls
     mov.w   #0,x_ms
     mov.w   #0,y_ls
     mov.w   #0,y_ms
-
-    mov.w   #16,i
+    mov.w   #32,i
 isqrt32_1
     setc
     rlc.w   x_ls
@@ -89,7 +77,7 @@ isqrt32_1
     addc.w  x_ms,y_ms
     sub.w   #2,x_ls
 isqrt32_2
-    inc     x_ls
+    inc.w   x_ls
     rla.w   h_ls
     rlc.w   h_ms
     rlc.w   y_ls
@@ -100,35 +88,9 @@ isqrt32_2
     rlc.w   y_ms
     dec.w   i
     jne     isqrt32_1
-
-    mov.w   #16,i
-isqrt32_3
-    setc
-    rlc.w   x_ls
-    rlc.w   x_ms
-    sub.w   x_ls,y_ls
-    subc.w  x_ms,y_ms
-    jhs     isqrt32_4
-    add.w   x_ls,y_ls
-    addc.w  x_ms,y_ms
-    sub.w   #2,x_ls
-isqrt32_4
-    inc     x_ls
-    rla.w   y_ls
-    rlc.w   y_ms
-    rla.w   y_ls
-    rlc.w   y_ms
-    dec.w   i
-    jne     isqrt32_3
-
     mov.w   x_ls,result_ls
     mov.w   x_ms,result_ms
-#if __CORE__==__430X_CORE__
-    popm.w  #3,R11
-#else
-    pop.w   R11
-    pop.w   R10
-    pop.w   R9
-#endif
+    popmm   4,11
     xret
-    end
+    .endasmfunc
+    .end

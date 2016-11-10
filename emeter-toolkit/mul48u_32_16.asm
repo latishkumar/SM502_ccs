@@ -1,5 +1,5 @@
 ;******************************************************************************
-;  mul48u_32_16.s43 (IAR version) - 48 bit unsigned 16x32=>top 32 bits multiply
+;  mul48u_32_16.asm (CCS version) - 48 bit 16x32=>top 32 bits unsigned multiply
 ;
 ;  Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/ 
 ; 
@@ -33,51 +33,38 @@
 ;
 ;******************************************************************************
 
-#include "io.h"
-#include "macros.m43"
+    .cdecls C,LIST,"msp430.h"
+    .include "if_macros.asm"
 
-#if !defined(__IAR_SYSTEMS_ASM__)  ||  !(((__TID__ >> 8) & 0x7f) == 43)
-#error This file is compatible with the IAR MSP430 assembler.
-#endif
+    ; Parameters
+    .asg	R12, x_ls
+    .asg	R13, x_ms
+    .asg	R14, y
 
-#if __VER__ >= 400
-#define x_ls            R12
-#define x_ms            R13
-#define y               R14
-#else
-#define x_ls            R12
-#define x_ms            R13
-#define y               R14
-#endif
+     .if $DEFINED(__LARGE_CODE_MODEL__) | $DEFINED(__LARGE_DATA_MODEL__)
+STACK_USED .set 6
+     .else
+STACK_USED .set 3
+     .endif
 
-;uint32_t mul48u_32_16(uint32_t x, uint16_t y);
-    public mul48u_32_16
-
-    RSEG CODE
-mul48u_32_16
-#if defined(__MSP430_HAS_MPY32__)  &&  !defined(__TOOLKIT_USE_SOFT_MPY__)
-    push.w  SR
+;mul48 is a 32x16=>top 32 bits multiply
+;int32_t mul48_32_16(int32_t x, int16_t y);
+    .global mul48u_32_16
+	.text
+    .align  2
+mul48u_32_16: .asmfunc stack_usage(STACK_USED)
+ .if $defined(__MSP430_HAS_MPY32__)  &  !$defined(__TOOLKIT_USE_SOFT_MPY__)
+    push    SR
     dint
     nop
-    mov.w   x_ls,&MPY32L
-    mov.w   x_ms,&MPY32H
+    mov.w   x_ls,&MPYS32L
+    mov.w   x_ms,&MPYS32H
     mov.w   y,&OP2
-    mov.w   &RES1,x_ls
-    mov.w   &RES2,x_ms
-    pop.w   SR
-#elif defined(__MSP430_HAS_MPY__)  &&  !defined(__TOOLKIT_USE_SOFT_MPY__)
-#if defined(__MSP430_HAS_MSP430X_CPU__)  ||  defined(__MSP430_HAS_MSP430XV2_CPU__)
-    pushm.w #8,R11
-#else
-    push.w  R4
-    push.w  R5
-    push.w  R6
-    push.w  R7
-    push.w  R8
-    push.w  R9
-    push.w  R10
-    push.w  R11
-#endif
+    addc.w  &RES1,x_ls
+    addc.w  &RES2,x_ms
+    pop     SR
+ .elseif $defined(__MSP430_HAS_MPY__)  &  !$defined(__TOOLKIT_USE_SOFT_MPY__)
+    pushmm  8,11
     mov.w   x_ms,R7
     mov.w   y,R4
     mov.w   y,R5
@@ -87,7 +74,7 @@ mul48u_32_16
     clr.w   x_ms
     mov.w   R5,R15
 
-    push.w  SR
+    push    SR
     dint
     nop
     mov.w   x_ls,&MPY
@@ -99,7 +86,7 @@ mul48u_32_16
     mov.w   x_ms,&MAC
     mov.w   y,&OP2
     mov.w   &RESLO,x_ms
-    pop.w   SR
+    pop     SR
         
     mov.w   x_ls,R8
     mov.w   x_ms,R11
@@ -115,7 +102,7 @@ mul48u_32_16
     mov.w   R4,y
     mov.w   R5,R15
 
-    push.w  SR
+    push    SR
     dint
     nop
     mov.w   x_ls,&MPY
@@ -127,7 +114,7 @@ mul48u_32_16
     mov.w   x_ms,&MAC
     mov.w   y,&OP2
     mov.w   &RESLO,x_ms
-    pop.w   SR
+    pop     SR
 
     add.w   x_ls,R10
     mov.w   R10,x_ls
@@ -138,18 +125,8 @@ mul48u_32_16
     jge     mul48_1
     bis.w   #1,x_ls
 mul48_1
-#if defined(__MSP430_HAS_MSP430X_CPU__)  ||  defined(__MSP430_HAS_MSP430XV2_CPU__)
-    popm.w  #8,R11
-#else
-    pop.w   R11
-    pop.w   R10
-    pop.w   R9
-    pop.w   R8
-    pop.w   R7
-    pop.w   R6
-    pop.w   R5
-    pop.w   R4
-#endif
-#endif
+    popmm   8,11
+ .endif
     xret
-    end
+    .endasmfunc
+    .end

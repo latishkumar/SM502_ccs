@@ -1,5 +1,5 @@
 ;******************************************************************************
-;  sqac48_16.s43 (IAR version) - 
+;  sqac48_16.asm (CCS version) -
 ;
 ;  Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/ 
 ; 
@@ -33,30 +33,29 @@
 ;
 ;******************************************************************************
 
-#include "io.h"
-#include "macros.m43"
+    .cdecls C,LIST,"msp430.h"
+    .include "if_macros.asm"
 
-#if !defined(__IAR_SYSTEMS_ASM__)  ||  !(((__TID__ >> 8) & 0x7f) == 43)
-#error This file is compatible with the IAR MSP430 assembler.
-#endif
+    ; Parameters
+    .asg    R12,z
+    .asg    R13,x
 
-#if __VER__ >= 400
-#define z           R12
-#define x           R13
-#define tmp         R14
-#else
-#define z           R12
-#define x           R14
-#define tmp         R15
-#endif
+    ; Temporary variables
+    .asg    R14,tmp
+
+     .if $DEFINED(__LARGE_CODE_MODEL__) | $DEFINED(__LARGE_DATA_MODEL__)
+STACK_USED .set 4
+     .else
+STACK_USED .set 2
+     .endif
 
 ; Square and accumulate x into z
 ;void sqac48_16(register int16_t z[3], register int16_t x)
-    public sqac48_16
-
-    RSEG CODE
-sqac48_16
-#if (defined(__MSP430_HAS_MPY__)  ||  defined(__MSP430_HAS_MPY32__))  &&  !defined(__TOOLKIT_USE_SOFT_MPY__)
+    .global sqac48_16
+    .text
+    .align  2
+sqac48_16:  .asmfunc stack_usage(STACK_USED)
+ .if ($defined(__MSP430_HAS_MPY__)  |  $defined(__MSP430_HAS_MPY32__))  &  !$defined(__TOOLKIT_USE_SOFT_MPY__)
     ; NB: This is not protected against interrupts, so only use it in an interrupt routine
     mov.w   x,&MPYS
     mov.w   x,&OP2
@@ -64,8 +63,9 @@ sqac48_16
     add.w   @tmp+,0(z)
     addc.w  @tmp+,2(z)
     addc.w  @tmp,4(z)
-#else
+ .else
     ; TODO: software multiply version
-#endif
+ .endif
     xret
-    end
+    .endasmfunc
+    .end

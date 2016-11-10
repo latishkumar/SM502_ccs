@@ -68,21 +68,30 @@
 #define _EMETER_TOOLKIT_H_
 
 //MM24
-//typedef unsigned short istate_t;
+/* IAR defines this, but CCS does not */
+typedef unsigned short istate_t;
 
 #if defined(__MSP430__)
 #include <msp430.h>
-#include <isr_compat.h>
+#include "isr_compat.h"
+#include "extra_peripheral_definitions.h"
+/*For NOINIT variables - variables that are not zero-initialized at startup or reset. */
+//#define __no_init __attribute__((noinit))
+
 #endif
 
 //#include <iar/extra_peripheral_definitions.h>
 
 //MM added extra definition
 
-#define __inline__ inline
 
-#define DEFL(name, address) __no_init volatile unsigned long int name @ address;
-#define DEFLL(name, address) __no_init volatile unsigned long long int name @ address;
+#define __inline__ inline
+#define __no_init__(x)  PRAGMA(DATA_SECTION(x,".no_init_ram"));
+
+
+//#define DEFL(name, address) __no_init volatile unsigned long int name @ address
+//#define DEFLL(name, address) __no_init volatile unsigned long long int name @ address
+#define DEF(type,address,name) ((type)address)->name
 
 #if !defined(DEFXC)
 #define DEFXC  volatile unsigned char
@@ -94,7 +103,7 @@
 #if __REGISTER_MODEL__ == __REGISTER_MODEL_REG20__
 #define DEFXA  void __data20 * volatile
 #else
-#define DEFXA  volatile unsigned short  /* only short access is allowed from C in small mem model */
+#define DEFXA  volatile unsigned short  /* only short access is allowed from C in small memory model */
 #endif
 #endif
 
@@ -103,151 +112,196 @@
 
 
 #if defined(__MSP430_HAS_MPY__)  ||  defined(__MSP430_HAS_MPY32__)
-/* Byte, 16 bit word and 32 bit word access to the result register of the 16 bit multiplier */
+/* Byte, 16 bit word and 32 bit word access to the result register of the 16 bit muipl */
 
 //#if defined(__MSP430_HAS_PMM__)
-//#define MPY_BASE    0x4C0
+#define MPY_BASE    0x4C0
 //#else
 //#define MPY_BASE    0x130
 //#endif
 
 #define RES16_32_           RESLO //(MPY_BASE + 10)   /* 16x16 bit result */
 #if !defined(__IAR_SYSTEMS_ICC__)
-DEFL(   RES16_32          , RES16_32_)
+//DEFL(   RES16_32          , RES16_32_)
 #else
-__no_init union
+typedef union
 {
   DEFXC                               RES16_8[4];
   DEFXW                               RES16_16[2];
   DEFXL                               RES16_32;
-} @ (RESLO_); //(MPY_BASE + 10);
+} *RES16_32_U;
+
+#define RES16_8 DEF(RES16_32_U,RES16_32_,RES16_8)
+#define RES16_16 DEF(RES16_32_U,RES16_32_,RES16_16)
+#define RES16_32 DEF(RES16_32_U,RES16_32_,RES16_32)
+
 #endif
 
 #endif
 
 #if defined(__MSP430_HAS_MPY32__)
-/* Byte, 16 bit word, 32 bit word and 64 bit word access to the registers of the 32 bit multiplier */
+/* Byte, 16 bit word, 32 bit word and 64 bit word access to the registers of the 32 bit multipl */
 
 //#if defined(__MSP430_HAS_PMM__)
-//#define MPY32_BASE  0x4D0
+#define MPY32_BASE2  0x4D0
 //#else
 //#define MPY32_BASE  0x140
 //#endif
+#define MPY32_	(MPY32_BASE2 + 0)
 
-#define MPY32_              MPY32L    /* Multiply Unsigned Operand 1 */
+//#define MPY32_              MPY32L    /* Multiply Unsigned Operand 1 */
 #if !defined(__IAR_SYSTEMS_ICC__)
-DEFL(   MPY32             , MPY32_)
+//DEFL(   MPY32             , MPY32_)
 #else
-__no_init union
+typedef union
 {
-  DEFXC                               MPY8[4];
-  DEFXW                               MPY16[2];
-  DEFXL                               MPY32;
-} @ (MPY32L_);//(MPY32_BASE + 0);
+	DEFXC                               MPY8[4];
+	DEFXW                               MPY16[2];
+	DEFXL                               MPY32;
+}  *MPY32_U;
+
+#define MPY8 	DEF(MPY32_U,MPY32_,MPY8)
+#define MPY16	DEF(MPY32_U,MPY32_,MPY16)
+#define MPY32	DEF(MPY32_U,MPY32_,MPY32)
 #endif
 
 #define MPYS32_             MPYS32L //(MPY32_BASE + 4)    /* Multiply Signed Operand 1 */
 #if !defined(__IAR_SYSTEMS_ICC__)
-DEFL(   MPYS32            , MPYS32_)
+//DEFL(   MPYS32            , MPYS32_)
 #else
-__no_init union
+typedef union
 {
-  DEFXC                               MPYS8[4];
-  DEFXW                               MPYS16[2];
-  DEFXL                               MPYS32;
-} @ (MPYS32L_); //(MPY32_BASE + 4);
+	DEFXC                               MPYS8[4];
+	DEFXW                               MPYS16[2];
+	DEFXL                               MPYS32;
+} *MPYS32_U;
+
+#define MPYS8 DEF(MPYS32_U,MPYS32_,MPYS8)
+#define MPYS16 DEF(MPYS32_U,MPYS32_,MPYS16)
+#define MPYS32 DEF(MPYS32_U,MPYS32_,MPYS32)
 #endif
 
 #define MAC32_              MAC32L  //(MPY32_BASE + 8)    /* MAC Unsigned Operand 1 */
 #if !defined(__IAR_SYSTEMS_ICC__)
-DEFL(   MAC32             , MAC32_)
+//DEFL(   MAC32             , MAC32_)
 #else
-__no_init union
+typedef union
 {
-  DEFXC                               MAC8[4];
-  DEFXW                               MAC16[2];
-  DEFXL                               MAC32;
-} @ (MAC32L_);//(MPY32_BASE + 8);
+	DEFXC                               MAC8[4];
+	DEFXW                               MAC16[2];
+	DEFXL                               MAC32;
+} *MAC32_U;
+
+#define MAC8 	DEF(MAC32_U,MAC32_,MAC8)
+#define MAC16 	DEF(MAC32_U,MAC32_,MAC16)
+#define MAC32 	DEF(MAC32_U,MAC32_,MAC32)
 #endif
 
 #define MACS32_             MACS32L //(MPY32_BASE + 12)   /* MAC Signed Operand 1 */
 #if !defined(__IAR_SYSTEMS_ICC__)
-DEFL(   MACS32            , MACS32_)
+//DEFL(   MACS32            , MACS32_)
 #else
-__no_init union
+typedef union
 {
-  DEFXC                               MACS8[4];
-  DEFXW                               MACS16[2];
-  DEFXL                               MACS32;
-} @ (MACS32L_); //(MPY32_BASE + 12);
+	DEFXC                               MACS8[4];
+	DEFXW                               MACS16[2];
+	DEFXL                               MACS32;
+} *MACS32_U;
+
+#define MACS8  DEF(MACS32_U,MACS32_,MACS8)
+#define MACS16 DEF(MACS32_U,MACS32_,MACS16)
+#define MACS32 DEF(MACS32_U,MACS32_,MACS32)
 #endif
 
 #define OP2_32_             OP2L //(MPY32_BASE + 16)   /* Operand 2 */
-#if !defined(__IAR_SYSTEMS_ICC__) 
-DEFL(   OP2_32            , OP2_32_)
+#if !defined(__IAR_SYSTEMS_ICC__)
+//DEFL(   OP2_32            , OP2_32_)
 #else
-__no_init union
+typedef union
 {
   DEFXC                               OP2_8[4];
   DEFXW                               OP2_16[2];
   DEFXL                               OP2_32X;
-} @ (OP2L_); //(MPY32_BASE + 16);
+} *OP2_32_U;
+
+#define OP2_8  	DEF(OP2_32_U,OP2_32_,OP2_8)
+#define OP2_16  	DEF(OP2_32_U,OP2_32_,OP2_16)
+#define OP2_32X 	DEF(OP2_32_U,OP2_32_,OP2_32X)
 #endif
 
 #define RES64_              RES0  //(MPY32_BASE + 20)   /* 32x32 bit result */
 #if !defined(__IAR_SYSTEMS_ICC__)
-DEFLL(  RES64             , RES64_)
+//DEFLL(  RES64             , RES64_)
 #else
-__no_init union
+typedef union
 {
-  DEFXC                               RES8[8];
-  DEFXW                               RES16[4];
-  DEFXL                               RES32[2];
-  DEFXLL                              RES64;
-} @ (RES0_); //(MPY32_BASE + 20);
+	DEFXC                               RES8[8];
+	DEFXW                               RES16[4];
+	DEFXL                               RES32[2];
+	DEFXLL                              RES64;
+} *RES64_U;
+
+#define RES8		DEF(RES64_U,RES64_,RES8)
+#define RES16 	DEF(RES64_U,RES64_,RES16)
+#define RES32	DEF(RES64_U,RES64_,RES32)
+#define RES64	DEF(RES64_U,RES64_,RES64)
 #endif
 
 #endif
-
-
 
 
 #if defined(__MSP430_HAS_SD24_B__)
 #define SD24BMEM0_32_       (0x0850u)
 
 #if !defined(__IAR_SYSTEMS_ICC__)
-DEFL(   SD24BMEM0_32      , SD24BMEM0_32_)
+//DEFL(   SD24BMEM0_32      , SD24BMEM0_32_)
 #else
-__no_init union
+#pragma location = 0x0850u
+typedef union
 {
-  DEFXC                               SD24BMEM0_8[4];
-  DEFXW                               SD24BMEM0_16[2];
-  DEFXL                               SD24BMEM0_32;
-} @ (0x0850u);
+	DEFXC                               SD24BMEM0_8[4];
+	DEFXW                               SD24BMEM0_16[2];
+	DEFXL                               SD24BMEM0_32;
+} *SD24BMEM0_32_U;
+
+#define SD24BMEM0_8 		DEF(SD24BMEM0_32_U,SD24BMEM0_32_,SD24BMEM0_8)
+#define SD24BMEM0_16		DEF(SD24BMEM0_32_U,SD24BMEM0_32_,SD24BMEM0_16)
+#define SD24BMEM0_32		DEF(SD24BMEM0_32_U,SD24BMEM0_32_,SD24BMEM0_32)
+
 #endif
 
 #define SD24BMEM1_32_       (0x0854u)
 #if !defined(__IAR_SYSTEMS_ICC__)
-DEFL(   SD24BMEM1_32      , SD24BMEM1_32_)
+//DEFL(   SD24BMEM1_32      , SD24BMEM1_32_)
 #else
-__no_init union
+typedef union
 {
-  DEFXC                               SD24BMEM1_8[4];
-  DEFXW                               SD24BMEM1_16[2];
-  DEFXL                               SD24BMEM1_32;
-} @ (0x0854u);
+	DEFXC                               SD24BMEM1_8[4];
+	DEFXW                               SD24BMEM1_16[2];
+	DEFXL                               SD24BMEM1_32;
+} *SD24BMEM1_32_U;
+
+#define SD24BMEM1_8		DEF(SD24BMEM1_32_U,SD24BMEM1_32_,SD24BMEM1_8)
+#define SD24BMEM1_16 	DEF(SD24BMEM1_32_U,SD24BMEM1_32_,SD24BMEM1_16)
+#define SD24BMEM1_32 	DEF(SD24BMEM1_32_U,SD24BMEM1_32_,SD24BMEM1_32)
 #endif
 
 #define SD24BMEM2_32_       (0x0858u)
 #if !defined(__IAR_SYSTEMS_ICC__)
-DEFL(   SD24BMEM2_32      , SD24BMEM2_32_)
+//DEFL(   SD24BMEM2_32      , SD24BMEM2_32_)
 #else
-__no_init union
+#pragma location = 0x0858u
+typedef union
 {
-  DEFXC                               SD24BMEM2_8[4];
-  DEFXW                               SD24BMEM2_16[2];
-  DEFXL                               SD24BMEM2_32;
-} @ (0x0858u);
+	DEFXC                               SD24BMEM2_8[4];
+	DEFXW                               SD24BMEM2_16[2];
+	DEFXL                               SD24BMEM2_32;
+} *SD24BMEM2_32_U;
+
+#define SD24BMEM2_8	DEF(SD24BMEM2_32_U,SD24BMEM2_32_,SD24BMEM2_8)
+#define SD24BMEM2_16	DEF(SD24BMEM2_32_U,SD24BMEM2_32_,SD24BMEM2_16)
+#define SD24BMEM2_32 DEF(SD24BMEM2_32_U,SD24BMEM2_32_,SD24BMEM2_32)
+
 #endif
 
 #endif
@@ -371,7 +425,7 @@ extern const int lcd_pos_step;
 
 static __inline__ int16_t Q1_15_mul(int16_t x, int16_t y)
 {
-	int32_t res;
+   int32_t res;
     istate_t istate;
 
     istate = __get_interrupt_state();
@@ -385,7 +439,7 @@ static __inline__ int16_t Q1_15_mul(int16_t x, int16_t y)
 
 static __inline__ int16_t q1_15_mulr(int16_t x, int16_t y)
 {
-	int32_t res;
+   int32_t res;
     istate_t istate;
 
     istate = __get_interrupt_state();
@@ -399,7 +453,7 @@ static __inline__ int16_t q1_15_mulr(int16_t x, int16_t y)
 
 static __inline__ int32_t imul16(int16_t x, int16_t y)
 {
-	int32_t res;
+   int32_t res;
     istate_t istate;
 
     istate = __get_interrupt_state();
@@ -701,7 +755,7 @@ static __inline__ void accum48(register int16_t x[3], register int32_t y)
     acc >>= 16;
     x[2] = acc;
 #else
-#error "Don't know how to accum48"
+/*#error "Don't know how to accum48"*/
 #endif
 #else
     int64_t acc;
@@ -742,7 +796,7 @@ static void __inline__ brief_pause(register unsigned int n)
         _NOP();
     }
 #else
-#error "Don't know how to brief_pause"
+//#error Dont know how to brief_pause.
 #endif
 #endif
 }

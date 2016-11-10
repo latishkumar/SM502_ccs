@@ -1,5 +1,5 @@
 ;******************************************************************************
-;  sqac64_24.s43 (IAR version) - 
+;  sqac64_24.asm (CCS version) -
 ;
 ;  Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/ 
 ; 
@@ -33,34 +33,32 @@
 ;
 ;******************************************************************************
 
-#include "io.h"
-#include "macros.m43"
+    .cdecls C,LIST,"msp430.h"
+    .include "if_macros.asm"
 
-#if !defined(__IAR_SYSTEMS_ASM__)  ||  !(((__TID__ >> 8) & 0x7f) == 43)
-#error This file is compatible with the IAR MSP430 assembler.
-#endif
+    ; Parameters
+    .asg    R12,z
+    .asg    R14,x_lo
+    .asg    R15,x_hi
 
-#if __VER__ >= 400
-#define z           R12
-#define x_lo        R14
-#define x_hi        R15
-#define tmp         R13
-#else
-#define z           R12
-#define x_lo        R14
-#define x_hi        R15
-#define tmp         R13
-#endif
+    ; Temporary variables
+    .asg    R13,tmp
+
+     .if $DEFINED(__LARGE_CODE_MODEL__) | $DEFINED(__LARGE_DATA_MODEL__)
+STACK_USED .set 4
+     .else
+STACK_USED .set 2
+     .endif
 
 ; Square and accumulate x into z
-;void sqac64_24(int64_t *z, int32_t x)
-    public sqac64_24
-
-    RSEG CODE
-sqac64_24
+;void sqac64_24(register int64_t *z, register int32_t x)
+    .global sqac64_24
+    .text
+    .align  2
+sqac64_24:  .asmfunc stack_usage(STACK_USED)
     ; NB: This is not protected against interrupts, so only use it in an interrupt routine
-#if defined(__MSP430_HAS_MPY32__)  &&  !defined(__TOOLKIT_USE_SOFT_MPY__)
-    mov.w   #RES0_,tmp
+ .if $defined(__MSP430_HAS_MPY32__)  &  !$defined(__TOOLKIT_USE_SOFT_MPY__)
+    mov.w   #RES0,tmp
     mov.w   x_lo,&MPYS32L
     mov.b   x_hi,&MPYS32H_B
     mov.w   x_lo,&OP2L
@@ -69,19 +67,19 @@ sqac64_24
     addc.w  @tmp+,2(z)
     addc.w  @tmp+,4(z)
     addc.w  @tmp,6(z)
-#elif defined(__MSP430_HAS_MPY__)  &&  !defined(__TOOLKIT_USE_SOFT_MPY__)
+ .elseif $defined(__MSP430_HAS_MPY__)  &  !$defined(__TOOLKIT_USE_SOFT_MPY__)
     ; We need to do the multiply in 4 chunks. It isn't easy to
     ; do this with signed multiplies, so we take care of the signs first
     ; and then do 2 unsigned multiplies
     tst.w   x_hi
     jge     sqac64_24_1
-    ; The 24 bit x is negative; MM convert to positive number
+    ; The 24 bit x is negative
     inv.w   x_hi
     inv.w   x_lo
     add.w   #1,x_lo
     addc.w  #0,x_hi
 sqac64_24_1
-    mov.w   x_hi,&MPY ; MM Top 16 bits
+    mov.w   x_hi,&MPY
     mov.w   x_hi,&OP2
     mov.w   #RESLO,tmp
     add.w   @tmp+,4(z)
@@ -95,12 +93,6 @@ sqac64_24_1
     addc.w  #0,4(z)
     addc.w  #0,6(z)
     ;
-    //MM ab
-   //MM  *ab
-   //MM  ----
-   //MM (b*b) + (a*b) << 1m + (a*b) <<1m + (a*a)<<2m where m is bit length of a and b
-    
-        
     ; Note: It is this use of a shift which stops this routine being a full 32bit operation
     rla.w   x_hi
     mov.w   x_hi,&OP2
@@ -109,8 +101,9 @@ sqac64_24_1
     addc.w  @tmp,4(z)
     addc.w  #0,6(z)
     ;
-#else
+ .else
     ; TODO: software multiply version
-#endif
+ .endif
     xret
-    end
+    .endasmfunc
+    .end

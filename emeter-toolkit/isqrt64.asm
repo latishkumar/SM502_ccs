@@ -1,5 +1,5 @@
 ;******************************************************************************
-;  isqrt64.s43 (IAR version) - 
+;  isqrt64.asm (CCS version) -
 ;
 ;  Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/ 
 ; 
@@ -33,62 +33,47 @@
 ;
 ;******************************************************************************
 
-#include "io.h"
-#include "macros.m43"
-
-#if !defined(__IAR_SYSTEMS_ASM__)  ||  !(((__TID__ >> 8) & 0x7f) == 43)
-#error This file is compatible with the IAR MSP430 assembler.
-#endif
-
-#if __VER__ < 400
-#error This file is compatible with the IAR MSP430 assembler 4.0 or later.
-#endif
+    .cdecls C,LIST,"msp430.h"
+    .include "if_macros.asm"
 
 ; Parameters
-#define h_0         R12
-#define h_1         R13
-#define h_2         R14
-#define h_3         R15
-
-#define result_0    R12
-#define result_1    R13
-#define result_2    R14
-#define result_3    R15
+    .asg    R12,h_0
+    .asg    R13,h_1
+    .asg    R14,h_2
+    .asg    R15,h_3
 
 ; Temporary variables
-#define x_0         R8
-#define x_1         R9
-#define x_2         R10
-#define x_3         R11
-#define y_0         R4
-#define y_1         R5
-#define y_2         R6
-#define y_3         R7
+    .asg    R8,x_0
+    .asg    R9,x_1
+    .asg    R10,x_2
+    .asg    R11,x_3
+    .asg    R4,y_0
+    .asg    R5,y_1
+    .asg    R6,y_2
+    .asg    R7,y_3
+
+; Result
+    .asg    R12,result_0
+    .asg    R13,result_1
+    .asg    R14,result_2
+    .asg    R15,result_3
+
+     .if $DEFINED(__LARGE_CODE_MODEL__) | $DEFINED(__LARGE_DATA_MODEL__)
+STACK_USED .set 20
+     .else
+STACK_USED .set 10
+     .endif
 
 ;uint64_t isqrt64(uint64_t h)
-    public isqrt64
-
-    RSEG CODE
-isqrt64
-    ;The answer is calculated as a 64 bit value, where the last
-    ;32 bits are fractional.
-    ;Calling with negative numbers is not a good idea :-)
-#if __CORE__==__430X_CORE__
-    pushm.w #8,R11
-#else
-    push.w  R4
-    push.w  R5
-    push.w  R6
-    push.w  R7
-    push.w  R8
-    push.w  R9
-    push.w  R10
-    push.w  R11
-#endif
+    .global isqrt64
+    .text
+    .align  2
+isqrt64:    .asmfunc stack_usage(STACK_USED)
+    pushmm  8,11
 
     ; Use a variable on the stack as the loop counter
     mov.w   #32,R11
-    push.w  R11
+    push    R11
 
     mov.w   #0,x_0
     mov.w   #0,x_1
@@ -115,7 +100,7 @@ isqrt64_1
     addc.w  x_3,y_3
     sub.w   #2,x_0
 isqrt64_2
-    inc.w   x_0
+    add.w   #1,x_0
     ;
     rla.w   h_0
     rlc.w   h_1
@@ -176,18 +161,8 @@ isqrt64_4
     mov.w   x_2,result_2
     mov.w   x_3,result_3
 
-    pop.w   R11
-#if __CORE__==__430X_CORE__
-    popm.w  #8,R11
-#else
-    pop.w   R11
-    pop.w   R10
-    pop.w   R9
-    pop.w   R8
-    pop.w   R7
-    pop.w   R6
-    pop.w   R5
-    pop.w   R4
-#endif
+    pop     R11
+    popmm   8,11
     xret
-    end
+    .endasmfunc
+    .end
