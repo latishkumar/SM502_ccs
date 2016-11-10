@@ -63,20 +63,20 @@
 //
 //--------------------------------------------------------------------------
 //
-//#include <inttypes.h>
+#include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "cosem.h"
-#include "obis.h"
-#include "iec62056_46_link.h"
-#include "msgs.h"
-#include "packing.h"
+#include "../core/cosem.h" /*PATH CORRECTION*/
+#include "../core/obis.h"  /*PATH CORRECTION*/
+#include "../core/iec62056_46_link.h"  /*PATH CORRECTION*/
+#include "../core/msgs.h"  /*PATH CORRECTION*/
+#include "../core/packing.h"  /*PATH CORRECTION*/
 #if defined(LOG_PACKETS)
 #include "iec62056_xml.h"
 #endif
-#include "config.h"
+#include "../config.h" /*PATH CORRECTION*/
 #include "server_msgs.h"
 
 #define FALSE 0
@@ -237,7 +237,7 @@ int interpret_and_fill(uint8_t *to, const uint8_t *from, int len)
 {
     uint8_t *tox;
     const uint8_t *fromx;
-    int64_t val;
+    int64_t val; //maynot be supported in our architecture
     int type;
     int length;
     

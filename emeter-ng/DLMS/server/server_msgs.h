@@ -62,7 +62,7 @@
 //
 //
 //--------------------------------------------------------------------------
-
+#include <stdint.h>
 int64_t get_numeric_item(int item);
 
 int get_string_item(uint8_t *buf, int len, int item);

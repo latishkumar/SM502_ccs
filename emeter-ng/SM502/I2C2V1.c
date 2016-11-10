@@ -9,7 +9,7 @@
 
 #include "I2C2.h"
 
-#define I2C2_SDA BIT1
+#define I2C2_SDA BIT1 //MACROS ADDED HERE BESIDES TO THE "I2C2V1.h" FILE
 
 
 void I2C2Init()

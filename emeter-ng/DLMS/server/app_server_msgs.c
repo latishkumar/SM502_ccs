@@ -69,16 +69,16 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "cosem.h"
-#include "obis.h"
-#include "iec62056_46_link.h"
-#include "msgs.h"
-#include "packing.h"
+#include "../core/cosem.h"
+#include "../core/obis.h"
+#include "../core/iec62056_46_link.h"
+#include "../core/msgs.h"
+#include "../core/packing.h"
 #if defined(LOG_PACKETS)
 #include "iec62056_xml.h"
 #endif
 
-#include "config.h"
+#include "../config.h"
 #include "server_msgs.h"
 
 #define FALSE 0
@@ -89,8 +89,8 @@
 #endif
 
 
-#include "../SM502/Logger.h"
-#include "../SM502/utilities.h"
+#include "../../SM502/Logger.h"
+#include "../../SM502/utilities.h"
 #include "../emeter-rtc.h"
 
 
