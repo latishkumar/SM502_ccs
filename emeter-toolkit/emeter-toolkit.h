@@ -94,7 +94,7 @@
 #if __REGISTER_MODEL__ == __REGISTER_MODEL_REG20__
 #define DEFXA  void __data20 * volatile
 #else
-#define DEFXA  volatile unsigned short  /* only short access is allowed from C in small memory model */
+#define DEFXA  volatile unsigned short  /* only short access is allowed from C in small mem model */
 #endif
 #endif
 
