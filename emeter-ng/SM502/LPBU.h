@@ -4,11 +4,9 @@
 #include <stdint.h>
 
 #define __infoAmem__ _Pragma("LOCATION(\"INFOB\")")
-//0x007F, 0x1900)")
+// 0x0080, 0x1900)")
 
-//#pragma LOCATION(0x007F, 0x1900)
-//location="/INFOB/"
-//what needs to change?
+
 /**
 * Low power back up flash structure 
 */
