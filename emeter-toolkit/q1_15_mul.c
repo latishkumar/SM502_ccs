@@ -62,9 +62,9 @@
 //
 //--------------------------------------------------------------------------
 #include <stdint.h>
-#include <io.h>
+#include "io.h"
 #include "emeter-toolkit-custom.h"
-#include "emeter-toolkit.h"
+//#include "emeter-toolkit.h"
 
 //Q1.15 style 16x16=>16 multiply
 int16_t Q1_15_mul(register int16_t x, register int16_t y)

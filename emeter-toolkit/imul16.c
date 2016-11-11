@@ -63,7 +63,7 @@
 //--------------------------------------------------------------------------
 #include <stdint.h>
 #include "emeter-toolkit-custom.h"
-#include "emeter-toolkit.h"
+//#include "emeter-toolkit.h"
 
 //This routine implements a 16x16->32 2's complement multiplier. If a hardware
 //multiplier is available it is used. If no hardware multiplier is available,

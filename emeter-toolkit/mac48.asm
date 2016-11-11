@@ -1,5 +1,5 @@
 ;******************************************************************************
-;  mac48.s43 (IAR version) - 
+;  mac48.asm (CCS version) -
 ;
 ;  Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/ 
 ; 
@@ -33,87 +33,79 @@
 ;
 ;******************************************************************************
 
-#include "io.h"
-#include "macros.m43"
+    .cdecls C,LIST,"msp430.h"
+    .include "if_macros.asm"
 
-#if !defined(__IAR_SYSTEMS_ASM__)  ||  !(((__TID__ >> 8) & 0x7f) == 43)
-#error This file is compatible with the IAR MSP430 assembler.
-#endif
+	.asg	R12,x
+	.asg	R13,y
+	.asg	R14,z
 
-#if __VER__ >= 400
-#define z           R12
-#define x           R13
-#define y           R14
-#define tmp         R15
-#else
-#define z           R10
-#define x           R12
-#define y           R14
-#define tmp         R15
-#endif
+     .if $DEFINED(__LARGE_CODE_MODEL__) | $DEFINED(__LARGE_DATA_MODEL__)
+STACK_USED .set 4
+     .else
+STACK_USED .set 2
+     .endif
 
-;void mac48_16(int16_t z[3], int16_t x, int16_t y)
-    public mac48_16
+; void mac48(register int16_t x[3], register int16_t y, register int16_t z)
+    .global mac48_16
+	.text
+    .align  2
+mac48_16:   .asmfunc stack_usage(STACK_USED)
+ .if $defined(__MSP430_HAS_MPY__)  |  $defined(__MSP430_HAS_MPY32__)
+    ; NB: This is not protected against interrupts, so only use it in an interrupt routine
+    mov     y,&MPYS
+    mov     z,&OP2
+    nop
+    add.w   &RESLO,0(x)
+    addc.w  &RESHI,2(x)
+    addc.w  &SUMEXT,4(x)
+ .else
+	pushmm  1,10
+	pushmm  1,15
+	mov     x,R15
+	clr     R13
+	mov     R13,x
 
-    RSEG CODE
-mac48_16
-#if (defined(__MSP430_HAS_MPY__)  ||  defined(__MSP430_HAS_MPY32__))  &&  !defined(__TOOLKIT_USE_SOFT_MPY__)
-    /* NB: This is not protected against interrupts, so only use it in an interrupt routine */
-    mov     x,&MPYS
-    mov     y,&OP2
-    mov.w   #RESLO_,tmp
-    add.w   @tmp+,0(z)
-    addc.w  @tmp+,2(z)
-    addc.w  @tmp,4(z)
-#else
-    push.w  R10
-    push.w  R11
-    push.w  R15
-    mov     x,R15
-    mov     z,R11
-    clr     R12
-    mov     R12,R13
-
-    mov     R13,R10
-    tst     R15
-    jge     booth_2
-    mov     #-1,R10
-    jmp     booth_2
+	mov     R13,R10
+	tst     R15
+	jge     booth_2
+	mov     #-1,R10
+	jmp     booth_2
 
 booth_6
-    add     R15,R12
-    addc    R10,R13
+	add     R15,x
+	addc    R10,R13
 booth_1
-    rla     R15
-    rlc     R10
+	rla     R15
+	rlc     R10
 booth_2
-    rra     R14
-    jc      booth_5
-    jne     booth_1
-    jmp     booth_4
+	rra     y
+	jc      booth_5
+	jne     booth_1
+	jmp     booth_4
 
 booth_5
-    sub     R15,R12
-    subc    R10,R13
+	sub     R15,x
+	subc    R10,R13
 booth_3
-    rla     R15
-    rlc     R10
-    rra     R14
-    jnc     booth_6
-    cmp     #0xFFFF,R14
-    jne     booth_3
+	rla     R15
+	rlc     R10
+	rra     y
+	jnc     booth_6
+	cmp     #0xFFFF,y
+	jne     booth_3
 
 booth_4
-    mov.w   R13,R10 ; MM Do actual accumulating.
+	popmm   1,15
+    mov.w   R13,R10
     inv.w   R10
-    rla.w   R10     ; R10 equals either 0 or -1.  It is the top 16 bits of the sign extended  version of the 32 bit product into 48 bit.
+    rla.w   R10
     subc.w  R10,R10
-    add.w   R12,0(R11)
-    addc.w  R13,2(R11)
-    addc.w  R10,4(R11)
-    pop.w   R15
-    pop.w   R11
-    pop.w   R10
-#endif
+    add.w   y,0(z)
+    addc.w  R13,2(z)
+    addc.w  R10,4(z)
+	popmm   1,10
+ .endif
     xret
-    end
+    .endasmfunc
+    .end

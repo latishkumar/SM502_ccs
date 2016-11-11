@@ -1,100 +1,70 @@
-//--------------------------------------------------------------------------
-//
-//  Software for MSP430 based e-meters.
-//
-//  THIS PROGRAM IS PROVIDED "AS IS". TI MAKES NO WARRANTIES OR
-//  REPRESENTATIONS, EITHER EXPRESS, IMPLIED OR STATUTORY,
-//  INCLUDING ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS
-//  FOR A PARTICULAR PURPOSE, LACK OF VIRUSES, ACCURACY OR
-//  COMPLETENESS OF RESPONSES, RESULTS AND LACK OF NEGLIGENCE.
-//  TI DISCLAIMS ANY WARRANTY OF TITLE, QUIET ENJOYMENT, QUIET
-//  POSSESSION, AND NON-INFRINGEMENT OF ANY THIRD PARTY
-//  INTELLECTUAL PROPERTY RIGHTS WITH REGARD TO THE PROGRAM OR
-//  YOUR USE OF THE PROGRAM.
-//
-//  IN NO EVENT SHALL TI BE LIABLE FOR ANY SPECIAL, INCIDENTAL,
-//  CONSEQUENTIAL OR INDIRECT DAMAGES, HOWEVER CAUSED, ON ANY
-//  THEORY OF LIABILITY AND WHETHER OR NOT TI HAS BEEN ADVISED
-//  OF THE POSSIBILITY OF SUCH DAMAGES, ARISING IN ANY WAY OUT
-//  OF THIS AGREEMENT, THE PROGRAM, OR YOUR USE OF THE PROGRAM.
-//  EXCLUDED DAMAGES INCLUDE, BUT ARE NOT LIMITED TO, COST OF
-//  REMOVAL OR REINSTALLATION, COMPUTER TIME, LABOR COSTS, LOSS
-//  OF GOODWILL, LOSS OF PROFITS, LOSS OF SAVINGS, OR LOSS OF
-//  USE OR INTERRUPTION OF BUSINESS. IN NO EVENT WILL TI'S
-//  AGGREGATE LIABILITY UNDER THIS AGREEMENT OR ARISING OUT OF
-//  YOUR USE OF THE PROGRAM EXCEED FIVE HUNDRED DOLLARS
-//  (U.S.$500).
-//
-//  Unless otherwise stated, the Program written and copyrighted
-//  by Texas Instruments is distributed as "freeware".  You may,
-//  only under TI's copyright in the Program, use and modify the
-//  Program without any charge or restriction.  You may
-//  distribute to third parties, provided that you transfer a
-//  copy of this license to the third party and the third party
-//  agrees to these terms by its first use of the Program. You
-//  must reproduce the copyright notice and any other legend of
-//  ownership on each copy or partial copy, of the Program.
-//
-//  You acknowledge and agree that the Program contains
-//  copyrighted material, trade secrets and other TI proprietary
-//  information and is protected by copyright laws,
-//  international copyright treaties, and trade secret laws, as
-//  well as other intellectual property laws.  To protect TI's
-//  rights in the Program, you agree not to decompile, reverse
-//  engineer, disassemble or otherwise translate any object code
-//  versions of the Program to a human-readable form.  You agree
-//  that in no event will you alter, remove or destroy any
-//  copyright notice included in the Program.  TI reserves all
-//  rights not specifically granted under this license. Except
-//  as specifically provided herein, nothing in this agreement
-//  shall be construed as conferring by implication, estoppel,
-//  or otherwise, upon you, any license or other right under any
-//  TI patents, copyrights or trade secrets.
-//
-//  You may not use the Program in non-TI devices.
-//
-//	File: mul48.s43
-//
-//  Steve Underwood <steve-underwood@ti.com>
-//  Texas Instruments Hong Kong Ltd.
-//
-//  $Id: mul48.s43,v 1.2 2008/10/08 11:47:14 a0754793 Exp $
-//
-//--------------------------------------------------------------------------
-#include "io.h"
+;******************************************************************************
+;  mul48_32_16.asm (CCS version) - 48 bit 16x32=>top 32 bits multiply
+;
+;  Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
+;
+;  Redistribution and use in source and binary forms, with or without
+;  modification, are permitted provided that the following conditions
+;  are met:
+;
+;    Redistributions of source code must retain the above copyright
+;    notice, this list of conditions and the following disclaimer.
+;
+;    Redistributions in binary form must reproduce the above copyright
+;    notice, this list of conditions and the following disclaimer in the
+;    documentation and/or other materials provided with the
+;    distribution.
+;
+;    Neither the name of Texas Instruments Incorporated nor the names of
+;    its contributors may be used to endorse or promote products derived
+;    from this software without specific prior written permission.
+;
+;  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+;  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+;  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+;  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+;  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+;  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+;  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+;  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+;  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+;  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+;  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+;
+;******************************************************************************
 
-#if !defined(__IAR_SYSTEMS_ASM__)  ||  !(((__TID__ >> 8) & 0x7f) == 43)
-#error This file is compatible with the IAR MSP430 assembler.
-#endif
+    .cdecls C,LIST,"msp430.h"
+    .include "if_macros.asm"
 
-#if __VER__ >= 400
-#define x_ls            R12
-#define x_ms            R13
-#define y               R14
-#else
-#define x_ls            R12
-#define x_ms            R13
-#define y               R14
-#endif
+    ; Parameters
+    .asg	R12, x_ls
+    .asg	R13, x_ms
+    .asg	R14, y
 
-;int32_t mul48(int32_t x, int16_t y)
-    public mul48
-    extern ?Mul32Hw
+     .if $DEFINED(__LARGE_CODE_MODEL__) | $DEFINED(__LARGE_DATA_MODEL__)
+STACK_USED .set 6
+     .else
+STACK_USED .set 3
+     .endif
 
-    RSEG CODE
-mul48
-#if defined(__MSP430_HAS_MSP430X_CPU__) || defined(__MSP430_HAS_MSP430XV2_CPU__)
-    pushm.w #8,R11
-#else
-    push.w  R4
-    push.w  R5
-    push.w  R6
-    push.w  R7
-    push.w  R8
-    push.w  R9
-    push.w  R10
-    push.w  R11
-#endif
+;mul48 is a 32x16=>top 32 bits multiply
+;int32_t mul48_32_16(int32_t x, int16_t y);
+    .global mul48_32_16
+	.text
+    .align  2
+mul48_32_16: .asmfunc stack_usage(STACK_USED)
+ .if $defined(__MSP430_HAS_MPY32__)  &  !$defined(__TOOLKIT_USE_SOFT_MPY__)
+    push    SR
+    dint
+    nop
+    mov.w   x_ls,&MPYS32L
+    mov.w   x_ms,&MPYS32H
+    mov.w   y,&OP2
+    addc.w  &RES1,x_ls
+    addc.w  &RES2,x_ms
+    pop     SR
+ .elseif $defined(__MSP430_HAS_MPY__)  &  !$defined(__TOOLKIT_USE_SOFT_MPY__)
+    pushmm  8,11
     mov.w   x_ms,R7
     mov.w   y,R4
     mov.w   y,R5
@@ -104,7 +74,7 @@ mul48
     clr.w   x_ms
     mov.w   R5,R15
 
-    push.w  SR
+    push    SR
     dint
     nop
     mov.w   x_ls,&MPY
@@ -116,7 +86,7 @@ mul48
     mov.w   x_ms,&MAC
     mov.w   y,&OP2
     mov.w   &RESLO,x_ms
-    pop.w   SR
+    pop     SR
 
     mov.w   x_ls,R8
     mov.w   x_ms,R11
@@ -132,7 +102,7 @@ mul48
     mov.w   R4,y
     mov.w   R5,R15
 
-    push.w  SR
+    push    SR
     dint
     nop
     mov.w   x_ls,&MPY
@@ -144,9 +114,7 @@ mul48
     mov.w   x_ms,&MAC
     mov.w   y,&OP2
     mov.w   &RESLO,x_ms
-    pop.w   SR
-
-    //calla   #?Mul32Hw
+    pop     SR
 
     add.w   x_ls,R10
     mov.w   R10,x_ls
@@ -157,18 +125,8 @@ mul48
     jge     mul48_1
     bis.w   #1,x_ls
 mul48_1
-#if defined(__MSP430_HAS_MSP430X_CPU__) || defined(__MSP430_HAS_MSP430XV2_CPU__)
-    popm.w  #8,R11
-    reta
-#else
-    pop.w   R11
-    pop.w   R10
-    pop.w   R9
-    pop.w   R8
-    pop.w   R7
-    pop.w   R6
-    pop.w   R5
-    pop.w   R4
-    ret
-#endif
-    end
+    popmm   8,11
+ .endif
+    xret
+    .endasmfunc
+    .end

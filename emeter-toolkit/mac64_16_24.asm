@@ -1,5 +1,5 @@
 ;******************************************************************************
-;  mac64_16_24.s43 (IAR version) - 
+;  mac64_16_24.asm (CCS version) -
 ;
 ;  Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/ 
 ; 
@@ -33,34 +33,31 @@
 ;
 ;******************************************************************************
 
-#include "io.h"
-#include "macros.m43"
+    .cdecls C,LIST,"msp430.h"
+    .include "if_macros.asm"
 
-#if !defined(__IAR_SYSTEMS_ASM__)  ||  !(((__TID__ >> 8) & 0x7f) == 43)
-#error This file is compatible with the IAR MSP430 assembler.
-#endif
+    ; Parameters
+	.asg	R12,z
+	.asg	R13,x
+	.asg	R14,y_lo
+	.asg	R15,y_hi
 
-#if __VER__ >= 400
-#define tmp         R11
-#define z           R12
-#define x           R13
-#define y_lo        R14
-#define y_hi        R15
-#else
-#define tmp         R11
-#define z           R10
-#define x           R12
-#define y_lo        R14
-#define y_hi        R15
-#endif
+	; Temporary variables
+	.asg	R11,tmp
+
+     .if $DEFINED(__LARGE_CODE_MODEL__) | $DEFINED(__LARGE_DATA_MODEL__)
+STACK_USED .set 4
+     .else
+STACK_USED .set 2
+     .endif
 
 ;void mac64_16_24(int64_t *z, int16_t x, int32_t y)
-    public mac64_16_24
-
-    RSEG CODE
-mac64_16_24
+    .global mac64_16_24
+    .text
+    .align  2
+mac64_16_24: .asmfunc stack_usage(STACK_USED)
     ; NB: This is not protected against interrupts, so only use it in an interrupt routine
-#if defined(__MSP430_HAS_MPY32__)  &&  !defined(__TOOLKIT_USE_SOFT_MPY__)
+ .if $defined(__MSP430_HAS_MPY32__)  &  !$defined(__TOOLKIT_USE_SOFT_MPY__)
     mov.w   y_lo,&MPYS32L
     mov.b   y_hi,&MPYS32H_B
     mov.w   x,&OP2
@@ -68,11 +65,11 @@ mac64_16_24
     addc.w  &RES1,2(z)
     addc.w  &RES2,4(z)
     addc.w  &RES3,6(z)
-#elif defined(__MSP430_HAS_MPY__)  &&  !defined(__TOOLKIT_USE_SOFT_MPY__)
+ .elseif $defined(__MSP430_HAS_MPY__)  &  !$defined(__TOOLKIT_USE_SOFT_MPY__)
     ; We need to do the multiply in 2 16x16=>32 chunks. It isn't easy to
     ; do this with signed multiplies, so we take care of the signs first
     ; and then do 2 unsigned multiplies
-    push.w  tmp
+    pushmm  1,11
     clr.w   tmp
     tst.w   y_hi
     jge     mac64_16_24_1
@@ -107,7 +104,7 @@ mac64_16_24_2
     subc.w  #0,4(z)
     subc.w  #0,6(z)
     ;
-    pop.w   tmp
+    pop     tmp
     xret
 mac64_16_24_3
     ; The answer to the real multiply will be positive, so add the unsigned one to the sum
@@ -124,9 +121,10 @@ mac64_16_24_3
     addc.w  #0,4(z)
     addc.w  #0,6(z)
     ;
-    pop.w   tmp
-#else
+    popmm   1,11
+ .else
     ; TODO: software multiply version
-#endif
+ .endif
     xret
-    end
+    .endasmfunc
+    .end

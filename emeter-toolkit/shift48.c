@@ -62,9 +62,10 @@
 //
 //--------------------------------------------------------------------------
 #include <stdint.h>
-#include <io.h>
+#include "io.h"
 #include "emeter-toolkit-custom.h"
 #include "emeter-toolkit.h"
+int64_t tmp;
 
 void shift48(register int16_t x[3], int how_far)
 {
