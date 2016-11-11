@@ -132,8 +132,8 @@ uint8_t longToString_c(unsigned long number,uint8_t *output_buffer,uint8_t buff_
         {
           while(mask !=0)
           {
-            
-            for(int j=0;j<buff_length;j++)
+        	  int j;
+            for(j=0;j<buff_length;j++)
              {
                 if(num[j] >=5)
                   num[j] +=3;
@@ -141,8 +141,8 @@ uint8_t longToString_c(unsigned long number,uint8_t *output_buffer,uint8_t buff_
                         
              c_bit = number&mask;
              
-                      
-             for(int i=buff_length-1;i>0;i--)
+             int i;
+             for(i=buff_length-1;i>0;i--)
              {
                num[i]<<=1;
                num[i]&=0xf;
@@ -174,7 +174,8 @@ uint8_t longToString_c(unsigned long number,uint8_t *output_buffer,uint8_t buff_
 //	}
         
          *outputlength = buff_length;
-         for(int k=buff_length-1;k>=0;k--){          
+         int k;
+         for(k=buff_length-1;k>=0;k--){
             if(num[k] !=0)
             {
               break;
