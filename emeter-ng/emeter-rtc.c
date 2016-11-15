@@ -9,7 +9,7 @@
 #include "SM502/Status.h"
 #include "SM502/PLC/PLC.h"
 #include "emeter-rtc.h"
-#include "../SM502/self_diagnosis.h"
+#include "SM502/self_diagnosis.h"
 
 #if !defined(NULL)
 #define NULL    (void *) 0

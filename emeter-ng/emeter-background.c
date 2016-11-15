@@ -575,7 +575,7 @@ int16_t dma_adc_buffer[6];
 #endif
 
 int32_t Power_good=0;
-extern __monitor void perform_low_battry_backup();
+extern  void perform_low_battry_backup();
 extern MeterStatus status;
 
 
