@@ -1164,7 +1164,7 @@ void Access_Day_Profile_Table_Passive(void *data, int direction)
   }
   else
   {
-    asm("NOP");
+   __asm__ __volatile__ (" NOP");
   }  
 
 }
@@ -1181,7 +1181,7 @@ void Access_Day_Profile_Table(void *data, int direction)
   }
   else
   {
-    asm("NOP");
+   __asm__ __volatile__ (" NOP");
   }  
 
 }
@@ -1222,7 +1222,7 @@ void get_Special_Days_List(void *data,int direction)
     }
     else
     {
-       asm("NOP");
+      __asm__ __volatile__ (" NOP");
     }   
 }
 
@@ -1246,7 +1246,7 @@ void Access_Billing_Script_Execution_Time(void *data, int direction)
   }
   else
   {
-    asm("NOP");
+   __asm__ __volatile__ (" NOP");
   }  
 
 }

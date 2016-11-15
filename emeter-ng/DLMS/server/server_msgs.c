@@ -338,7 +338,7 @@ int interpret_and_fill(uint8_t *to, const uint8_t *from, int len)
                 *tox++ = *fromx++;
                 if(tox==(uint8_t *)0x17b9)
                 {
-                  asm("NOP");
+                  __asm__ __volatile__ (" NOP");
                 }  
                 get_string_item(tox, length, *fromx);
                 tox += length;
@@ -1401,7 +1401,7 @@ void process_aarq(iec62056_46_link_t *link, const uint8_t msg[], int len)
        
             else
             {
-              asm("NOP");
+             __asm__ __volatile__ (" NOP");
             }  
 /*            if(memcmp(&msg[i + 1], &authentications[link->association][1], length - 1))
             {
@@ -1991,7 +1991,7 @@ void send_get_response(iec62056_46_link_t *link,
                   }
                   else
                   {
-                    asm("NOP");
+                   __asm__ __volatile__ (" NOP");
                     response[4]=ACCESS_RESULT_READ_WRITE_DENIED;
                   }  
                   hdlc_async_tx_build_iframe(&tx[link->port], link, TRUE, FALSE, response, len);
@@ -2478,7 +2478,7 @@ static void process_set_request(iec62056_46_link_t *link, const uint8_t msg[], i
 
     case 3:
         // Set request with Datablock
-        asm("NOP");
+       __asm__ __volatile__ (" NOP");
         invoke_id = msg[i++];
         last_block=msg[i++];
         block_num=pack32(&msg[i]);
@@ -2769,7 +2769,7 @@ void process_i_body(iec62056_46_link_t *link, const uint8_t msg[], int len)
         }
         else
         {
-          asm("NOP");
+         __asm__ __volatile__ (" NOP");
         } 
         break;
 
@@ -2836,7 +2836,7 @@ void process_i_body(iec62056_46_link_t *link, const uint8_t msg[], int len)
         return;
 
     default:
-      asm("NOP");
+     __asm__ __volatile__ (" NOP");
     }
     /* Unrecognised message */
     send_confirmed_service_error(link, CONFIRMED_SERVICE_ERROR_READ, SERVICE_ERROR_SERVICE, 2);
@@ -2875,7 +2875,7 @@ void reply_to_hls_auth(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_
   // Compare measured with actual
   if(memcmp(reply_c2s,challenge_s2c,challenge_c2s_len)==0)
   {
-    asm("NOP");
+   __asm__ __volatile__ (" NOP");
     Authorised=YES;
     
   }  
@@ -2928,7 +2928,7 @@ void reply_to_hls_auth_MS(uint8_t *data,uint16_t data_len,uint8_t *response,uint
   // Compare measured with actual
   if(memcmp(reply_c2s,challenge_s2c,challenge_c2s_len)==0)
   {
-    asm("NOP");
+   __asm__ __volatile__ (" NOP");
     Authorised=YES;
     
   }  

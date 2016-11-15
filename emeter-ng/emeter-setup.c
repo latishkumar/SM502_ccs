@@ -737,22 +737,19 @@ void disable_analog_front_end(void)//static __inline__
 #if defined(__MSP430__)
 extern rtc_t rtc;
 extern uint8_t OperatingMode;
+#include "hal_UCS.h"
+#include "hal_PMM.h"
 void system_setup(void)
 {
     WDTCTL = (WDTCTL & 0xFF) | WDTPW | WDTHOLD;
 
-    #if defined(__MSP430_HAS_UCS__)
-      #include "hal_UCS.h"
-      #include "hal_PMM.h"
-    
-       SetVCore(2);  
-       LFXT_Start(XT1DRIVE_3);
+    SetVCore(2);
+    LFXT_Start(XT1DRIVE_3);
 
-       Init_FLL_Settle(MCLK_DEF*8388608/8/1000, MCLK_DEF*32768*32/32768);
-       /* There seems no benefit in waiting for the FLL to settle at this point. */
-       UCSCTL8 &=~MODOSCREQEN & ~SMCLKREQEN & ~MCLKREQEN & ~ACLKREQEN;
-    #endif
-   
+    Init_FLL_Settle(MCLK_DEF*8388608/8/1000, MCLK_DEF*32768*32/32768);
+    /* There seems no benefit in waiting for the FLL to settle at this point. */
+    UCSCTL8 &=~MODOSCREQEN & ~SMCLKREQEN & ~MCLKREQEN & ~ACLKREQEN;
+
     #if defined (__MSP430_HAS_AUX_SUPPLY__)
 
           PMMCTL0_H = PMMPW_H;    
