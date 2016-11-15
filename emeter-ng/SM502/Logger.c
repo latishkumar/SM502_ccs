@@ -8,14 +8,13 @@
 #include "Logger.h"
 #include "I2C2EEPROM.h"
 #include "Tariff.h"
-#include "RTCC.h"
 #include "Tamper.h"
 #include "self_diagnosis.h"
 #include "../emeter-rtc.h"
 
 //#include <emeter-toolkit.h>   
 //#include "../TI_aes_128.h"
-#include "TI_aes.h"
+#include "../DLMS/aes/TI_aes.h"
 #include "../Config.h"   
 #include <stdio.h>
 #include <stdlib.h>

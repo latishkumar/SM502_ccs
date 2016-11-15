@@ -44,7 +44,7 @@
 //#define ARCH_67SP
 //#endif
 
-#if defined(__MSP430F6730__) || (__MSP430F6731__) || (__MSP430F6732__) || (__MSP430F6733__) || (__MSP430F6734__) || (__MSP430F6735__) || (__MSP430F6736__)
+#if defined(__MSP430F6730__) || (__MSP430F6731__) || (__MSP430F6732__) || (__MSP430F6733__) || (__MSP430F6734__) || (__MSP430F6735__) || defined(__MSP430F6736__)
 #include <msp430f6736.h>
 #define MAX_USCI_PORTS      2
 #define ARCH_6XX

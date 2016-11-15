@@ -55,31 +55,13 @@
 */
 /* A tricky #define to stringify _Pragma parameters */
 #define __PRAGMA__(x) _Pragma(#x)
+/*concatenate two strings */
+#define CONCAT(x,y) x ## y
+/*stringfy _Pragma operator so that it is not required to pass quoted parameter*/
+#define PRAGMA(x) _Pragma(#x)
 
-#if defined(__GNUC__)  &&  defined(__MSP430__)
-    /* This is the MSPGCC compiler */
-#define ISR(a,b) interrupt(a ## _VECTOR) b(void)
-#elif defined(__AQCOMPILER__)
-    /* This is the Quadravox compiler */
-#define ISR(a,b) void _INTERRUPT[a ## _VECTOR] b(void)
-#elif defined(__IAR_SYSTEMS_ICC__)  &&  (((__TID__ >> 8) & 0x7f) == 43)  &&  (__VER__ < 200)
-    /* This is V1.xx of the IAR compiler. */
-#define ISR(a,b) interrupt[a ## _VECTOR] void b(void)
-#elif defined(__IAR_SYSTEMS_ICC__)  &&  (((__TID__ >> 8) & 0x7f) == 43)  &&  (__VER__ < 600)
-    /* This is V2.xx, V3.xx, or V4.xx or V5.xx of the IAR compiler. */
-#define ISR(a,b) \
-__PRAGMA__(vector=a ##_VECTOR) \
-__interrupt void b(void)
-#elif defined(__CROSSWORKS_MSP430)
-    /* This is the Rowley Crossworks compiler */
-#define ISR(a,b) void b __interrupt[a ## _VECTOR](void)
-#elif defined(__TI_COMPILER_VERSION)
     /* This is the Code Composer Essentials compiler. */
-#define ISR(a,b) __interrupt void b(void); \
-a ## _ISR(b) \
-__interrupt void b(void)
-#else
-    /*#error Compiler not recognised.*/
-#endif
+#define ISR(a,b) PRAGMA(vector=CONCAT(a,_VECTOR)) \
+		__interrupt void b(void)
 
 #endif

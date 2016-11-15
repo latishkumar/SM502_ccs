@@ -11,7 +11,6 @@
    
 #include "LCD_C.h"
 #include "Status.h"
-#include "RTCC.h"
 #include "Tariff.h"
 #include "Tamper.h" // for tamper types
 #include <string.h>

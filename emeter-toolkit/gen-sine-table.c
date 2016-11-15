@@ -18,7 +18,7 @@ int main (int argc, char *argv[])
             printf("\n    ");
       //  f = ((i + 0.5)/128.0)*(M_PI / 2.0);
         f = sin(f);
-        printf("0x%04X", (int) (32768.0*f));
+     //   printf("0x%04X", (int) (32768.0*f));
         if (i < TABLE_SIZE - 1)
             printf(",");
     }

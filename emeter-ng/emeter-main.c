@@ -34,8 +34,8 @@
 
 #if defined(DLMS) || defined(DLMS_IEC_21)
    #include "DLMS/DLMS.h"
-   #include "iec62056_46_link.h"
-   #include "iec62056_46_user.h"
+   #include "DLMS/core/iec62056_46_link.h"
+   #include "DLMS/core/iec62056_46_user.h"
    #include "DLMS/uart_comms.h"
 #endif
 
@@ -635,7 +635,7 @@ void main(void)
 * writes low power mode entering backup data to Flash
 */
 volatile uint8_t __backingUp=0;
-__monitor void perform_low_battry_backup()
+ void perform_low_battry_backup() //was __monitor function
 {
         // back up for no battery conditions
         if(__backingUp == 0)

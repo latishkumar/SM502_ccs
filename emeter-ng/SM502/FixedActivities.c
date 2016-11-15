@@ -58,7 +58,7 @@ uint16_t neutral_tamper_trip_counter;
 uint8_t low_bat_backup_time = 5;
 
 
-extern __monitor void perform_low_battry_backup();
+extern void perform_low_battry_backup(); //was __monitor func
 extern uint16_t NumberOfLongPowerFails; 
 extern rtc_t activePassiveCalenderTime;
 

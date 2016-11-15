@@ -697,8 +697,8 @@ const uint8_t partner_NS[] =
             TAG_UINT16, INJECT16(1)                 /* Server SAP */
 };
 
-__no_init uint8_t Data_Buffer[CHUNK_SIZE+64]; /* General purpose buffer */
-//uint8_t Data_Buffer1[128];
+__no_init__(Data_Buffer) uint8_t Data_Buffer[CHUNK_SIZE+64]; /* General purpose buffer */
+ //uint8_t Data_Buffer1[128];
 
 /* VARIABLES AND FUNCTIONS FOR COMMUNICATIONS SETUP OBJECTS */
 
@@ -1043,7 +1043,7 @@ void getSetCurrentBalance(void *data,int data_direction)
     {
       uint32_t nv_2=0;
       uint8_t *ptr2 = data;
-#pragma message("Compiling 5")
+//#pragma message("Compiling 5")
       nv_2 = *(ptr2+3);
       nv_2 |= ((uint32_t)(*(ptr2+2))<<8); 
       nv_2 |= ((uint32_t)(*(ptr2+1))<<16);  
@@ -3802,7 +3802,8 @@ void image_transfer_initiate(uint8_t *data,uint16_t data_len,uint8_t *response,u
     uint8_t type = *data++;//type is 2 struct 
     uint8_t size = *data++;//size 2
     image_ident_size = *data++; // octat string
-    for(int i=0;i<image_ident_size;i++) //read image identifier 
+    int i;
+    for(i=0;i<image_ident_size;i++) //read image identifier
     {
       image_ident[i] = *data++;
     }
@@ -3879,7 +3880,8 @@ void image_block_transfer(uint8_t *data,uint16_t data_len,uint8_t *response,uint
       uint8_t _block_size = *data++; // octate string should be 64, image_block_size
       
       //TODO write them directly to eeprom
-      for(int i=0;i<_block_size;i++) //read block
+      int i;
+      for( i=0;i<_block_size;i++) //read block
       {
         block_data[i] = *data++;
       }

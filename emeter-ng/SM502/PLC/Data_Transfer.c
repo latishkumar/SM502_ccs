@@ -17,7 +17,7 @@
 
 
 #ifdef DLMS
-#include "iec62056_46_link.h"
+#include "../../DLMS/core/iec62056_46_link.h"
 #include "../../DLMS/DLMS.h"
 #include "../../DLMS/uart_comms.h"
 
@@ -63,7 +63,7 @@ extern uint32_t MAXActivePowerTripPoint ; //in w watt steps
 extern uint8_t Frame_Received[];
 
 #ifdef DLMS
-#include "uart_comms.h"
+#include "../../DLMS/uart_comms.h"
 extern async_hdlc_tx_t *txptr[MAX_USCI_PORTS];
 #endif 
 

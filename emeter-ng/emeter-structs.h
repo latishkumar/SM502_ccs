@@ -249,7 +249,7 @@ From this information the following are calculated, using appropriate scaling fa
 #define _METER_STRUCTS_H_
 
 #if defined(CUSTOM_EMETER_H)
-#include CUSTOM_EMETER_H
+#include "emeter-1ph-neutral-6733_shunt.h"//CUSTOM_EMETER_H
 #else
 #include "emeter.h"
 #endif
