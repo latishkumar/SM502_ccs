@@ -15,7 +15,7 @@
 //#include <emeter-toolkit.h>   
 //#include "../TI_aes_128.h"
 #include "../DLMS/aes/TI_aes.h"
-#include "../Config.h"   
+#include "../config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "LPBU.h"   
