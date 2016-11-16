@@ -2,10 +2,10 @@
 /*
 
 */
-#pragma message("compiling0")
+//#pragma message("compiling0")
 #include <msp430.h>
 #include <stdint.h>
-#pragma message("compiling1")
+//#pragma message("compiling1")
 /*
   Level At witch the device can no more opearate on 
 */
@@ -25,5 +25,5 @@
           6 ==> 2.91 3.02 3.10
           7 ==> 2.91 3.02 3.10
 */
-#pragma message("compiling 2")
+//#pragma message("compiling 2")
 uint8_t CheckBattery();

@@ -443,7 +443,7 @@ void UpdateDisplay_c() {
 			UINT_VAr;
 
 			break;
-                  break;
+
 		case 4: // display the power factor
 
                         PF(1);					
@@ -479,7 +479,7 @@ void UpdateDisplay_c() {
 			UINT_HZ;
                         
 			break;
-                 break;
+
                 case 8:  //display Current balance
 
                         if(Language == EN)

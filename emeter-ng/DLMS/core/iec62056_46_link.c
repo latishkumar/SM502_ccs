@@ -439,7 +439,7 @@ void process_rx_frame(iec62056_46_link_t *link, async_hdlc_rx_t *rx)
 #if !defined(PROMISCUOUS)
           if (rx->msg_len > MAX_RX_LEN)
             {
-              asm("NOP");
+        	  __asm__ __volatile__ (" NOP");
               send_frmr(link);
             }  
 

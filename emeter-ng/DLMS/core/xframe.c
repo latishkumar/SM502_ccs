@@ -192,7 +192,7 @@ void process_snrm_frame(iec62056_46_link_t *link, const uint8_t msg[], int len)
         if (format_identifier != 0x81  ||  group_identifier != 0x80)
         {
            /* We only understand one value for this pair of fields. */
-          asm("NOP");  
+          __asm__ __volatile__ (" NOP");
           return;
         }
         group_length += i;

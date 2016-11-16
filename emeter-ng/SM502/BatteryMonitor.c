@@ -1,6 +1,6 @@
 #include "BatteryMonitor.h"
 
-#pragma message("compiling 2")
+//#pragma message("compiling 2")
 uint16_t CurrentBatteryLevel = 7;
 uint16_t btemp;
 extern uint8_t OperatingMode;
@@ -25,7 +25,7 @@ uint8_t CheckBattery()
     {
        z = 1;
     }
-    #pragma message("compiling 4")
+    //#pragma message("compiling 4")
     //battry not ok for the CurrentLevel so check for the next lower level
 
     
@@ -55,4 +55,4 @@ uint8_t CheckBattery()
 //    return 0;
     
 }
-#pragma message("compiling 5")
+//#pragma message("compiling 5")
