@@ -49,6 +49,18 @@ void enablePLC_UART();
 void disablePLC_UART();
 
 
+extern unsigned int Tx_Buffer_Index;
+extern unsigned int CurrentTX_Index ;
+extern unsigned int Rx_Bufffer_Index ;
+
+extern unsigned int CurrentTxLength ;
+extern unsigned int CurrentRxLength ;
+
+
+extern unsigned int RXCount;
+
+
+
 //extern uint8_t TX_BUF[MaxTxBufferLength];
 extern uint8_t RX_BUF[MaxRxBufferLength];
 extern PLC_Message RecivedMessage;
@@ -57,7 +69,7 @@ extern PLC_Message RecivedMessage;
 extern int Tx_Done ;
 extern int Rx_Done;
 
-void InitPLCUART();
+extern void InitPLCUART();
 /*
  The method removes data from the TX buffer by properly by handling the buffer index properly 
  
@@ -82,6 +94,6 @@ __monitor uint8_t AddtoTXBuffer(uint8_t data);
 * uart module will take care of the remaining transmission process.
 * 
 */
-void PLC_Start_SendBuffer();
+// void PLC_Start_SendBuffer();
 
 #endif /* UART_H_ */
