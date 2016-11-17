@@ -72,7 +72,7 @@ void change_uart_a1_to_8n1_x_bd(int x)
   change_boud_rate(x); //x bits
   
 }
-#include "../SM502/IEC62056/IEC62056_UART.h"
+#include "../SM502/IEC62056/IEC62056_UART.H"
 void change_uart_a1_to_7e1_x_bd(int x)
 {
   //UCA1IE=0;
