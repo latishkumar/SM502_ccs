@@ -16,17 +16,17 @@
 uint8_t TX_BUF[MaxTxBufferLength];
 uint8_t RX_BUF[MaxRxBufferLength];
 
-unsigned int Tx_Buffer_Index  = 0;
-unsigned int CurrentTX_Index = 0;
-unsigned int Rx_Bufffer_Index = 0;
-
-unsigned int CurrentTxLength = 0;
-unsigned int CurrentRxLength = 0;
-
-int Tx_Done = 1;
-int Rx_Done = 1;
-
-unsigned int RXCount = 0;
+//unsigned int Tx_Buffer_Index  = 0;
+//unsigned int CurrentTX_Index = 0;
+//unsigned int Rx_Bufffer_Index = 0;
+//
+//unsigned int CurrentTxLength = 0;
+//unsigned int CurrentRxLength = 0;
+//
+//int Tx_Done = 1;
+//int Rx_Done = 1;
+//
+//unsigned int RXCount = 0;
 
 PLC_Message RecivedMessage;
 
@@ -42,7 +42,7 @@ extern MeterStatus status;
 
 
 #ifdef KIT
-void InitPLCUART()
+void InitPLCUART_Orig()
 {
   
   UCA1CTLW0 |= UCSWRST; //reset for configuration 
@@ -84,7 +84,7 @@ void InitPLCUART()
 //  UCA1TXBUF=27;
 }
 
-void PLC_Byte_Recived(uint8_t data)
+void PLC_Byte_Recived_Orig(uint8_t data)
 {
         switch(MessageStatus)
         {
@@ -219,7 +219,7 @@ void PLC_Start_SendBuffer()
 
 //// USCI_A1 interrupt service routine
 #pragma vector=USCI_A1_VECTOR
-__interrupt void USCI_A1_ISR(void)
+__interrupt void USCI_A1_ISR_Orig(void)
 {
     switch (__even_in_range(UCA1IV, USCI_UART_UCTXCPTIFG))
     {
@@ -229,7 +229,7 @@ __interrupt void USCI_A1_ISR(void)
 //            while (!(UCA0IFG & UCTXIFG)) ;  // USCI_A0 TX buffer ready?
 //            UCA0TXBUF = UCA0RXBUF;          // TX -> RXed character
 //            break;
-        	PLC_Byte_Recived(UCA1RXBUF);
+        	PLC_Byte_Recived_Orig(UCA1RXBUF);
         case USCI_UART_UCTXIFG:
                 //UCA1TXBUF = 67;
         	//if(Tx_Buffer_Index < CurrentTxLength)
@@ -270,7 +270,7 @@ __interrupt void USCI_A1_ISR(void)
 
 
 
-void InitPLCUART()
+void InitPLCUART_Orig()
 {
   
   UCA0CTLW0 |= UCSWRST; //reset for configuration 
@@ -312,7 +312,7 @@ void InitPLCUART()
 //  UCA1TXBUF=27;
 }
 
-void PLC_Byte_Recived(uint8_t data)
+void PLC_Byte_Recived_Orig(uint8_t data)
 {
 
         switch(MessageStatus)
@@ -411,7 +411,7 @@ void PLC_Byte_Recived(uint8_t data)
         
 }
 
-__monitor uint8_t AddtoTXBuffer(uint8_t data)
+__monitor uint8_t AddtoTXBuffer_Orig(uint8_t data)
 {
 	
 
@@ -425,7 +425,7 @@ __monitor uint8_t AddtoTXBuffer(uint8_t data)
         Tx_Buffer_Index++;
    return 1;
 }
-void PLC_Start_SendBuffer()
+void PLC_Start_SendBuffer_Orig()
 {
     //CurrentTxLength = Tx_Buffer_Index;
     //Tx_Buffer_Index = 0;
@@ -448,7 +448,7 @@ void PLC_Start_SendBuffer()
 
 //// USCI_A1 interrupt service routine
 #pragma vector=USCI_A0_VECTOR
-__interrupt void USCI_A0_ISR(void)
+__interrupt void USCI_A0_ISR_Orig(void)
 {
     switch (__even_in_range(UCA0IV, USCI_UART_UCTXCPTIFG))
     {
@@ -458,7 +458,7 @@ __interrupt void USCI_A0_ISR(void)
 //            while (!(UCA0IFG & UCTXIFG)) ;  // USCI_A0 TX buffer ready?
 //            UCA0TXBUF = UCA0RXBUF;          // TX -> RXed character
 //            break;
-        	PLC_Byte_Recived(UCA0RXBUF);
+        	PLC_Byte_Recived_Orig(UCA0RXBUF);
         case USCI_UART_UCTXIFG:
                 //UCA0TXBUF = 67;
         	//if(Tx_Buffer_Index < CurrentTxLength)
