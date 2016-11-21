@@ -16,7 +16,7 @@
 #include "../Schaduler.h"
 Queue plc_tx_buff;
 //uint8_t TX_BUF[MaxTxBufferLength];
-//uint8_t RX_BUF[MaxRxBufferLength];
+uint8_t RX_BUF[MaxRxBufferLength];
 
 unsigned int Tx_Buffer_Index  = 0;
 unsigned int CurrentTX_Index = 0;
