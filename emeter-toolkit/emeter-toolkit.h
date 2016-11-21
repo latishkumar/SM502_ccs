@@ -120,10 +120,10 @@ typedef unsigned short istate_t;
 //#define MPY_BASE    0x130
 //#endif
 
-#define RES16_32_           RESLO //(MPY_BASE + 10)   /* 16x16 bit result */
-#if !defined(__IAR_SYSTEMS_ICC__)
-//DEFL(   RES16_32          , RES16_32_)
-#else
+#define RES16_32_           (MPY_BASE + 10)   /* 16x16 bit result */
+//#if !defined(__IAR_SYSTEMS_ICC__)
+////DEFL(   RES16_32          , RES16_32_)
+//#else
 typedef union
 {
   DEFXC                               RES16_8[4];
@@ -135,7 +135,7 @@ typedef union
 #define RES16_16 DEF(RES16_32_U,RES16_32_,RES16_16)
 #define RES16_32 DEF(RES16_32_U,RES16_32_,RES16_32)
 
-#endif
+//#endif
 
 #endif
 
@@ -150,9 +150,9 @@ typedef union
 #define MPY32_	(MPY32_BASE2 + 0)
 
 //#define MPY32_              MPY32L    /* Multiply Unsigned Operand 1 */
-#if !defined(__IAR_SYSTEMS_ICC__)
-//DEFL(   MPY32             , MPY32_)
-#else
+//#if !defined(__IAR_SYSTEMS_ICC__)
+////DEFL(   MPY32             , MPY32_)
+//#else
 typedef union
 {
 	DEFXC                               MPY8[4];
@@ -163,12 +163,12 @@ typedef union
 #define MPY8 	DEF(MPY32_U,MPY32_,MPY8)
 #define MPY16	DEF(MPY32_U,MPY32_,MPY16)
 #define MPY32	DEF(MPY32_U,MPY32_,MPY32)
-#endif
+//#endif
 
-#define MPYS32_             MPYS32L //(MPY32_BASE + 4)    /* Multiply Signed Operand 1 */
-#if !defined(__IAR_SYSTEMS_ICC__)
-//DEFL(   MPYS32            , MPYS32_)
-#else
+#define MPYS32_           (MPY32_BASE + 4)    /* Multiply Signed Operand 1 */
+//#if !defined(__IAR_SYSTEMS_ICC__)
+////DEFL(   MPYS32            , MPYS32_)
+//#else
 typedef union
 {
 	DEFXC                               MPYS8[4];
@@ -179,12 +179,12 @@ typedef union
 #define MPYS8 DEF(MPYS32_U,MPYS32_,MPYS8)
 #define MPYS16 DEF(MPYS32_U,MPYS32_,MPYS16)
 #define MPYS32 DEF(MPYS32_U,MPYS32_,MPYS32)
-#endif
+//#endif
 
-#define MAC32_              MAC32L  //(MPY32_BASE + 8)    /* MAC Unsigned Operand 1 */
-#if !defined(__IAR_SYSTEMS_ICC__)
-//DEFL(   MAC32             , MAC32_)
-#else
+#define MAC32_              (MPY32_BASE + 8)    /* MAC Unsigned Operand 1 */
+//#if !defined(__IAR_SYSTEMS_ICC__)
+////DEFL(   MAC32             , MAC32_)
+//#else
 typedef union
 {
 	DEFXC                               MAC8[4];
@@ -195,12 +195,12 @@ typedef union
 #define MAC8 	DEF(MAC32_U,MAC32_,MAC8)
 #define MAC16 	DEF(MAC32_U,MAC32_,MAC16)
 #define MAC32 	DEF(MAC32_U,MAC32_,MAC32)
-#endif
+//#endif
 
-#define MACS32_             MACS32L //(MPY32_BASE + 12)   /* MAC Signed Operand 1 */
-#if !defined(__IAR_SYSTEMS_ICC__)
-//DEFL(   MACS32            , MACS32_)
-#else
+#define MACS32_            (MPY32_BASE + 12)   /* MAC Signed Operand 1 */
+//#if !defined(__IAR_SYSTEMS_ICC__)
+////DEFL(   MACS32            , MACS32_)
+//#else
 typedef union
 {
 	DEFXC                               MACS8[4];
@@ -211,12 +211,12 @@ typedef union
 #define MACS8  DEF(MACS32_U,MACS32_,MACS8)
 #define MACS16 DEF(MACS32_U,MACS32_,MACS16)
 #define MACS32 DEF(MACS32_U,MACS32_,MACS32)
-#endif
+//#endif
 
-#define OP2_32_             OP2L //(MPY32_BASE + 16)   /* Operand 2 */
-#if !defined(__IAR_SYSTEMS_ICC__)
-//DEFL(   OP2_32            , OP2_32_)
-#else
+#define OP2_32_             (MPY32_BASE + 16)   /* Operand 2 */
+//#if !defined(__IAR_SYSTEMS_ICC__)
+////DEFL(   OP2_32            , OP2_32_)
+//#else
 typedef union
 {
   DEFXC                               OP2_8[4];
@@ -227,12 +227,12 @@ typedef union
 #define OP2_8  	DEF(OP2_32_U,OP2_32_,OP2_8)
 #define OP2_16  	DEF(OP2_32_U,OP2_32_,OP2_16)
 #define OP2_32X 	DEF(OP2_32_U,OP2_32_,OP2_32X)
-#endif
+//#endif
 
-#define RES64_              RES0  //(MPY32_BASE + 20)   /* 32x32 bit result */
-#if !defined(__IAR_SYSTEMS_ICC__)
-//DEFLL(  RES64             , RES64_)
-#else
+#define RES64_              (MPY32_BASE + 20)   /* 32x32 bit result */
+//#if !defined(__IAR_SYSTEMS_ICC__)
+////DEFLL(  RES64             , RES64_)
+//#else
 typedef union
 {
 	DEFXC                               RES8[8];
@@ -245,7 +245,8 @@ typedef union
 #define RES16 	DEF(RES64_U,RES64_,RES16)
 #define RES32	DEF(RES64_U,RES64_,RES32)
 #define RES64	DEF(RES64_U,RES64_,RES64)
-#endif
+
+//#endif
 
 #endif
 
@@ -253,10 +254,10 @@ typedef union
 #if defined(__MSP430_HAS_SD24_B__)
 #define SD24BMEM0_32_       (0x0850u)
 
-#if !defined(__IAR_SYSTEMS_ICC__)
-//DEFL(   SD24BMEM0_32      , SD24BMEM0_32_)
-#else
-#pragma location = 0x0850u
+//#if !defined(__IAR_SYSTEMS_ICC__)
+////DEFL(   SD24BMEM0_32      , SD24BMEM0_32_)
+//#else
+//#pragma location = 0x0850u
 typedef union
 {
 	DEFXC                               SD24BMEM0_8[4];
@@ -268,12 +269,12 @@ typedef union
 #define SD24BMEM0_16		DEF(SD24BMEM0_32_U,SD24BMEM0_32_,SD24BMEM0_16)
 #define SD24BMEM0_32		DEF(SD24BMEM0_32_U,SD24BMEM0_32_,SD24BMEM0_32)
 
-#endif
+//#endif
 
 #define SD24BMEM1_32_       (0x0854u)
-#if !defined(__IAR_SYSTEMS_ICC__)
-//DEFL(   SD24BMEM1_32      , SD24BMEM1_32_)
-#else
+//#if !defined(__IAR_SYSTEMS_ICC__)
+////DEFL(   SD24BMEM1_32      , SD24BMEM1_32_)
+//#else
 typedef union
 {
 	DEFXC                               SD24BMEM1_8[4];
@@ -284,13 +285,13 @@ typedef union
 #define SD24BMEM1_8		DEF(SD24BMEM1_32_U,SD24BMEM1_32_,SD24BMEM1_8)
 #define SD24BMEM1_16 	DEF(SD24BMEM1_32_U,SD24BMEM1_32_,SD24BMEM1_16)
 #define SD24BMEM1_32 	DEF(SD24BMEM1_32_U,SD24BMEM1_32_,SD24BMEM1_32)
-#endif
+//#endif
 
 #define SD24BMEM2_32_       (0x0858u)
-#if !defined(__IAR_SYSTEMS_ICC__)
-//DEFL(   SD24BMEM2_32      , SD24BMEM2_32_)
-#else
-#pragma location = 0x0858u
+//#if !defined(__IAR_SYSTEMS_ICC__)
+////DEFL(   SD24BMEM2_32      , SD24BMEM2_32_)
+//#else
+//#pragma location = 0x0858u
 typedef union
 {
 	DEFXC                               SD24BMEM2_8[4];
@@ -302,7 +303,7 @@ typedef union
 #define SD24BMEM2_16	DEF(SD24BMEM2_32_U,SD24BMEM2_32_,SD24BMEM2_16)
 #define SD24BMEM2_32 DEF(SD24BMEM2_32_U,SD24BMEM2_32_,SD24BMEM2_32)
 
-#endif
+//#endif
 
 #endif
 
@@ -437,65 +438,65 @@ static __inline__ int16_t Q1_15_mul(int16_t x, int16_t y)
     return res >> 16;
 }
 
-static __inline__ int16_t q1_15_mulr(int16_t x, int16_t y)
-{
-   int32_t res;
-    istate_t istate;
+//static __inline__ int16_t q1_15_mulr(int16_t x, int16_t y)
+//{
+//   int32_t res;
+//    istate_t istate;
+//
+//    istate = __get_interrupt_state();
+//    __disable_interrupt();
+//    MPYS = y;
+//    OP2 = x;
+//    res = (RES32[0] + 0x4000L) << 1;
+//    __set_interrupt_state(istate);
+//    return res >> 16;
+//}
 
-    istate = __get_interrupt_state();
-    __disable_interrupt();
-    MPYS = y;
-    OP2 = x;
-    res = (RES32[0] + 0x4000L) << 1;
-    __set_interrupt_state(istate);
-    return res >> 16;
-}
+//static __inline__ int32_t imul16(int16_t x, int16_t y)
+//{
+//   int32_t res;
+//    istate_t istate;
+//
+//    istate = __get_interrupt_state();
+//    __disable_interrupt();
+//    MPYS = y;
+//    OP2 = x;
+//    res = RES32[0];
+//    __set_interrupt_state(istate);
+//    return res;
+//}
 
-static __inline__ int32_t imul16(int16_t x, int16_t y)
-{
-   int32_t res;
-    istate_t istate;
+//static __inline__ int32_t mul48_32_16(int32_t x, int16_t y)
+//{
+//    int32_t res;
+//    istate_t istate;
+//
+//    istate = __get_interrupt_state();
+//    __disable_interrupt();
+//    MPYS32 = x;
+//    OP2 = y;
+//    _NOP();
+//    _NOP();
+//    res = *((int32_t *) &RES16[1]);
+//    __set_interrupt_state(istate);
+//    return res;
+//}
 
-    istate = __get_interrupt_state();
-    __disable_interrupt();
-    MPYS = y;
-    OP2 = x;
-    res = RES32[0];
-    __set_interrupt_state(istate);
-    return res;
-}
-
-static __inline__ int32_t mul48_32_16(int32_t x, int16_t y)
-{
-    int32_t res;
-    istate_t istate;
-
-    istate = __get_interrupt_state();
-    __disable_interrupt();
-    MPYS32 = x;
-    OP2 = y;
-    _NOP();
-    _NOP();
-    res = *((int32_t *) &RES16[1]);
-    __set_interrupt_state(istate);
-    return res;
-}
-
-static __inline__ uint32_t mul48u_32_16(uint32_t x, uint16_t y)
-{
-    uint32_t res;
-    istate_t istate;
-
-    istate = __get_interrupt_state();
-    __disable_interrupt();
-    MPY32 = x;
-    OP2 = y;
-    _NOP();
-    _NOP();
-    res = *((uint32_t *) &RES16[1]);
-    __set_interrupt_state(istate);
-    return res;
-}
+//static __inline__ uint32_t mul48u_32_16(uint32_t x, uint16_t y)
+//{
+//    uint32_t res;
+//    istate_t istate;
+//
+//    istate = __get_interrupt_state();
+//    __disable_interrupt();
+//    MPY32 = x;
+//    OP2 = y;
+//    _NOP();
+//    _NOP();
+//    res = *((uint32_t *) &RES16[1]);
+//    __set_interrupt_state(istate);
+//    return res;
+//}
 
 
 
@@ -510,21 +511,21 @@ static __inline__ void int64_to_48(int16_t y[3], int64_t x)
 #define assign64(y,x)   (y = x)
 
 
-static __inline__ void sqac64_24(int64_t *z, int32_t x)
-{
-    /* This does not protect against interrupts. It is only for use within an interrupt routine */
-    MPYS32 = x;
-    OP2_32X = x;
-    *z += RES64;
-}
+//static __inline__ void sqac64_24(int64_t *z, int32_t x)
+//{
+//    /* This does not protect against interrupts. It is only for use within an interrupt routine */
+//    MPYS32 = x;
+//    OP2_32X = x;
+//    *z += RES64;
+//}
 
-static __inline__ void mac64_16_24(int64_t *z, int16_t x, int32_t y)
-{
-    /* This does not protect against interrupts. It is only for use within an interrupt routine */
-    MPYS32 = y;
-    OP2 = x;
-    *z += RES64;
-}
+//static __inline__ void mac64_16_24(int64_t *z, int16_t x, int32_t y)
+//{
+//    /* This does not protect against interrupts. It is only for use within an interrupt routine */
+//    MPYS32 = y;
+//    OP2 = x;
+//    *z += RES64;
+//}
 
 
 
@@ -563,11 +564,11 @@ extern int32_t dc_filter24(int16_t p[3], int32_t x);
 
 extern void dc_filter24_init(int16_t p[3], int16_t x);
 
-//extern void sqac64_24(int64_t *z, int32_t x);
+extern void sqac64_24(int64_t *z, int32_t x);
 
 void sqac48_16(int16_t z[3], int16_t x);
 
-//extern void mac64_16_24(int64_t *z, int16_t x, int32_t y);
+extern void mac64_16_24(int64_t *z, int16_t x, int32_t y);
 
 //extern int32_t mul48_32_16(int32_t x, int16_t y);
 

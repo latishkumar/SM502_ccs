@@ -89,12 +89,12 @@ It supports a wide range of anti-tamper features;
 
 \section multirate Multi-rate and tri-vector features
 
-Multi-rate features vary considerably. This software provides sophisticated multi-rate features, for single and 3-phase meters. It does this will very modest flash and RAM usage. The software currently stores all schedules, and recorded usage, in an external EEPROM or FRAM. The schedules could be stored in a section of the MCU¡¦s flash, with a few changes to the code.
+Multi-rate features vary considerably. This software provides sophisticated multi-rate features, for single and 3-phase meters. It does this will very modest flash and RAM usage. The software currently stores all schedules, and recorded usage, in an external EEPROM or FRAM. The schedules could be stored in a section of the MCUï¿½ï¿½s flash, with a few changes to the code.
 
 This multi-rate software provides the following features:
 
     - Multi-rate tariff gathering of usage information
-    - Assessment of the time and sizes of each day¡¦s peak demand.
+    - Assessment of the time and sizes of each dayï¿½ï¿½s peak demand.
     - Storing schedules and gathered information in an external serial EEPROM or FRAM.
     - Downloading schedules from a remote computer
     - Uploading the gathered information to a remote computer
@@ -103,7 +103,7 @@ This multi-rate software provides the following features:
 Most of the limits in the following description are set be definitions in the source code. If there is sufficient EEPROM space, changing these definitions will change the limits. This has little effect on code size or RAM usage. It does, of course, affect the size of EEPROM required.
 
     - The software provides for up to 8 tariffs. Usage information is gathered separately for each of these tariffs, between specified cutoff dates.
-    - Up to 8 daily schedules may be configured. Each schedule may specify up to 8 time slots. Each time slot may be assigned to any of the tariffs. Typically only 3 schedules would be required ¡V weekdays, Saturdays and Sundays/public holidays.
+    - Up to 8 daily schedules may be configured. Each schedule may specify up to 8 time slots. Each time slot may be assigned to any of the tariffs. Typically only 3 schedules would be required ï¿½V weekdays, Saturdays and Sundays/public holidays.
     - Each weekday may be assigned to one of the tariff schedules.
     - A list of up to 32 public holidays may be configured. These override the normal weekday tariff patterns. Holidays may be assigned to any of the tariff schedules.
     - Up to 12 billing cut-off dates may be configured. Between these dates, the meter accumulates the total energy used for each of the tariffs. The meter stores the last 12 sets of these values, to allow the meter to be read infrequently. Note the actual cutoff point is midnight on the day preceding the specified day.
@@ -219,7 +219,7 @@ When the end of a block of samples is declared, the currently accumulated dot pr
     - The dot product for the active power \f$V{\cdot}I = \Sigma_{k=0}^N{v_k}{i_k}\f$
     - The dot product for the reactive power \f$V_{90}{\cdot}I = \Sigma_{k=0}^N{v_{90_k}}{i_k}\f$
 
-A flag is also set to tell the back end processing that new data is available. The counts are cleared, and the accumulation process begins again.
+A flag is also set to tstructsell the back end processing that new data is available. The counts are cleared, and the accumulation process begins again.
 
 To evaluate the mains frequency, the number of sample between positive zero crossings of the waveform is counted, and filtered using a single pole IIR filter. By using a 32 bit result register in the filter, and filtering the cycles lengths into the top 16 bits, the mains frequency is estimated to about 0.01Hz accuracy over many cycles of the mains waveform. To minimise the effects of noise spikes, and the mains power switching on and off, excessively long or short mains cycles are not counted.
 
@@ -244,7 +244,7 @@ From this information the following are calculated, using appropriate scaling fa
     - Apparent (VA) power is \f$V_{rms}I_{rms}\f$
     - Power_factor [ie \f$\left|cos{\phi}\right|\f$] is \f$\frac{V{\cdot}I}{\sqrt{(V{\cdot}V)(I{\cdot}I)}}\f$
 */
-
+//#include<emeter-toolkit.h>
 #if !defined(_METER_STRUCTS_H_)
 #define _METER_STRUCTS_H_
 
@@ -945,6 +945,7 @@ struct nv_parms_s
 #endif
     /*! \brief A snapshot of the meter's RTC, taken at calibration time. If the calibration process
                has correctly set the RTC, this should be a record of when the meter was calibrated. */
+
     rtc_t rtc_at_calibration;
     /*! \brief Pad to word alignment */
     uint8_t xxx;

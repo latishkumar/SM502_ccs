@@ -56,7 +56,7 @@ STACK_USED .set 6
 STACK_USED .set 3
      .endif
 
-;int32_t imul16(int16_t x, int16_t y)
+	;int32_t imul16(int16_t x, int16_t y)
     .global imul16
     .text
     .align  2
