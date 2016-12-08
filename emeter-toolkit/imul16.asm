@@ -33,7 +33,7 @@
 ;
 ;******************************************************************************
 
-    .cdecls C,LIST,"msp430.h"
+    .cdecls C,LIST,"msp430.h","in430.h"
     .include "if_macros.asm"
 
 ;This routine implements a 16x16->32 2's complement multiplier. If a hardware
@@ -64,6 +64,7 @@ imul16:     .asmfunc stack_usage(STACK_USED)
  .if ($defined(__MSP430_HAS_MPY__)  |  $defined(__MSP430_HAS_MPY32__))  &  !$defined(__TOOLKIT_USE_SOFT_MPY__)
     push    SR
     dint
+    ;nop : it is an overkill in assembly so skip it
     mov.w   x,&MPYS
     mov.w   y,&OP2
     mov.w   &RESHI,ret_hi

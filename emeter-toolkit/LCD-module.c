@@ -110,7 +110,7 @@ static __inline__ void delay_a(void)
         " dec   %[i] \n"
         " jge   1b \n"
         : [i] "+r"(i));
-#elif defined(__AQCOMPILER__)  ||  defined(__IAR_SYSTEMS_ICC__)
+#elif defined(__AQCOMPILER__)  ||  defined(__IAR_SYSTEMS_ICC__) || defined(__TI_COMPILER_VERSION__)  //added TI Compiler
     for (i = 10;  i > 0;  i--)
         _NOP();
 #endif
@@ -127,7 +127,7 @@ static __inline__ void delay_b(void)
         " dec   %[i] \n"
         " jge   1b \n"
         : [i] "+r"(i));
-#elif defined(__AQCOMPILER__)  ||  defined(__IAR_SYSTEMS_ICC__)
+#elif defined(__AQCOMPILER__)  ||  defined(__IAR_SYSTEMS_ICC__) || defined(__TI_COMPILER_VERSION__)  //added TI Compiler
     for (i = 90;  i > 0;  i--)
         _NOP();
 #endif

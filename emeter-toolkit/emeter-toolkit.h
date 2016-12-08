@@ -256,7 +256,7 @@ typedef union
 //#if !defined(__IAR_SYSTEMS_ICC__)
 ////DEFL(   SD24BMEM0_32      , SD24BMEM0_32_)
 //#else
-#pragma location = 0x0850u
+//#pragma location = (0x0850u)
 typedef union
 {
 	DEFXC                               SD24BMEM0_8[4];
@@ -290,7 +290,7 @@ typedef union
 //#if !defined(__IAR_SYSTEMS_ICC__)
 ////DEFL(   SD24BMEM2_32      , SD24BMEM2_32_)
 //#else
-#pragma location = 0x0858u
+//#pragma location = 0x0858u
 typedef union
 {
 	DEFXC                               SD24BMEM2_8[4];
