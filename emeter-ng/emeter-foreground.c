@@ -143,14 +143,14 @@ void set_sd16_phase_correction(struct phase_correction_sd16_s *s, int ph, int co
   #endif      
     {
     #if defined(SINGLE_PHASE)
-        &SD16PRE_LIVE,
+       (unsigned short *) &SD16PRE_LIVE,
     #else
         &SD16PRE_CURRENT_1,
         &SD16PRE_CURRENT_2,
         &SD16PRE_CURRENT_3,
     #endif
     #if defined(NEUTRAL_MONITOR_SUPPORT)
-        &SD16PRE_NEUTRAL
+		(unsigned short *) &SD16PRE_NEUTRAL
     #endif
     };
     uint8_t bump;
