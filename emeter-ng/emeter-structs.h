@@ -437,7 +437,7 @@ typedef int32_t current_dc_estimate_t[1];
 #define __infomem__ _Pragma("location=\"INFO\"")
 #define __erasablemem__ /**/
 #else
-#define __infomem__     /**/
+#define __infomem__ //#pragma DATA_SECTION(nv_parms, ".infoD")     /**/
 #define __erasablemem__ /**/
 #endif
 
@@ -1079,7 +1079,8 @@ extern struct phase_parms_s chan[NUM_PHASES];
 extern struct neutral_parms_s neutral_c;
     #endif
 #endif
-__infomem__ extern const struct info_mem_s nv_parms;
+//__infomem__
+extern const struct info_mem_s nv_parms;
 extern const struct nv_parms_s nv_def;
 
 #if defined(SINGLE_PHASE)

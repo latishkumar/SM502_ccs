@@ -413,5 +413,80 @@ uint8_t EEPROM2_WriteNextLong(unsigned long c,uint8_t end)
 	return 1;
 }
 
+/***
+ * Functions below are added for usb firmware upgrade support
+ */
 
+uint8_t read_mem(uint8_t* buff, uint32_t start_addres, uint32_t size)
+{
+	uint8_t x = 0;
+	uint8_t z=0;
+	int i;
+	z = EEPROM2_ReadInt8(start_addres,0,&x);
 
+	if(z==0)
+	{
+		return 0;
+	}
+
+	*buff = x;
+
+	for(i=1;i<size;i++)
+	{
+		if(i<size-1)
+		{
+			z = EEPROM2_ReadNextInt8(0,&x);
+		}
+		else
+		{
+			z = EEPROM2_ReadNextInt8(1,&x); //stop read cycle
+		}
+		if(z==0)
+		{
+			return 0;
+		}
+		*(buff + i) = x;
+	}
+
+	return 1;
+
+}
+
+void eeprom_read(void* res,uint32_t start_addres,uint32_t byte_length)
+{
+	read_mem((uint8_t*)res,start_addres,byte_length);
+}
+
+uint8_t write_mem(uint8_t* buff, uint32_t start_addres, uint32_t size)
+{
+	uint8_t z=0;
+	z= EEPROM2_WriteInt8(*buff,start_addres,0);
+	if(z==0)
+	{
+		return z;
+	}
+	int i;
+	for(i=1;i<size;i++)
+	{
+		if(i<size-1)
+		{
+			z= EEPROM2_WriteNextInt8(*(buff+i),0);
+		}
+		else
+		{
+			z= EEPROM2_WriteNextInt8(*(buff+i),1);
+		}
+		if(z==0)
+		{
+			return z;
+		}
+
+	}
+
+	return 1;
+
+}
+int eeprom_write(const void* data,uint32_t start_addres,uint32_t byte_length)
+{
+	return (write_mem((uint8_t*) data, start_addres, byte_length));
+}

@@ -515,7 +515,7 @@ int read_from_eeprom(void *readArgument_1,void *readArgument_2,int8_t(*read)(voi
 
 
 #define SerialNumberStart power_breaks_start +  power_breaks_SIZE //2361  //0 serial no requires 12 byte
-#define SerialNumber_SIZE 12ul
+#define SerialNumber_SIZE 11ul//12ul[E.E] Serial number variable defined is 11 bytes
 
 #define Manufacturer_NameStart SerialNumberStart + SerialNumber_SIZE //2373 //1 manufacturer name requires 21byte
 #define Manufacturer_Name_SIZE 21ul

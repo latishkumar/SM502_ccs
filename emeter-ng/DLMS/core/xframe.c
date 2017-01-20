@@ -261,10 +261,10 @@ void process_disc_frame(iec62056_46_link_t *link, const uint8_t msg[], int len)
     link->disconnected = TRUE;
     link->configured = FALSE;
     link->far_msap = 0;
-    if(link->port==1 && local_comm_exchange_mode_flag==0)
+    if(link->port==1 && local_comm_exchange_mode_flag==0)//change to default config. 7E1@300
     {
       while(Transmit&&!IEC_Tx_Done);
-      configure_uart_port(link->port,0);
+      configure_uart_port(1,0);
     }
 }
 /*- End of function --------------------------------------------------------*/

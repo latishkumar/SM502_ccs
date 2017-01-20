@@ -5,7 +5,9 @@
 * Low power back up flash structure 
 *
 */
-__infoAmem__ extern const struct info_mem_a_s backup =
+//__infoAmem__
+#pragma DATA_SECTION(backup, ".infoB")
+extern const struct info_mem_a_s backup =
 {
   {
     {

@@ -242,7 +242,10 @@ void getHardwareTime(rtc_t *rtc)
             
 }
 
-ISR(RTC, one_second_ticker)
+//ISR(RTC, one_second_ticker)
+#pragma vector=RTC_VECTOR
+__interrupt void one_second_ticker(void)
+//void one_second_ticker(void)
 {
     switch(RTCIV)
     {
@@ -356,6 +359,8 @@ ISR(RTC, one_second_ticker)
                 set_rtc_sumcheck();
                                            
       break;
+      default:
+        	break;
     }
 }
 

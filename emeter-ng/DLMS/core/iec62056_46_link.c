@@ -717,7 +717,7 @@ void iec62056_46_rx_byte(iec62056_46_link_t *link, async_hdlc_rx_t *rx, uint8_t 
         {
             rx->state = ASYNC_RX_STATE_FLAGGED;
 #if defined(__MSP430__)
-            P1OUT ^= BIT0;
+//            P1OUT ^= BIT0;
 #endif
             break;
         }
@@ -824,7 +824,7 @@ printf("Got a 'Switch to mode E' stage 2 request\n");
         rx->state = ASYNC_RX_STATE_IDLE;
         configure_uart_port(link->port, 2);
 #if defined(__MSP430__)
-        P1OUT ^= BIT1;
+//        P1OUT ^= BIT1;
 #endif
         break;
     case ASYNC_RX_STATE_FLAGGED:
@@ -1013,7 +1013,7 @@ printf("Got a 'Switch to mode E' stage 2 request\n");
                demand another flag as reception resumes. */
             rx->state = ASYNC_RX_STATE_FLAGGED;
 #if defined(__MSP430__)
-            P1OUT ^= BIT0;
+//            P1OUT ^= BIT0;
 #endif
             rx->crc = 0xFFFF;
             break;

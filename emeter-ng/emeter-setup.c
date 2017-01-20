@@ -750,6 +750,7 @@ void system_setup(void)
     /* There seems no benefit in waiting for the FLL to settle at this point. */
     UCSCTL8 &=~MODOSCREQEN & ~SMCLKREQEN & ~MCLKREQEN & ~ACLKREQEN;
 
+
     #if defined (__MSP430_HAS_AUX_SUPPLY__)
 
           PMMCTL0_H = PMMPW_H;    
@@ -768,6 +769,7 @@ void system_setup(void)
 
           AUXCTL0 = 0;
     #endif
+
         
     
 
@@ -936,6 +938,7 @@ void system_setup(void)
     #endif
 }
 #endif
+
 
 #if defined(__MSP430__)
 void switch_to_normal_mode(void)

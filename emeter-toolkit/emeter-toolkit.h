@@ -74,7 +74,6 @@ typedef unsigned short istate_t;
 #if defined(__MSP430__)
 #include <msp430.h>
 #include "isr_compat.h"
-#include "extra_peripheral_definitions.h"
 /*For NOINIT variables - variables that are not zero-initialized at startup or reset. */
 //#define __no_init __attribute__((noinit))
 
@@ -120,7 +119,7 @@ typedef unsigned short istate_t;
 //#define MPY_BASE    0x130
 //#endif
 
-#define RES16_32_           (MPY_BASE + 10)   /* 16x16 bit result */
+#define RES16_32_           (0x4CA)//(MPY_BASE + 10)   /* 16x16 bit result */
 //#if !defined(__IAR_SYSTEMS_ICC__)
 ////DEFL(   RES16_32          , RES16_32_)
 //#else
@@ -165,7 +164,7 @@ typedef union
 #define MPY32	DEF(MPY32_U,MPY32_,MPY32)
 //#endif
 
-#define MPYS32_            (MPY32_BASE + 4)    /* Multiply Signed Operand 1 */
+#define MPYS32_            (0x4D4)//(MPY32_BASE + 4)    /* Multiply Signed Operand 1 */
 //#if !defined(__IAR_SYSTEMS_ICC__)
 ////DEFL(   MPYS32            , MPYS32_)
 //#else
@@ -181,7 +180,7 @@ typedef union
 #define MPYS32 DEF(MPYS32_U,MPYS32_,MPYS32)
 //#endif
 
-#define MAC32_              (MPY32_BASE + 8)    /* MAC Unsigned Operand 1 */
+#define MAC32_              (0x4D8)//(MPY32_BASE + 8)    /* MAC Unsigned Operand 1 */
 //#if !defined(__IAR_SYSTEMS_ICC__)
 ////DEFL(   MAC32             , MAC32_)
 //#else
@@ -197,7 +196,7 @@ typedef union
 #define MAC32 	DEF(MAC32_U,MAC32_,MAC32)
 //#endif
 
-#define MACS32_            (MPY32_BASE + 12)   /* MAC Signed Operand 1 */
+#define MACS32_            (0x4DC)//(MPY32_BASE + 12)   /* MAC Signed Operand 1 */
 //#if !defined(__IAR_SYSTEMS_ICC__)
 ////DEFL(   MACS32            , MACS32_)
 //#else
@@ -213,7 +212,7 @@ typedef union
 #define MACS32 DEF(MACS32_U,MACS32_,MACS32)
 //#endif
 
-#define OP2_32_            (MPY32_BASE + 16)   /* Operand 2 */
+#define OP2_32_            (0x4E0)//(MPY32_BASE + 16)   /* Operand 2 */
 //#if !defined(__IAR_SYSTEMS_ICC__)
 ////DEFL(   OP2_32            , OP2_32_)
 //#else
@@ -229,7 +228,7 @@ typedef union
 #define OP2_32X 	DEF(OP2_32_U,OP2_32_,OP2_32X)
 //#endif
 
-#define RES64_             (MPY32_BASE + 20)   /* 32x32 bit result */
+#define RES64_             (0x4E4)//(MPY32_BASE + 20)   /* 32x32 bit result */
 //#if !defined(__IAR_SYSTEMS_ICC__)
 ////DEFLL(  RES64             , RES64_)
 //#else

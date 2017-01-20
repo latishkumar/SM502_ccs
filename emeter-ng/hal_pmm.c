@@ -169,7 +169,7 @@ unsigned int SetVCoreUp (unsigned char level)
 
 // Disable SVS/SVM Low
 // Disable full-performance mode to save energy
-  SVSMLCTL &= ~(_HAL_PMM_DISABLE_SVSL_+_HAL_PMM_DISABLE_SVML_+_HAL_PMM_SVSFP );
+  SVSMLCTL &= ~~(_HAL_PMM_SVSLE+_HAL_PMM_SVMLE+_HAL_PMM_SVSFP);//(_HAL_PMM_DISABLE_SVSL_+_HAL_PMM_DISABLE_SVML_+_HAL_PMM_SVSFP );
 
   // Clear all Flags
   PMMIFG &= ~(SVMHVLRIFG | SVMHIFG | SVSMHDLYIFG | SVMLVLRIFG | SVMLIFG | SVSMLDLYIFG);
@@ -216,7 +216,7 @@ unsigned int SetVCoreDown (unsigned char level)
   SVSMHCTL &= ~_HAL_PMM_SVSFP;
 // Disable SVS/SVM Low
 // Disable full-performance mode to save energy
-  SVSMLCTL &= ~(_HAL_PMM_DISABLE_SVSL_+_HAL_PMM_DISABLE_SVML_+_HAL_PMM_SVSFP );
+  SVSMLCTL &= ~(_HAL_PMM_SVSLE+_HAL_PMM_SVMLE+_HAL_PMM_SVSFP);//(_HAL_PMM_DISABLE_SVSL_+_HAL_PMM_DISABLE_SVML_+_HAL_PMM_SVSFP );
 	
   // Clear all Flags
   PMMIFG &= ~(SVMHVLRIFG | SVMHIFG | SVSMHDLYIFG | SVMLVLRIFG | SVMLIFG | SVSMLDLYIFG);

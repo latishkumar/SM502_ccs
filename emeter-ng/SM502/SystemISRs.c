@@ -137,7 +137,9 @@ __interrupt void AUX_ISR(void)
     break;
  }
 }
- 
+
+
+
 void Reset_System()
 {
   PMMCTL0_H = PMMPW_H;    

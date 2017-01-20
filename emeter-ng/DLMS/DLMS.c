@@ -17,7 +17,7 @@ async_hdlc_tx_t *txptr[MAX_USCI_PORTS];
 async_hdlc_tx_t tx[MAX_USCI_PORTS];
 uint16_t rx_data_to_process[MAX_USCI_PORTS];
 
-uint16_t Chunk_Size=CHUNK_SIZE;
+volatile uint16_t Chunk_Size = CHUNK_SIZE;
 
 uint8_t Frame_Received[MAX_USCI_PORTS];
 extern void process_rx_frame(iec62056_46_link_t *, async_hdlc_rx_t *);

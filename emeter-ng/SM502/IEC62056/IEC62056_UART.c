@@ -13,6 +13,7 @@
    
    
 #if defined(DLMS) || defined(DLMS_IEC_21)
+
 #include "../../DLMS/core/iec62056_46_link.h"   /*PATH CORRECTION*/
 #include "../../DLMS/DLMS.h"  /*PATH CORRECTION*/
 #include "../../DLMS/uart_comms.h"   /*PATH CORRECTION*/
@@ -71,8 +72,9 @@ void InitIECUART()
   
   //queue_init(iec_rx_buff);
   
-#if DLMS_IEC_21
-#if OPT_INT
+#if defined DLMS_IEC_21
+
+#if defined OPT_INT
   
  // UCA1IE=0;
   UCA1CTLW0 |= UCSWRST;      // reset for configuration 
@@ -283,7 +285,7 @@ void change_boud_rate(uint8_t x)
    }
    
    UCA1CTLW0 &=~UCSWRST;  
-   UCA1IE|=UCTXCPTIE|UCTXIE|UCRXIE;
+   UCA1IE|=UCTXIE|UCRXIE;//UCTXCPTIE|
 }
 uint8_t IEC_AddToRXBuffer(uint8_t data)
 {
@@ -314,7 +316,7 @@ void IEC_Start_SendBuffer()
 //       IEC_CurrentTX_Index=0;
        IEC_Tx_Done = 0; //restart transmission
        Transmit = 1;
-       switch_ready=0;
+     //  switch_ready=0;
        
        uint8_t data=0;
        if(queue_dequeue(iec_tx_buff,&data) == 1) //IEC_TX_BUF[0];
@@ -332,13 +334,20 @@ void IEC_Start_SendBuffer()
 
 extern volatile uint8_t taskScaduled;
 extern volatile uint8_t scaduledResetTaskNumber;
-
+extern int local_comm_exchange_mode_flag;
 //uint8_t i_test=0x56;
 #if !defined(KIT) && !defined(PLC_USCIA0) 
 // //USCI_A1 interrupt service routine
 #pragma vector=USCI_A1_VECTOR
 __interrupt void USCI_A1_ISR(void)
 {
+	if(local_comm_exchange_mode_flag)
+	{
+		receive_firmware_image();
+	}
+	else {
+
+
     switch (__even_in_range(UCA1IV, USCI_UART_UCTXCPTIFG))
     {
         case USCI_NONE: break;              // No interrupt
@@ -426,13 +435,14 @@ __interrupt void USCI_A1_ISR(void)
         	break;     // TTIFG
         case USCI_UART_UCTXCPTIFG:
                 //CurrentTxLength=5;
-                 if(IEC_Tx_Done == 1 && Transmit == 0)//transmission is completed so that it is safe to switch to
-                 {
-                         switch_ready=1;
-                 }
+//                 if(IEC_Tx_Done == 1 && Transmit == 0)//transmission is completed so that it is safe to switch to
+//                 {
+//                         switch_ready=1;
+//                 }
         	break;   // TXCPTIFG
         default:
         	break;
     }
+	}
 }
 #endif

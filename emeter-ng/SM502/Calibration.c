@@ -1,14 +1,15 @@
 
 
 #include "Logger.h"
-
 /*
    D.
    TODO. add MAC address and serial number at the end of this structure
 
 */
 /* The main per-phase non-volatile parameter structure */
-__infomem__ const struct info_mem_s nv_parms =
+//__infomem__
+#pragma DATA_SECTION(nv_parms, ".infoD")
+const struct info_mem_s nv_parms =
 {
     {
     {

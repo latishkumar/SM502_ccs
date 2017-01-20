@@ -34,13 +34,13 @@ void configure_uart_port(int port, int mode)
   switch(mode)
   {
   case 0: //7E1@300
-   // __delay_cycles(10000);
-   // change_uart_a1_to_7e1_x_bd(0);
-  if(local_comm_exchange_mode_flag==0)
-    {
-      while(!switch_ready);
-      change_uart_a1_to_7e1_x_bd(0);
-    }
+    //__delay_cycles(10000);
+    change_uart_a1_to_7e1_x_bd(0);
+//  if(local_comm_exchange_mode_flag==0)
+//    {
+//      while(!switch_ready);
+//      change_uart_a1_to_7e1_x_bd(0);
+//    }
     break;
   case 1://7E1@9600
     UCA1CTLW0 |= UCSWRST;          
@@ -50,7 +50,8 @@ void configure_uart_port(int port, int mode)
    change_uart_a1_to_8n1_x_bd(5);
    break;
   case 3://8N1@19200
-    change_uart_a1_to_8n1_x_bd(6);//19200
+    change_uart_a1_to_8n1_x_bd(7);//57600
+    UCA1IE &= ~UCTXIE;//|UCRXIE;
     break;
   default:
     break;

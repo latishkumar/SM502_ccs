@@ -3,7 +3,7 @@
 #define LPBU_H
 #include <stdint.h>
 
-#define __infoAmem__ _Pragma("LOCATION(\"INFOB\")")
+#define __infoAmem__ // _Pragma("LOCATION(\"INFOB\")")
 // 0x0080, 0x1900)")
 
 
@@ -68,5 +68,6 @@ struct info_mem_a_s
 };
 
 //__infoAmem__ extern const struct info_mem_a_s backup;
-__infoAmem__ extern const struct info_mem_a_s backup;
+//__infoAmem__
+extern const struct info_mem_a_s backup;
 #endif

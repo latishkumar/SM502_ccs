@@ -197,7 +197,7 @@ void main(void)
           AUX3CHCTL = AUXCHKEY | AUXCHC_1 | AUXCHV_1 | AUXCHEN;//comment this for the board Enable Charger for AUX3 to enable RTC
           //configure non maskable Auxilary interrupt heare 
           AUXIE    |= AUXSWGIE|AUX2SWIE|AUX0SWIE|AUX2DRPIE;
-          AUXIE    &= ~AUXMONIE;//|AUXMONIE; //use maskable interrupt for auxilary switching 
+          AUXIE    &= ~AUXMONIE;//|AUXMONIE; //use maskable interrupt for auxilary switching
           PMMCTL0_H = 0;  
 
           AUXCTL0 = 0;
@@ -273,7 +273,6 @@ void main(void)
       all_segments_off();
       status.DisplayState = 0;
       InitPLC();
-
       
       
     }
@@ -619,13 +618,15 @@ void main(void)
                     }                
              }    
          #if defined OPT_INT     
+
              if(local_comm_exchange_mode_flag==0 && (P3IN & BIT0)){
                configure_uart_port(1,3);  //change to USB
                local_comm_exchange_mode_flag=1;
              }
              else if(local_comm_exchange_mode_flag==1 && !(P3IN & BIT0)){              
-               configure_uart_port(1,0); //change to OPT
                local_comm_exchange_mode_flag=0;
+               configure_uart_port(1,0); //change to OPT
+
              }
              
          #endif  
@@ -768,9 +769,9 @@ void custom_initialisation() {
         //BAKMEM3  = 0; /*[M.G] Commentedout this line. to use this memory for LPM bug debugging Oct 24,2015 17:53 */
         
         init_ErrorList();
-  	InitGLCD_c();
+        InitGLCD_c();
         all_segments_on();
-        __bis_SR_register(GIE);
+       __bis_SR_register(GIE);
         InitLogg();
        __bic_SR_register(GIE);          
         status.UpdateDate = 1;        
@@ -778,8 +779,8 @@ void custom_initialisation() {
         
         
         Init_Scheduler();
-	initTampperSwitchs();//should be initalized after scheduler because of its dependency
-	InitUI();//should be initalized after scheduler because of its dependency
+        initTampperSwitchs();//should be initalized after scheduler because of its dependency
+        InitUI();//should be initalized after scheduler because of its dependency
         
         RedLedOn();
         EnergyLedOn(); 
