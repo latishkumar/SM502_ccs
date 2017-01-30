@@ -141,7 +141,7 @@ bin2bcd32_2
     int i;
     char buf[10 + 1];
     
-    sprintf (buf, "%010ld", bin);
+    //sprintf (buf, "%010ld", bin);
     for (i = 0;  i < 5;  i++)
         bcd[i] = ((buf[2*i] & 0x0F) << 4) | (buf[2*i + 1] & 0x0F);
 #endif

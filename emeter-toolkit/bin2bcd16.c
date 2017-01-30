@@ -109,11 +109,11 @@ bin2bcd16_1
         swpb    @decimal_0
         mov.b   @decimal_0,1(@bcd)
     $/
-#else
+#elsetransfer48
     int i;
     char buf[6 + 1];
     
-    sprintf (buf, "%06d", bin);
+    //sprintf (buf, "%06d", bin);
     for (i = 0;  i < 3;  i++)
         bcd[i] = ((buf[2*i] & 0x0F) << 4) | (buf[2*i + 1] & 0x0F);
 #endif

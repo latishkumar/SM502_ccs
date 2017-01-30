@@ -30,6 +30,7 @@
 							<tool id="com.ti.ccstudio.buildDefinitions.MSP430_15.12.library.compilerDebug.1220276535" name="MSP430 Compiler" superClass="com.ti.ccstudio.buildDefinitions.MSP430_15.12.library.compilerDebug">
 								<option id="com.ti.ccstudio.buildDefinitions.MSP430_15.12.compilerID.DEFINE.1759016014" name="Pre-define NAME (--define, -D)" superClass="com.ti.ccstudio.buildDefinitions.MSP430_15.12.compilerID.DEFINE" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__MSP430F6736__"/>
+									<listOptionValue builtIn="false" value="__MSP430__"/>
 								</option>
 								<option id="com.ti.ccstudio.buildDefinitions.MSP430_15.12.compilerID.DATA_MODEL.126230818" name="Specify the data memory model. (--data_model)" superClass="com.ti.ccstudio.buildDefinitions.MSP430_15.12.compilerID.DATA_MODEL" value="com.ti.ccstudio.buildDefinitions.MSP430_15.12.compilerID.DATA_MODEL.restricted" valueType="enumerated"/>
 								<option id="com.ti.ccstudio.buildDefinitions.MSP430_15.12.compilerID.USE_HW_MPY.2112673968" name="Inline hardware multiply version of RTS mpy routine (--use_hw_mpy)" superClass="com.ti.ccstudio.buildDefinitions.MSP430_15.12.compilerID.USE_HW_MPY" value="com.ti.ccstudio.buildDefinitions.MSP430_15.12.compilerID.USE_HW_MPY.F5" valueType="enumerated"/>
@@ -60,6 +61,9 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<sourceEntries>
+						<entry excluding="accum48.c|mac64_16_24.asm" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+					</sourceEntries>
 				</configuration>
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>

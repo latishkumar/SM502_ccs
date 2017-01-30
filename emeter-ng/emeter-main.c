@@ -160,7 +160,7 @@ void restoreBackup();
 extern EnergyLog LastTxEnergyCopy;
 extern uint8_t OperatingMode;
 int local_comm_exchange_mode_flag=0; //optical:0; USB:1
-
+void time_get_test();
 void main(void)
 {
     static int32_t x;
@@ -205,7 +205,7 @@ void main(void)
 
     #endif
     system_setup();
-    
+ //   time_get_test();
     if(SystemStatus == SYSTEM_RUNNING)
     {
       

@@ -202,7 +202,7 @@ rtc_t  getTime(TimeStump *t)
   temp.hour   = (t->TimestampLow & 0x1F000)>>12;
   temp.day = (t->TimestampLow & 0x3E0000) >>17;
   temp.month = (t->TimestampLow & 0x3E00000)>>22;
-  temp.year = (t->TimestampLow & 0xF8000000)>>26;   /*[m.g] was ...>>27 changed to ....>>26 to fix Bug #5637 */
+  temp.year = (t->TimestampLow & 0xFC000000)>>26;   /*[m.g] was ...>>27 changed to ....>>26 to fix Bug #5637 */ //[E.E] 0xF8000000 changed to 0xFC000000
   temp.year |=(t->TimestampUp << 6);
   //temp.year |= 2000; // make the year 2000 and something /*[m.g] No real reason to do this. commented out while testing for Bug #5637 */
   
@@ -254,7 +254,7 @@ TimeStump getTimeStamp(uint16_t year,uint8_t month,uint8_t date,uint8_t hour,uin
   temp2=year;
   temp|=(temp2<<26);   /* copy lowest 6 bits of year. [m.g] was ...<<27 changed to ...<<26 to fix Bug #5637 bug */
 
-  temp2>>=6;
+  temp2 >>= 6;
 
   t.TimestampLow = temp;
   t.TimestampUp  = (uint8_t)temp2;       /* copy uper 8 bits of year */

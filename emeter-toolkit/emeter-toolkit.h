@@ -74,6 +74,7 @@ typedef unsigned short istate_t;
 #if defined(__MSP430__)
 #include <msp430.h>
 #include "isr_compat.h"
+#include <stdint.h>
 /*For NOINIT variables - variables that are not zero-initialized at startup or reset. */
 //#define __no_init __attribute__((noinit))
 

@@ -34,7 +34,7 @@ void configure_uart_port(int port, int mode)
   switch(mode)
   {
   case 0: //7E1@300
-    //__delay_cycles(10000);
+    __delay_cycles(10000);
     change_uart_a1_to_7e1_x_bd(0);
 //  if(local_comm_exchange_mode_flag==0)
 //    {
