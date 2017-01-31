@@ -455,7 +455,7 @@ int64_t get_numeric_item(int item)
           {
               loadEnergyToRam(entry_no);
           }
-          val = currentEnergyLogEntry.l.Voltage;
+          val = currentEnergyLogEntry.l.Reactive_Power_R4;
       
     break; //update this correctly 
     case ITEM_TAG_EVENT_GROUP_SE:
@@ -518,7 +518,7 @@ int64_t get_numeric_item(int item)
           {
               loadEnergyToRam(entry_no);
           }
-          val = currentEnergyLogEntry.l.Reactive_Power;
+          val = currentEnergyLogEntry.l.Reactive_Power_R1;
       
     break; //update this correctly
     

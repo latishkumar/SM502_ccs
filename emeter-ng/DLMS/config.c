@@ -1621,20 +1621,32 @@ const uint8_t Instantanious_Profile_Buffer_Template[] =
 };
 
 const uint16_t Load_Profile_Column_Szs[] = {16,18,23,28,33,38,43,48};//
+/*const uint8_t Load_Profile_Buffer_Template[] =
+{
+   STUFF_DATA | TAG_STRUCTURE, 8,
+        STUFF_DATA | TAG_OCTET_STRING, 12,ITEM_TAG_DATETIME_LP, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, Time stump
+                     TAG_UINT8, INJECT8(1),                                    AMR profile status
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_CUM_KWH_TOTAL_LP),             Active Energy A+
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_ACTIVE_POWER_LP),              Active Power
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_REACTIVE_POWER_LP),            Reactive power QI
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_VR_LP),                        Voltage
+                     TAG_UINT32, INJECT32(0),              QIII
+                     TAG_UINT32, INJECT32(0),              QIV
+
+};*/
 const uint8_t Load_Profile_Buffer_Template[] =
 {
    STUFF_DATA | TAG_STRUCTURE, 8,
         STUFF_DATA | TAG_OCTET_STRING, 12,ITEM_TAG_DATETIME_LP, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /*Time stump*/
-                     TAG_UINT8, INJECT8(1),                                    /*AMR profile status*/
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_CUM_KWH_TOTAL_LP),            /* Active Energy A+ */
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_ACTIVE_POWER_LP),             /* Active Power*/
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_REACTIVE_POWER_LP),           /* Reactive power QI*/
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_VR_LP),                       /* Voltage*/        
-                     TAG_UINT32, INJECT32(0),             /* QIII*/
-                     TAG_UINT32, INJECT32(0),             /* QIV*/
+                     TAG_UINT8, INJECT8(1),                                      /* AMR profile status*/
+		STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_CUM_KWH_TOTAL_LP),            /* Active Energy A+     :Ai */
+		 	 	 	 TAG_UINT32, INJECT32(0), 									 /* Active Energy A-     :Ae */
+	    STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_REACTIVE_POWER_LP),           /* Reactive Energy QI   :R1 */
+					 TAG_UINT32, INJECT32(0),            						 /* Reactive Energy QII  :R2 */
+					 TAG_UINT32, INJECT32(0),            						 /* Reactive Energy QIII :R3 */
+		STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_VR_LP),          			 /* Reactive Energy QIV  :R4 *///originally this was for voltage
 
 };
-
 const uint16_t Standard_Event_Log_Column_Szs[] = {16,18};//,20,25};
 const uint8_t Standard_Event_Log_Template[] =
 {

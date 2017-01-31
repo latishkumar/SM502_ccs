@@ -131,9 +131,9 @@ typedef struct
 {  
     unsigned long ActiveEnergy; //4byte   // consumed active energy import
     
-    unsigned long Reactive_Power; //4byte // positive reactive energy ,       
+    unsigned long Reactive_Power_R1; //4byte // positive reactive energy ,
     unsigned long Active_Power;//4 byte
-    unsigned long Voltage; //4 byte 
+    unsigned long Reactive_Power_R4; //4 byte [E.E]-was Voltage and changed to support negative reactive energy
     
     TimeStump timeStump; //5byte
                     

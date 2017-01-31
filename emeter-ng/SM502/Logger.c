@@ -1146,7 +1146,7 @@ int8_t logEnergy(void *l2,void *dummy)
 //	if(x==0)
 //		continue;
 
-	x= EEPROM2_WriteNextLong(l->Reactive_Power, 0);
+	x= EEPROM2_WriteNextLong(l->Reactive_Power_R1, 0);
 //	if(x==0)
 //		continue;
 //       Uncomment this if power and voltage log is enabled 
@@ -1154,7 +1154,7 @@ int8_t logEnergy(void *l2,void *dummy)
 //	if(x==0)
 //		continue;
         
-        x= EEPROM2_WriteNextLong(l->Voltage, 0);
+        x= EEPROM2_WriteNextLong(l->Reactive_Power_R4, 0);
 //	if(x==0)
 //		continue;
         
@@ -1190,7 +1190,7 @@ uint8_t getEnergy(EnergyLog *l,unsigned long StartAddress)
 	if(x==0)
 		continue;
 
-	x= EEPROM2_ReadNextLong(0,&(l->Reactive_Power));
+	x= EEPROM2_ReadNextLong(0,&(l->Reactive_Power_R1));
 	if(x==0)
 		continue;
 
@@ -1199,7 +1199,7 @@ uint8_t getEnergy(EnergyLog *l,unsigned long StartAddress)
 	if(x==0)
 		continue;
         
-        x= EEPROM2_ReadNextLong(0,&(l->Voltage));
+        x= EEPROM2_ReadNextLong(0,&(l->Reactive_Power_R4));
 	if(x==0)
 		continue;                        
 		x= EEPROM2_ReadNextLong(0,&(l->timeStump.TimestampLow));
@@ -1298,12 +1298,12 @@ int8_t logEnergy2(void *lt,uint32_t StartAddress)
     	x=EEPROM2_WriteLong(l->ActiveEnergy,StartAddress,0);
 
 
-	x= EEPROM2_WriteNextLong(l->Reactive_Power, 0);
+	x= EEPROM2_WriteNextLong(l->Reactive_Power_R1, 0);
 
         x= EEPROM2_WriteNextLong(l->Active_Power, 0);
 
         
-        x= EEPROM2_WriteNextLong(l->Voltage, 0);
+        x= EEPROM2_WriteNextLong(l->Reactive_Power_R4, 0);
 
         
 	x= EEPROM2_WriteNextLong(l->timeStump.TimestampLow,0);

@@ -590,11 +590,11 @@ void main(void)
                   {
                       EnergyLog e;
                       e.ActiveEnergy =chan1.active_energy_import;// chan1.consumed_active_energy;
-                      e.Reactive_Power = chan1.readings.reactive_power;
+                      e.Reactive_Power_R1 = chan1.consumed_reactive_energy_QI;//chan1.readings.reactive_power;
                       e.Active_Power = chan1.readings.active_power;
-                      e.Voltage = chan1.readings.V_rms;
+                      e.Reactive_Power_R4 = chan1.consumed_reactive_energy_QIV;//chan1.readings.V_rms;
                       e.timeStump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-                      e.CRC = e.ActiveEnergy + e.Reactive_Power + e.timeStump.TimestampLow+ e.timeStump.TimestampUp;			
+                      e.CRC = e.ActiveEnergy + e.Reactive_Power_R1 + e.timeStump.TimestampLow+ e.timeStump.TimestampUp;
                       write_to_eeprom(&e,(uint8_t *)0,logEnergy);
                       status.LoggingTimeIsUp =  0;          
                   }
