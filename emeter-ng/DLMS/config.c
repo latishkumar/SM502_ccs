@@ -2002,39 +2002,39 @@ const uint8_t Load_Profile_Capture_Objects[] =
                 TAG_OCTET_STRING, 6, OBIS_GROUP_A_ABSTRACT_OBJECTS, 0, 1, 0, 0, 255, // Date & Time
                 TAG_INT8, 2,
                 TAG_UINT16, INJECT16(0),
-            TAG_STRUCTURE, 4,                                          //status 1 Ae Import
+            TAG_STRUCTURE, 4,                                          //Ae Import
                 TAG_UINT16, INJECT16(CLASS_ID_DATA),
-                TAG_OCTET_STRING, 6, 0, 0, 96, 10, 7, 255,  
+                TAG_OCTET_STRING, 6, 1, 0, 1, 29, 0, 255,              //[E.E] was 0, 0, 96, 10, 7, 255,
                 TAG_INT8, 2,
                 TAG_UINT16, INJECT16(0),
-            TAG_STRUCTURE, 4,                                           //A+  //Power 
+            TAG_STRUCTURE, 4,                                          //Ae Export
                 TAG_UINT16, INJECT16(CLASS_ID_REGISTER),
-                TAG_OCTET_STRING, 6, 1, 0, 1, 29, 0, 255, 
+                TAG_OCTET_STRING, 6, 1, 0, 2, 29, 0, 255,      		   //[E.E]was 1, 0, 1, 29, 0, 255,
                 TAG_INT8, 2,
                 TAG_UINT16, INJECT16(0),
-            TAG_STRUCTURE, 4,                                           //P    //Re q1
-                TAG_UINT16, INJECT16(CLASS_ID_REGISTER),
-                TAG_OCTET_STRING, 6, 1, 0, 2, 29, 0, 255, 
-                TAG_INT8, 2,
-                TAG_UINT16, INJECT16(0),
-            TAG_STRUCTURE, 4,                                           //QI   //ReQ2
+            TAG_STRUCTURE, 4,                                          //ReQ1
                 TAG_UINT16, INJECT16(CLASS_ID_REGISTER),
                 TAG_OCTET_STRING, 6, 1, 0, 5, 29, 0, 255,
                 TAG_INT8, 2,
                 TAG_UINT16, INJECT16(0),
-            TAG_STRUCTURE, 4,                                           //Voltage //ReQ3
+            TAG_STRUCTURE, 4,                                          //ReQ2
                 TAG_UINT16, INJECT16(CLASS_ID_REGISTER),
                 TAG_OCTET_STRING, 6, 1, 0, 6, 29, 0, 255,
                 TAG_INT8, 2,
                 TAG_UINT16, INJECT16(0),
-            TAG_STRUCTURE, 4,                                   //not used   //ReQ4
+            TAG_STRUCTURE, 4,                                           //ReQ3
                 TAG_UINT16, INJECT16(CLASS_ID_REGISTER),
                 TAG_OCTET_STRING, 6, 1, 0, 7, 29, 0, 255,
                 TAG_INT8, 2,
                 TAG_UINT16, INJECT16(0),
-            TAG_STRUCTURE, 4,                                   //not used //Voltage
+            TAG_STRUCTURE, 4,                                           //not used   //ReQ4
                 TAG_UINT16, INJECT16(CLASS_ID_REGISTER),
-                TAG_OCTET_STRING, 6, 1, 0, 8, 29, 0, 255, 
+                TAG_OCTET_STRING, 6, 1, 0, 8, 29, 0, 255,
+                TAG_INT8, 2,
+                TAG_UINT16, INJECT16(0),
+            TAG_STRUCTURE, 4,                                          //not used //Voltage
+                TAG_UINT16, INJECT16(CLASS_ID_REGISTER),
+                TAG_OCTET_STRING, 6, 1, 0, 32, 7, 0, 255,
                 TAG_INT8, 2,
                 TAG_UINT16, INJECT16(0),
 };
@@ -3265,16 +3265,16 @@ void reset_alarms(uint8_t *data, uint16_t data_len,uint8_t *response,uint16_t *r
   *response_len = 0;
   switch(x)
   {
-    case 0:
+    case 1:
         status.UpperCoverRemovedTamperStatus = 0;
       return;
-    case 1:
+    case 2:
         status.LowerCoverRemovedTamperStatus = 0;
       return;
-    case 2:
+    case 3:
         status.MangneticTamperStatus = 0;
       return;
-    case 3:
+    case 4:
         status.NeutralTamperStatus = 0;
       return;
   }
@@ -4099,7 +4099,7 @@ const struct object_desc_s object_list[] =
     {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  0,   0,  94, 34,  60, 255}, 3,   Obj_ThresholdLongPowerFaile, 0, NULL},//10  // fin
     /* Instantaneous parameters - direct access */
     {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,  31,  7,   0, 255}, 3,  Obj_Instantanious_Current_L1, 0, NULL},//11 done 
-    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   2,  8,   0, 255}, 3,  Obj_Total_Active_Energy_Export, 0, NULL},  //12 done , integrated
+    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   2,  29,   0, 255}, 3,  Obj_Total_Active_Energy_Export, 0, NULL},  //12 done , integrated  //[E.E] was 1,0,2,8,0,255
     {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,  32,  7,   0, 255}, 3,  Obj_Instantanious_Voltage_L1, 0, NULL},//13 done , integrated , IDC-3 read tested 
 //    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,  72,  7,   0, 255}, 3,  Obj_V_BN, 0, NULL},//14
     {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   0,  6,   4, 255}, 3,  Obj_Voltage_Referance, 0, NULL},//14  //Referance Voltage for power quality measurement  fin    
@@ -4110,11 +4110,11 @@ const struct object_desc_s object_list[] =
     {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  0,   0,  00, 00, 4,   255}, 3,  Obj_NeutralCurrent, 0, NULL},//17     
     {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,  14,  7,   0, 255}, 3,  Obj_Frequency, 0, NULL},//18 ?????????????????????????????????????/// , integrated
     {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   1,  7,   0, 255}, 3,  Obj_Active_Power_Positive, 0, NULL},//19 done , integrated fin,import
-    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   1,  8,   0, 255}, 3,  Obj_Total_Active_Energy_Import, 0, NULL},  //20 done , integrated
-    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   5,  8,   0, 255}, 3,  Obj_Reactive_Energy_QI, 0, NULL},//21      //done , integrated
-    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   6,  8,   0, 255}, 3,  Obj_Reactive_Energy_QII, 0, NULL},//22     //done , integrated
-    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   7,  8,   0, 255}, 3,  Obj_Reactive_Energy_QIII, 0, NULL},//23    //done , integrated
-    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   8,  8,   0, 255}, 3,  Obj_Reactive_Energy_QIV, 0, NULL},//24     //done , integrated
+    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   1,  29,   0, 255}, 3,  Obj_Total_Active_Energy_Import, 0, NULL},  //20 done , integrated //[E.E] was 1,0,1,8,0,255
+    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   5,  29,   0, 255}, 3,  Obj_Reactive_Energy_QI, 0, NULL},//21      //done , integrated 	//[E.E] was 1,0,5,8,0,255
+    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   6,  29,   0, 255}, 3,  Obj_Reactive_Energy_QII, 0, NULL},//22     //done , integrated 	//[E.E] was 1,0,6,8,0,255
+    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   7,  29,   0, 255}, 3,  Obj_Reactive_Energy_QIII, 0, NULL},//23    //done , integrated 	//[E.E] was 1,0,7,8,0,255
+    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   8,  29,   0, 255}, 3,  Obj_Reactive_Energy_QIV, 0, NULL},//24     //done , integrated 	//[E.E] was 1,0,8,8,0,255
     
     {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   2,  7,   0, 255}, 3,  Obj_Active_Power_Negative, 0, NULL},//25   //done fin
     {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   3,  7,   0, 255}, 3,  Obj_Reactive_Power_Positive, 0, NULL},//26 //done fin

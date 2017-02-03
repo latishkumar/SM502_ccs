@@ -16,7 +16,6 @@ C_SRCS += \
 ../emeter-setup.c \
 ../hal_UCS.c \
 ../hal_pmm.c \
-../tester.c \
 ../unused_interrupts_handler.c 
 
 OBJS += \
@@ -29,7 +28,6 @@ OBJS += \
 ./emeter-setup.obj \
 ./hal_UCS.obj \
 ./hal_pmm.obj \
-./tester.obj \
 ./unused_interrupts_handler.obj 
 
 C_DEPS += \
@@ -42,7 +40,6 @@ C_DEPS += \
 ./emeter-setup.d \
 ./hal_UCS.d \
 ./hal_pmm.d \
-./tester.d \
 ./unused_interrupts_handler.d 
 
 C_DEPS__QUOTED += \
@@ -55,7 +52,6 @@ C_DEPS__QUOTED += \
 "emeter-setup.d" \
 "hal_UCS.d" \
 "hal_pmm.d" \
-"tester.d" \
 "unused_interrupts_handler.d" 
 
 OBJS__QUOTED += \
@@ -68,7 +64,6 @@ OBJS__QUOTED += \
 "emeter-setup.obj" \
 "hal_UCS.obj" \
 "hal_pmm.obj" \
-"tester.obj" \
 "unused_interrupts_handler.obj" 
 
 C_SRCS__QUOTED += \
@@ -81,7 +76,6 @@ C_SRCS__QUOTED += \
 "../emeter-setup.c" \
 "../hal_UCS.c" \
 "../hal_pmm.c" \
-"../tester.c" \
 "../unused_interrupts_handler.c" 
 
 
