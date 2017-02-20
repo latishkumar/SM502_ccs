@@ -2,7 +2,9 @@
 # Automatically-generated file. Do not edit!
 ################################################################################
 
-CG_TOOL_ROOT := /home/eliab/ti/ccsv6/tools/compiler/ti-cgt-msp430_15.12.1.LTS
+SHELL = cmd.exe
+
+CG_TOOL_ROOT := C:/ti/ccs62/ccsv6/tools/compiler/msp430_15.12.3.LTS
 
 GEN_OPTS__FLAG := 
 GEN_CMDS__FLAG := 
@@ -17,7 +19,6 @@ ORDERED_OBJS += \
 "./emeter-setup.obj" \
 "./hal_UCS.obj" \
 "./hal_pmm.obj" \
-"./tester.obj" \
 "./unused_interrupts_handler.obj" \
 "./DLMS/Billing_Data.obj" \
 "./DLMS/DLMS.obj" \
@@ -81,8 +82,8 @@ $(GEN_CMDS__FLAG) \
 
 -include ../makefile.init
 
-RM := rm -rf
-RMDIR := rm -rf
+RM := DEL /F
+RMDIR := RMDIR /S/Q
 
 # All of the sources participating in the build are defined here
 -include sources.mk
@@ -219,24 +220,24 @@ all: emeter-ng.out secondary-outputs
 emeter-ng.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: MSP430 Linker'
-	"/home/eliab/ti/ccsv6/tools/compiler/ti-cgt-msp430_15.12.1.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --advice:power=all -g --define=__MSP430F6736__ --define=CUSTOM_EMETER_H="emeter-1ph-neutral-6733_shunt.h" --define=CHUNK_SIZE=100 --define=DLMS_IEC_21 --define=DLMS --define=EEPROM_REV_2 --define=ALARM_ON_TAMPER --define=PHYSICAL_RELAY_DISCONNECT_ENABLED --define=OPT_INT --diag_wrap=off --display_error_number --diag_warning=225 --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --printf_support=minimal -z -m"emeter-ng.map" --heap_size=80 --stack_size=80 --cinit_hold_wdt=on -i"/home/eliab/ti/ccsv6/ccs_base/msp430/include" -i"/home/eliab/workspace/SM502_firmware_ccs/SM502_ccs/emeter-toolkit/Debug" -i"/home/eliab/ti/ccsv6/ccs_base/msp430/lib/5xx_6xx_FRxx" -i"/home/eliab/ti/ccsv6/tools/compiler/ti-cgt-msp430_15.12.1.LTS/lib" -i"/home/eliab/ti/ccsv6/tools/compiler/ti-cgt-msp430_15.12.1.LTS/include" --reread_libs --display_error_number --diag_wrap=off --warn_sections --xml_link_info="emeter-ng_linkInfo.xml" --use_hw_mpy=F5 --rom_model -o "emeter-ng.out" $(ORDERED_OBJS)
+	"C:/ti/ccs62/ccsv6/tools/compiler/msp430_15.12.3.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --advice:power=all -g --define=__MSP430F6736__ --define=CUSTOM_EMETER_H="emeter-1ph-neutral-6733_shunt.h" --define=CHUNK_SIZE=100 --define=DLMS_IEC_21 --define=DLMS --define=EEPROM_REV_2 --define=ALARM_ON_TAMPER --define=PHYSICAL_RELAY_DISCONNECT_ENABLED --define=OPT_INT --diag_warning=225 --diag_wrap=off --display_error_number --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --printf_support=minimal -z -m"emeter-ng.map" --stack_size=80 --heap_size=80 --cinit_hold_wdt=on -i"C:/ti/ccs62/ccsv6/ccs_base/msp430/include" -i"M:/sm502-CCS/final/SM502_ccs/emeter-toolkit/Debug" -i"C:/ti/ccs62/ccsv6/ccs_base/msp430/lib/5xx_6xx_FRxx" -i"C:/ti/ccs62/ccsv6/tools/compiler/msp430_15.12.3.LTS/lib" -i"C:/ti/ccs62/ccsv6/tools/compiler/msp430_15.12.3.LTS/include" --reread_libs --warn_sections --display_error_number --diag_wrap=off --xml_link_info="emeter-ng_linkInfo.xml" --use_hw_mpy=F5 --rom_model -o "emeter-ng.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 emeter-ng.txt: $(EXE_OUTPUTS)
 	@echo 'Invoking: MSP430 Hex Utility'
-	"/home/eliab/ti/ccsv6/tools/compiler/ti-cgt-msp430_15.12.1.LTS/bin/hex430" --memwidth=8 --romwidth=8 --ti_txt -o "emeter-ng.txt" $(EXE_OUTPUTS__QUOTED)
+	"C:/ti/ccs62/ccsv6/tools/compiler/msp430_15.12.3.LTS/bin/hex430" --memwidth=8 --romwidth=8 --ti_txt -o "emeter-ng.txt" $(EXE_OUTPUTS__QUOTED)
 	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets
 clean:
 	-$(RM) $(EXE_OUTPUTS__QUOTED)$(BIN_OUTPUTS__QUOTED)
-	-$(RM) "emeter-background.d" "emeter-fir-table.d" "emeter-foreground.d" "emeter-main.d" "emeter-phase-corrections.d" "emeter-rtc.d" "emeter-setup.d" "hal_UCS.d" "hal_pmm.d" "tester.d" "unused_interrupts_handler.d" "DLMS/Billing_Data.d" "DLMS/DLMS.d" "DLMS/SharedVariables.d" "DLMS/config.d" "DLMS/uart_comms.d" "DLMS/aes/TI_aes.d" "DLMS/core/iec62056_46_link.d" "DLMS/core/packing.d" "DLMS/core/xframe.d" "DLMS/server/app_server_msgs.d" "DLMS/server/server_msgs.d" "SM502/BatteryMonitor.d" "SM502/Calibration.d" "SM502/Errors.d" "SM502/EthioCalender.d" "SM502/FixedActivities.d" "SM502/HardwareLimits.d" "SM502/I2C2.d" "SM502/I2C2EEPROM.d" "SM502/LCD_C.d" "SM502/LCD_C_Graphics.d" "SM502/LPBU.d" "SM502/Logger.d" "SM502/Queue.d" "SM502/Relay.d" "SM502/Schaduler.d" "SM502/SystemISRs.d" "SM502/Tamper.d" "SM502/Tariff.d" "SM502/Test.d" "SM502/UI.d" "SM502/self_diagnosis.d" "SM502/utilities.d" "SM502/IEC62056/IEC62056.d" "SM502/IEC62056/IEC62056_UART.d" "SM502/IEC62056/Timeout.d" "SM502/PLC/Alarm.d" "SM502/PLC/Attach.d" 
-	-$(RM) "SM502/PLC/Blob.d" "SM502/PLC/Configration.d" "SM502/PLC/Data_Transfer.d" "SM502/PLC/Detach.d" "SM502/PLC/MAC_PIB.d" "SM502/PLC/PHY_PIB.d" "SM502/PLC/PLC.d" "SM502/PLC/PLC_UART.d" "SM502/PLC/Shutdown.d" "SM502/PLC/System_Info.d" "firmware_loader/eeprom_read_interface.d" "firmware_loader/firmware_loader.d" 
-	-$(RM) "emeter-background.obj" "emeter-fir-table.obj" "emeter-foreground.obj" "emeter-main.obj" "emeter-phase-corrections.obj" "emeter-rtc.obj" "emeter-setup.obj" "hal_UCS.obj" "hal_pmm.obj" "tester.obj" "unused_interrupts_handler.obj" "DLMS/Billing_Data.obj" "DLMS/DLMS.obj" "DLMS/SharedVariables.obj" "DLMS/config.obj" "DLMS/uart_comms.obj" "DLMS/aes/TI_aes.obj" "DLMS/core/iec62056_46_link.obj" "DLMS/core/packing.obj" "DLMS/core/xframe.obj" "DLMS/server/app_server_msgs.obj" "DLMS/server/server_msgs.obj" "SM502/BatteryMonitor.obj" "SM502/Calibration.obj" "SM502/Errors.obj" "SM502/EthioCalender.obj" "SM502/FixedActivities.obj" "SM502/HardwareLimits.obj" "SM502/I2C2.obj" "SM502/I2C2EEPROM.obj" "SM502/LCD_C.obj" "SM502/LCD_C_Graphics.obj" "SM502/LPBU.obj" "SM502/Logger.obj" "SM502/Queue.obj" "SM502/Relay.obj" "SM502/Schaduler.obj" "SM502/SystemISRs.obj" "SM502/Tamper.obj" "SM502/Tariff.obj" "SM502/Test.obj" "SM502/UI.obj" "SM502/self_diagnosis.obj" "SM502/utilities.obj" "SM502/IEC62056/IEC62056.obj" 
-	-$(RM) "SM502/IEC62056/IEC62056_UART.obj" "SM502/IEC62056/Timeout.obj" "SM502/PLC/Alarm.obj" "SM502/PLC/Attach.obj" "SM502/PLC/Blob.obj" "SM502/PLC/Configration.obj" "SM502/PLC/Data_Transfer.obj" "SM502/PLC/Detach.obj" "SM502/PLC/MAC_PIB.obj" "SM502/PLC/PHY_PIB.obj" "SM502/PLC/PLC.obj" "SM502/PLC/PLC_UART.obj" "SM502/PLC/Shutdown.obj" "SM502/PLC/System_Info.obj" "firmware_loader/eeprom_read.obj" "firmware_loader/eeprom_read_interface.obj" "firmware_loader/firmware_loader.obj" "firmware_loader/flash_programmer.obj" "firmware_loader/loader.obj" "firmware_loader/power_handler.obj" 
-	-$(RM) "firmware_loader/eeprom_read.d" "firmware_loader/flash_programmer.d" "firmware_loader/loader.d" "firmware_loader/power_handler.d" 
+	-$(RM) "emeter-background.d" "emeter-fir-table.d" "emeter-foreground.d" "emeter-main.d" "emeter-phase-corrections.d" "emeter-rtc.d" "emeter-setup.d" "hal_UCS.d" "hal_pmm.d" "unused_interrupts_handler.d" "DLMS\Billing_Data.d" "DLMS\DLMS.d" "DLMS\SharedVariables.d" "DLMS\config.d" "DLMS\uart_comms.d" "DLMS\aes\TI_aes.d" "DLMS\core\iec62056_46_link.d" "DLMS\core\packing.d" "DLMS\core\xframe.d" "DLMS\server\app_server_msgs.d" "DLMS\server\server_msgs.d" "SM502\BatteryMonitor.d" "SM502\Calibration.d" "SM502\Errors.d" "SM502\EthioCalender.d" "SM502\FixedActivities.d" "SM502\HardwareLimits.d" "SM502\I2C2.d" "SM502\I2C2EEPROM.d" "SM502\LCD_C.d" "SM502\LCD_C_Graphics.d" "SM502\LPBU.d" "SM502\Logger.d" "SM502\Queue.d" "SM502\Relay.d" "SM502\Schaduler.d" "SM502\SystemISRs.d" "SM502\Tamper.d" "SM502\Tariff.d" "SM502\Test.d" "SM502\UI.d" "SM502\self_diagnosis.d" "SM502\utilities.d" "SM502\IEC62056\IEC62056.d" "SM502\IEC62056\IEC62056_UART.d" "SM502\IEC62056\Timeout.d" "SM502\PLC\Alarm.d" "SM502\PLC\Attach.d" 
+	-$(RM) "SM502\PLC\Blob.d" "SM502\PLC\Configration.d" "SM502\PLC\Data_Transfer.d" "SM502\PLC\Detach.d" "SM502\PLC\MAC_PIB.d" "SM502\PLC\PHY_PIB.d" "SM502\PLC\PLC.d" "SM502\PLC\PLC_UART.d" "SM502\PLC\Shutdown.d" "SM502\PLC\System_Info.d" "firmware_loader\eeprom_read_interface.d" "firmware_loader\firmware_loader.d" 
+	-$(RM) "emeter-background.obj" "emeter-fir-table.obj" "emeter-foreground.obj" "emeter-main.obj" "emeter-phase-corrections.obj" "emeter-rtc.obj" "emeter-setup.obj" "hal_UCS.obj" "hal_pmm.obj" "unused_interrupts_handler.obj" "DLMS\Billing_Data.obj" "DLMS\DLMS.obj" "DLMS\SharedVariables.obj" "DLMS\config.obj" "DLMS\uart_comms.obj" "DLMS\aes\TI_aes.obj" "DLMS\core\iec62056_46_link.obj" "DLMS\core\packing.obj" "DLMS\core\xframe.obj" "DLMS\server\app_server_msgs.obj" "DLMS\server\server_msgs.obj" "SM502\BatteryMonitor.obj" "SM502\Calibration.obj" "SM502\Errors.obj" "SM502\EthioCalender.obj" "SM502\FixedActivities.obj" "SM502\HardwareLimits.obj" "SM502\I2C2.obj" "SM502\I2C2EEPROM.obj" "SM502\LCD_C.obj" "SM502\LCD_C_Graphics.obj" "SM502\LPBU.obj" "SM502\Logger.obj" "SM502\Queue.obj" "SM502\Relay.obj" "SM502\Schaduler.obj" "SM502\SystemISRs.obj" "SM502\Tamper.obj" "SM502\Tariff.obj" "SM502\Test.obj" "SM502\UI.obj" "SM502\self_diagnosis.obj" "SM502\utilities.obj" "SM502\IEC62056\IEC62056.obj" "SM502\IEC62056\IEC62056_UART.obj" 
+	-$(RM) "SM502\IEC62056\Timeout.obj" "SM502\PLC\Alarm.obj" "SM502\PLC\Attach.obj" "SM502\PLC\Blob.obj" "SM502\PLC\Configration.obj" "SM502\PLC\Data_Transfer.obj" "SM502\PLC\Detach.obj" "SM502\PLC\MAC_PIB.obj" "SM502\PLC\PHY_PIB.obj" "SM502\PLC\PLC.obj" "SM502\PLC\PLC_UART.obj" "SM502\PLC\Shutdown.obj" "SM502\PLC\System_Info.obj" "firmware_loader\eeprom_read.obj" "firmware_loader\eeprom_read_interface.obj" "firmware_loader\firmware_loader.obj" "firmware_loader\flash_programmer.obj" "firmware_loader\loader.obj" "firmware_loader\power_handler.obj" 
+	-$(RM) "firmware_loader\eeprom_read.d" "firmware_loader\flash_programmer.d" "firmware_loader\loader.d" "firmware_loader\power_handler.d" 
 	-@echo 'Finished clean'
 	-@echo ' '
 

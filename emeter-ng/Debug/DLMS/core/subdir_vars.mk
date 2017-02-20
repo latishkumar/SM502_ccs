@@ -19,14 +19,14 @@ C_DEPS += \
 ./DLMS/core/xframe.d 
 
 C_DEPS__QUOTED += \
-"DLMS/core/iec62056_46_link.d" \
-"DLMS/core/packing.d" \
-"DLMS/core/xframe.d" 
+"DLMS\core\iec62056_46_link.d" \
+"DLMS\core\packing.d" \
+"DLMS\core\xframe.d" 
 
 OBJS__QUOTED += \
-"DLMS/core/iec62056_46_link.obj" \
-"DLMS/core/packing.obj" \
-"DLMS/core/xframe.obj" 
+"DLMS\core\iec62056_46_link.obj" \
+"DLMS\core\packing.obj" \
+"DLMS\core\xframe.obj" 
 
 C_SRCS__QUOTED += \
 "../DLMS/core/iec62056_46_link.c" \

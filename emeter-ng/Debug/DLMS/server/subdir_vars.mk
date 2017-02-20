@@ -16,12 +16,12 @@ C_DEPS += \
 ./DLMS/server/server_msgs.d 
 
 C_DEPS__QUOTED += \
-"DLMS/server/app_server_msgs.d" \
-"DLMS/server/server_msgs.d" 
+"DLMS\server\app_server_msgs.d" \
+"DLMS\server\server_msgs.d" 
 
 OBJS__QUOTED += \
-"DLMS/server/app_server_msgs.obj" \
-"DLMS/server/server_msgs.obj" 
+"DLMS\server\app_server_msgs.obj" \
+"DLMS\server\server_msgs.obj" 
 
 C_SRCS__QUOTED += \
 "../DLMS/server/app_server_msgs.c" \

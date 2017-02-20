@@ -25,18 +25,18 @@ C_DEPS += \
 ./DLMS/uart_comms.d 
 
 C_DEPS__QUOTED += \
-"DLMS/Billing_Data.d" \
-"DLMS/DLMS.d" \
-"DLMS/SharedVariables.d" \
-"DLMS/config.d" \
-"DLMS/uart_comms.d" 
+"DLMS\Billing_Data.d" \
+"DLMS\DLMS.d" \
+"DLMS\SharedVariables.d" \
+"DLMS\config.d" \
+"DLMS\uart_comms.d" 
 
 OBJS__QUOTED += \
-"DLMS/Billing_Data.obj" \
-"DLMS/DLMS.obj" \
-"DLMS/SharedVariables.obj" \
-"DLMS/config.obj" \
-"DLMS/uart_comms.obj" 
+"DLMS\Billing_Data.obj" \
+"DLMS\DLMS.obj" \
+"DLMS\SharedVariables.obj" \
+"DLMS\config.obj" \
+"DLMS\uart_comms.obj" 
 
 C_SRCS__QUOTED += \
 "../DLMS/Billing_Data.c" \

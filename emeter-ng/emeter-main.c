@@ -160,7 +160,7 @@ void restoreBackup();
 extern EnergyLog LastTxEnergyCopy;
 extern uint8_t OperatingMode;
 int local_comm_exchange_mode_flag=0; //optical:0; USB:1
-void time_get_test();
+
 void main(void)
 {
     static int32_t x;
@@ -341,247 +341,234 @@ void main(void)
                Output_State = 0;
                control_state = 2;
             }   
-             
-             
-             
-           
+
              if(operating_mode == OPERATING_MODE_NORMAL)
              {             
                     if ((phase->status & NEW_LOG))
                     {              
-                                    status.DisplayUpdateRequired = 1;
-                                  /* The background activity has informed us that it is time to
-                                     perform a block processing operation. */
-                                      phase->status &= ~NEW_LOG;        
-                                      /* We can only do real power assessment in full operating mode */
-                                      x = active_power();
-                                      
-                                      if(labs(x) < MIN_ACTIVE_POWER_CONSIDERED_ZERO) // if the power reading is less than 2.5w this is an error power so consider it as zero power  
-                                      {
-                                        x = 0;
-                                      }
-                                      
-                                      phase->readings.I_rms = current();
-                                      phase->readings.V_rms = voltage();
-                                      if(phase->readings.V_rms > MIN_PHSE_PRESENCE_RMS_VOLTAGE)//TODO. pick a better value for this 
-                                      {
-                                        Phase_Presence |= BIT0; //BIT0 phase 1 BIT1 phase 2, BIT2 phase 3
-                                      }
-                                      else
-                                      {
-                                        Phase_Presence &= ~BIT0;
-                                      }
-                                      
-                                      
-      #ifdef NEUTRAL_MONITOR_SUPPORT
-                                      phase->metrology.neutral.I_rms = neutral_current();
-                                      
-                                      /*if the phase reading is less than 3mA and then set the neutral reading to zero.
-                                        This is to prevent from causing neutral tamper status at very small current*/
-                                      if(phase->metrology.neutral.I_rms < MIN_NUTRAL_CURRENT_CONSIDERED_ZERO && phase->readings.I_rms <= MIN_PHASE_CURRENT_CONSIDERED_ZERO)
-                                      {
-                                        phase->metrology.neutral.I_rms = 0;
-                                      }  
-      #endif                                
+						status.DisplayUpdateRequired = 1;
+					  /* The background activity has informed us that it is time to
+						 perform a block processing operation. */
+						  phase->status &= ~NEW_LOG;
+						  /* We can only do real power assessment in full operating mode */
+						  x = active_power();
 
+						  if(labs(x) < MIN_ACTIVE_POWER_CONSIDERED_ZERO) // if the power reading is less than 2.5w this is an error power so consider it as zero power
+						  {
+							x = 0;
+						  }
 
-                                  phase->readings.active_power = x;
-                                  phase->readings.active_power_pulse = x;
-                                  if(phase->readings.active_power<=0)
-                                  {
-                                      P_Active_Plus = 0;
-                                      P_Active_Negative = labs(x);
-                                  }
-                                  else
-                                  {
-                                    P_Active_Plus = x;
-                                    P_Active_Negative = 0;
-                                  }
-                                  
-                                  x = reactive_power();
-                                  
-                                  
-                                  if(labs(phase->readings.reactive_power) < MIN_REACTIVE_POWER_CONSIDERED_ZERO)//for reactive power less than 2.5VAr make the reactive power 0
-                                  {
-                                    phase->readings.reactive_power=0;
-                                    
-                                  }
-                                  
-                                  
-                                  phase->readings.reactive_power = x;
-                                  if(phase->readings.reactive_power <=0)
-                                  {
-                                       P_Reactive_positive = 0 ;
-                                       P_Reactive_negative = labs(x);
-                                  }
-                                  else
-                                  {
-                                       P_Reactive_positive = x;
-                                       P_Reactive_negative = 0;
-                                  }
-                                  
-                                  phase->readings.apparent_power = apparent_power();
-                                  
-                                  /* The power factor should be calculated last */
-                                  phase->readings.power_factor = labs(power_factor());
+						  phase->readings.I_rms = current();
+						  phase->readings.V_rms = voltage();
+						  if(phase->readings.V_rms > MIN_PHSE_PRESENCE_RMS_VOLTAGE)//TODO. pick a better value for this
+						  {
+							Phase_Presence |= BIT0; //BIT0 phase 1 BIT1 phase 2, BIT2 phase 3
+						  }
+						  else
+						  {
+							Phase_Presence &= ~BIT0;
+						  }
 
-                                  //determin the current Quadrant       
-                                  if(phase->readings.active_power >= 0 && phase->readings.reactive_power >= 0 ) //QI
-                                  {
-                                    ActiveQuadrant = 1;
-                                  }
-                                  else if(phase->readings.active_power < 0 && phase->readings.reactive_power >= 0 ) //QII
-                                  {
-                                    ActiveQuadrant = 2;
-                                  }
-                                  else if(phase->readings.active_power < 0 && phase->readings.reactive_power < 0 ) //QIII
-                                  {
-                                    ActiveQuadrant = 3;
-                                  }
-                                  else if(phase->readings.active_power >= 0 && phase->readings.reactive_power < 0 ) //QVI
-                                  {
-                                    ActiveQuadrant = 4;
-                                  }
-                                          
-                                  if(energy_export_support == 0 &&  phase->readings.active_power < 0) 
-                                  {
-                                        status.energy_reverse_flow_tamper = 1;
-                                        phase->readings.active_power = labs(phase->readings.active_power);
-                                        phase->readings.active_power_pulse = phase->readings.active_power;
-                                       
-                                  }
+						  phase->metrology.neutral.I_rms = neutral_current();
 
-                            
-                            /*D. updated this for 4 quadrant energy measssuremnt */
-                            if(phase->readings.active_power >= 0 && phase->readings.reactive_power >= 0 ) //QI
-                            {
-                               phase->active_energy_import_counter += phase->readings.active_power;// variable used for pulse generation purpose 
-                               phase->active_energy_counter_QI += phase->readings.active_power;
-                                 while (phase->active_energy_counter_QI > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
-                                  {
-                                      phase->active_energy_counter_QI -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
-                                      phase->consumed_active_energy_QI++;
-                                  }
-                               
-                              phase->reactive_energy_counter_QI += phase->readings.reactive_power;
-                                 while (phase->reactive_energy_counter_QI > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
-                                  {
-                                      phase->reactive_energy_counter_QI -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
-                                      phase->consumed_reactive_energy_QI++;
-                                  }               
-                                 //ActiveQuadrant = 1;
-                            }
-                            else if(phase->readings.active_power < 0 && phase->readings.reactive_power >= 0 ) //QII
-                            {
-                                 phase->readings.active_power = labs(phase->readings.active_power);
-                                 phase->active_energy_export_counter +=phase->readings.active_power;
-                                 phase->active_energy_counter_QII += phase->readings.active_power;
-                                 while (phase->active_energy_counter_QII > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
-                                  {
-                                      phase->active_energy_counter_QII -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
-                                      phase->consumed_active_energy_QII++;
-                                  }
-                               
-                              phase->reactive_energy_counter_QII += phase->readings.reactive_power;
-                                 while (phase->reactive_energy_counter_QII > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
-                                  {
-                                      phase->reactive_energy_counter_QII -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
-                                      phase->consumed_reactive_energy_QII++;
-                                  }     
-                                 //ActiveQuadrant = 2;
-                            }
-                            else if(phase->readings.active_power < 0 && phase->readings.reactive_power < 0 ) //QIII
-                            {
-                                 phase->readings.active_power = labs(phase->readings.active_power);
-                                 phase->readings.reactive_power = labs(phase->readings.reactive_power);
-                                 
-                                 phase->active_energy_export_counter +=phase->readings.active_power;
-                                 phase->active_energy_counter_QIII += phase->readings.active_power;
-                                 while (phase->active_energy_counter_QIII > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
-                                  {
-                                      phase->active_energy_counter_QIII -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
-                                      phase->consumed_active_energy_QIII++;
-                                  }
-                               
-                                 phase->reactive_energy_counter_QIII += phase->readings.reactive_power;
-                                 while (phase->reactive_energy_counter_QIII > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
-                                  {
-                                      phase->reactive_energy_counter_QIII -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
-                                      phase->consumed_reactive_energy_QIII++;
-                                  }
-                                
-                                //ActiveQuadrant = 3;
-                            }
-                            else if(phase->readings.active_power >= 0 && phase->readings.reactive_power < 0 ) //QVI
-                            {
-                                 phase->readings.reactive_power = labs(phase->readings.reactive_power);
-                                 
-                                 phase->active_energy_import_counter +=phase->readings.active_power;// * phase->metrology.dot_prod_logged.sample_count;
-                                 phase->active_energy_counter_QIV += phase->readings.active_power;
-                                 while (phase->active_energy_counter_QIV > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
-                                  {
-                                      phase->active_energy_counter_QIV -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
-                                      phase->consumed_active_energy_QIV++;
-                                  }
-                               
-                                 phase->reactive_energy_counter_QIV += phase->readings.reactive_power;
-                                 while (phase->reactive_energy_counter_QIV > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
-                                  {
-                                      phase->reactive_energy_counter_QIV -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
-                                      phase->consumed_reactive_energy_QIV++;
-                                  }            
-      //                           ActiveQuadrant = 4;
-                            }
+						  /*if the phase reading is less than 3mA and then set the neutral reading to zero.
+							This is to prevent from causing neutral tamper status at very small current*/
+						  if(phase->metrology.neutral.I_rms < MIN_NUTRAL_CURRENT_CONSIDERED_ZERO && phase->readings.I_rms <= MIN_PHASE_CURRENT_CONSIDERED_ZERO)
+						  {
+							phase->metrology.neutral.I_rms = 0;
+						  }
+
+						  phase->readings.active_power = x;
+						  phase->readings.active_power_pulse = x;
+						  if(phase->readings.active_power <= 0)
+						  {
+							  P_Active_Plus = 0;
+							  P_Active_Negative = labs(x);
+						  }
+						  else
+						  {
+							P_Active_Plus = x;
+							P_Active_Negative = 0;
+						  }
+
+						  x = reactive_power();
+
+						  if(labs(phase->readings.reactive_power) < MIN_REACTIVE_POWER_CONSIDERED_ZERO)//for reactive power less than 2.5VAr make the reactive power 0
+						  {
+							phase->readings.reactive_power = 0;
+						  }
+						  else
+						  {
+							  phase->readings.reactive_power = x;
+						  }
+
+						  if(phase->readings.reactive_power <= 0)
+						  {
+							  P_Reactive_positive = 0 ;
+							  P_Reactive_negative = labs(x);
+						  }
+						  else
+						  {
+							  P_Reactive_positive = x;
+							  P_Reactive_negative = 0;
+						  }
+                                  
+						  phase->readings.apparent_power = apparent_power();
+
+						  /* The power factor should be calculated last */
+						  phase->readings.power_factor = labs(power_factor());
+
+						  //determin the current Quadrant
+						  if(phase->readings.active_power >= 0 && phase->readings.reactive_power >= 0 ) //QI
+						  {
+							ActiveQuadrant = 1;
+						  }
+						  else if(phase->readings.active_power < 0 && phase->readings.reactive_power >= 0 ) //QII
+						  {
+							ActiveQuadrant = 2;
+						  }
+						  else if(phase->readings.active_power < 0 && phase->readings.reactive_power < 0 ) //QIII
+						  {
+							ActiveQuadrant = 3;
+						  }
+						  else if(phase->readings.active_power >= 0 && phase->readings.reactive_power < 0 ) //QVI
+						  {
+							ActiveQuadrant = 4;
+						  }
+
+						  if(energy_export_support == 0 &&  phase->readings.active_power < 0)
+						  {
+							  status.energy_reverse_flow_tamper = 1;
+							  phase->readings.active_power = labs(phase->readings.active_power);
+							  phase->readings.active_power_pulse = phase->readings.active_power;
+						  }
+
+						  /*D. updated this for 4 quadrant energy measurement */
+						  if(phase->readings.active_power >= 0 && phase->readings.reactive_power >= 0 ) //QI
+						  {
+							  phase->active_energy_import_counter += phase->readings.active_power;// variable used for pulse generation purpose
+							  phase->active_energy_counter_QI += phase->readings.active_power;
+							  while (phase->active_energy_counter_QI > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
+							  {
+								  phase->active_energy_counter_QI -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
+								  phase->consumed_active_energy_QI++;
+							  }
+
+							  phase->reactive_energy_counter_QI += phase->readings.reactive_power;
+							  while (phase->reactive_energy_counter_QI > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
+							  {
+								  phase->reactive_energy_counter_QI -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
+								  phase->consumed_reactive_energy_QI++;
+							  }
+							 //ActiveQuadrant = 1;
+						}
+						else if(phase->readings.active_power < 0 && phase->readings.reactive_power >= 0 ) //QII
+						{
+							 phase->readings.active_power = labs(phase->readings.active_power);
+							 phase->active_energy_export_counter +=phase->readings.active_power;
+							 phase->active_energy_counter_QII += phase->readings.active_power;
+							 while (phase->active_energy_counter_QII > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
+							  {
+								  phase->active_energy_counter_QII -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
+								  phase->consumed_active_energy_QII++;
+							  }
+
+							 phase->reactive_energy_counter_QII += phase->readings.reactive_power;
+							 while (phase->reactive_energy_counter_QII > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
+							  {
+								  phase->reactive_energy_counter_QII -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
+								  phase->consumed_reactive_energy_QII++;
+							  }
+							 //ActiveQuadrant = 2;
+						}
+						else if(phase->readings.active_power < 0 && phase->readings.reactive_power < 0 ) //QIII
+						{
+							 phase->readings.active_power = labs(phase->readings.active_power);
+							 phase->readings.reactive_power = labs(phase->readings.reactive_power);
+
+							 phase->active_energy_export_counter +=phase->readings.active_power;
+							 phase->active_energy_counter_QIII += phase->readings.active_power;
+							 while (phase->active_energy_counter_QIII > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
+							 {
+								 phase->active_energy_counter_QIII -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
+								 phase->consumed_active_energy_QIII++;
+							 }
+
+							 phase->reactive_energy_counter_QIII += phase->readings.reactive_power;
+							 while (phase->reactive_energy_counter_QIII > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
+							 {
+								 phase->reactive_energy_counter_QIII -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
+								 phase->consumed_reactive_energy_QIII++;
+							 }
+
+							//ActiveQuadrant = 3;
+						}
+						else if(phase->readings.active_power >= 0 && phase->readings.reactive_power < 0 ) //QVI
+						{
+							 phase->readings.reactive_power = labs(phase->readings.reactive_power);
+
+							 phase->active_energy_import_counter +=phase->readings.active_power;// * phase->metrology.dot_prod_logged.sample_count;
+							 phase->active_energy_counter_QIV += phase->readings.active_power;
+							 while (phase->active_energy_counter_QIV > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
+							 {
+								 phase->active_energy_counter_QIV -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
+								 phase->consumed_active_energy_QIV++;
+							 }
+
+							 phase->reactive_energy_counter_QIV += phase->readings.reactive_power;
+							 while (phase->reactive_energy_counter_QIV > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
+							 {
+								 phase->reactive_energy_counter_QIV -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
+								 phase->consumed_reactive_energy_QIV++;
+							 }
+  //                           ActiveQuadrant = 4;
+						}
                                                         
                              
-                            phase->active_energy_import = phase->consumed_active_energy_QI + phase->consumed_active_energy_QIV ;
-                            phase->active_energy_export = phase->consumed_active_energy_QII + phase->consumed_active_energy_QIII;
-                            
-                            /*End of update for 4 quadrant energy meassuremnt */
-                                  
-                            if(phase->readings.V_rms < 25)
-                              phase->readings.frequency = 0;
-                            else 
-                              phase->readings.frequency = frequency();   
-                            
-                            
-                             performPowerQualityMessurement();
-                             CalculateBilling();       //perform tariff Update and calculation                                                  
-                             UpdateDisplayProgressBar_c();
-                             
+						phase->active_energy_import = phase->consumed_active_energy_QI + phase->consumed_active_energy_QIV ;
+						phase->active_energy_export = phase->consumed_active_energy_QII + phase->consumed_active_energy_QIII;
+
+						/*End of update for 4 quadrant energy measurement */
+
+						if(phase->readings.V_rms < 25)
+						  phase->readings.frequency = 0;
+						else
+						  phase->readings.frequency = frequency();
+
+						 performPowerQualityMessurement();
+						 CalculateBilling();       //perform tariff Update and calculation
+						 UpdateDisplayProgressBar_c();
                   }
                   
                   if(status.SecondElapsed == 1)
                   {
-                     per_second_activity();//run activities that needs to be executed every second 
-                     status.SecondElapsed =0;
+                	  per_second_activity();//run activities that needs to be executed every second
+                      status.SecondElapsed = 0;
                   }
-                  if(status.MiuteElapsed==1)
+                  if(status.MiuteElapsed == 1)
                   {
-                     per_minute_activity();//run activities that needs to be executed every minute
-                     status.MiuteElapsed = 0;
+                	  per_minute_activity();//run activities that needs to be executed every minute
+                      status.MiuteElapsed = 0;
                   }
-                  if(status.MontheChagned==1){
-                     status.MontheChagned = 0;
-                     per_month_activity(); //run activities that needs to be executed every month
+                  if(status.MontheChagned == 1){
+                	  status.MontheChagned = 0;
+                	  per_month_activity(); //run activities that needs to be executed every month
                   }
                   if(status.DayChanged == 1)
                   {
-                    per_day_activity();//run activities that needs to be executed every day
-                    status.DayChanged = 0;
+                	  per_day_activity();//run activities that needs to be executed every day
+                	  status.DayChanged = 0;
                   }
-                  
-                  
                   
                   //perform other tasks hear
                   if( plc_state == INITIALIZING)
                   {
-                    InitPLC2();
+                	  InitPLC2();
                   }
                   if (status.PLCCommunicationDetected == 1) // from the communication module.PLC Module 
                   {
-                          ProcessRecivedPLCMessage(); 
-                          status.PLCCommunicationDetected = 0;
+                	  ProcessRecivedPLCMessage();
+                      status.PLCCommunicationDetected = 0;
                   }
                   //Timed Tasks
                   //Interrupt From Timer
@@ -599,7 +586,6 @@ void main(void)
                       status.LoggingTimeIsUp =  0;          
                   }
                   
-                  
                   UpdateDisplay_c();
                   
                   if(status.task_exec_finished == 1)
@@ -611,25 +597,23 @@ void main(void)
              }
              
              else if(operating_mode == OPERATING_MODE_POWERFAIL)
-             {                 
-                    if(lpc == 2)
-                    {
-                       custom_power_restore_handler();  
-                    }                
-             }    
-         #if defined OPT_INT     
-
-             if(local_comm_exchange_mode_flag==0 && (P3IN & BIT0)){
-               configure_uart_port(1,3);  //change to USB
-               local_comm_exchange_mode_flag=1;
+             {
+            	 if(lpc == 2)
+                 {
+            		 custom_power_restore_handler();
+                 }
              }
-             else if(local_comm_exchange_mode_flag==1 && !(P3IN & BIT0)){              
-               local_comm_exchange_mode_flag=0;
-               configure_uart_port(1,0); //change to OPT
 
+             if(local_comm_exchange_mode_flag == 0 && (P3IN & BIT0))
+             {
+            	 configure_uart_port(1,3);  //change to USB
+            	 local_comm_exchange_mode_flag = 1;
              }
-             
-         #endif  
+             else if(local_comm_exchange_mode_flag == 1 && !(P3IN & BIT0))
+             {
+            	 local_comm_exchange_mode_flag = 0;
+            	 configure_uart_port(1,0); //change to OPT
+             }
     }
 }
 /**
