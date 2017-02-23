@@ -369,7 +369,7 @@ void main(void)
 							Phase_Presence &= ~BIT0;
 						  }
 
-						  phase->metrology.neutral.I_rms = neutral_current();
+//						  phase->metrology.neutral.I_rms = neutral_current();
 
 						  /*if the phase reading is less than 3mA and then set the neutral reading to zero.
 							This is to prevent from causing neutral tamper status at very small current*/

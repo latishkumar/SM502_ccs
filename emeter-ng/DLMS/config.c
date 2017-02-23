@@ -764,6 +764,7 @@ extern uint8_t CurrentActiveTariff;
 
 
 extern uint16_t Output_State;
+extern uint16_t previous_output_state;
 extern uint8_t control_state;
 extern uint8_t control_mode;
 
@@ -3597,12 +3598,54 @@ static const struct attribute_desc_s Obj_DisconnectControl[] =
 
 };
 
+/**********************************************Added for SO2 support****************************************************/
+static const struct attribute_desc_s Obj_Total_Active_Energy_Import_SO2[] =
+{
+    {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[PROFILE_GENERIC_OBJECTS_START + 8].instance_id, NULL},
+    {2, ACCESS_PC___MRR__USR_, TAG_UINT32,           (void *) &phase->active_energy_import, NULL},
+    {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_total_active_energy_import, NULL}
+};
+static const struct attribute_desc_s Obj_Total_Active_Energy_Export_SO2[] =
+{
+    {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[PROFILE_GENERIC_OBJECTS_START + 9].instance_id, NULL},
+    {2, ACCESS_PC___MRR__USR_, TAG_UINT32,           (void *) &phase->active_energy_export, NULL},
+    {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_total_active_energy_import, NULL}
+};
+static const struct attribute_desc_s Obj_Reactive_Energy_QI_SO2[] =
+{
+    {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[PROFILE_GENERIC_OBJECTS_START + 10].instance_id, NULL},
+    {2, ACCESS_PC___MRR__USR_, TAG_UINT32,           (void *) &phase->readings.reactive_energy_Q1, NULL},
+    {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_reactive_energy, NULL}
+};
+static const struct attribute_desc_s Obj_Reactive_Energy_QII_SO2[] =
+{
+    {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[PROFILE_GENERIC_OBJECTS_START + 11].instance_id, NULL},
+    {2, ACCESS_PC___MRR__USR_, TAG_UINT32,           (void *) &phase->readings.reactive_energy_Q2, NULL},
+    {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_reactive_energy, NULL}
+};
+static const struct attribute_desc_s Obj_Reactive_Energy_QIII_SO2[] =
+{
+    {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[PROFILE_GENERIC_OBJECTS_START + 12].instance_id, NULL},
+    {2, ACCESS_PC___MRR__USR_, TAG_UINT32,           (void *) &phase->readings.reactive_energy_Q3, NULL},
+    {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_reactive_energy, NULL}
+};
+static const struct attribute_desc_s Obj_Reactive_Energy_QIV_SO2[] =
+{
+    {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[PROFILE_GENERIC_OBJECTS_START + 13].instance_id, NULL},
+    {2, ACCESS_PC___MRR__USR_, TAG_UINT32,           (void *) &phase->readings.reactive_energy_Q4, NULL},
+    {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_reactive_energy, NULL}
+};
+/************************************************************************************************************************/
+/**********************************************Added for SO1 support****************************************************/
+static const struct attribute_desc_s Obj_Previous_switch_State[] =
+{
+    {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[11].instance_id, NULL},
+    {2, ACCESS_PC___MRR__USR_, TAG_BOOLEAN,         (void *) &previous_output_state, NULL},
+    {3, ACCESS_PC___MRR__USR_, TAG_ENUM,       		(void *) &control_state, NULL},
+    {4, ACCESS_PC___MRR__USRW, TAG_ENUM,       		(void *) &control_mode, NULL}
 
-
-
-
-
-
+};
+/************************************************************************************************************************/
 
 
 
@@ -4099,7 +4142,7 @@ const struct object_desc_s object_list[] =
     {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  0,   0,  94, 34,  60, 255}, 3,   Obj_ThresholdLongPowerFaile, 0, NULL},//10  // fin
     /* Instantaneous parameters - direct access */
     {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,  31,  7,   0, 255}, 3,  Obj_Instantanious_Current_L1, 0, NULL},//11 done 
-    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   2,  29,   0, 255}, 3,  Obj_Total_Active_Energy_Export, 0, NULL},  //12 done , integrated  //[E.E] was 1,0,2,8,0,255
+    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   2,  8,   0, 255}, 3,  Obj_Total_Active_Energy_Export, 0, NULL},  //12 done , integrated  //[E.E] was 1,0,2,8,0,255
     {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,  32,  7,   0, 255}, 3,  Obj_Instantanious_Voltage_L1, 0, NULL},//13 done , integrated , IDC-3 read tested 
 //    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,  72,  7,   0, 255}, 3,  Obj_V_BN, 0, NULL},//14
     {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   0,  6,   4, 255}, 3,  Obj_Voltage_Referance, 0, NULL},//14  //Referance Voltage for power quality measurement  fin    
@@ -4110,11 +4153,11 @@ const struct object_desc_s object_list[] =
     {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  0,   0,  00, 00, 4,   255}, 3,  Obj_NeutralCurrent, 0, NULL},//17     
     {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,  14,  7,   0, 255}, 3,  Obj_Frequency, 0, NULL},//18 ?????????????????????????????????????/// , integrated
     {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   1,  7,   0, 255}, 3,  Obj_Active_Power_Positive, 0, NULL},//19 done , integrated fin,import
-    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   1,  29,   0, 255}, 3,  Obj_Total_Active_Energy_Import, 0, NULL},  //20 done , integrated //[E.E] was 1,0,1,8,0,255
-    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   5,  29,   0, 255}, 3,  Obj_Reactive_Energy_QI, 0, NULL},//21      //done , integrated 	//[E.E] was 1,0,5,8,0,255
-    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   6,  29,   0, 255}, 3,  Obj_Reactive_Energy_QII, 0, NULL},//22     //done , integrated 	//[E.E] was 1,0,6,8,0,255
-    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   7,  29,   0, 255}, 3,  Obj_Reactive_Energy_QIII, 0, NULL},//23    //done , integrated 	//[E.E] was 1,0,7,8,0,255
-    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   8,  29,   0, 255}, 3,  Obj_Reactive_Energy_QIV, 0, NULL},//24     //done , integrated 	//[E.E] was 1,0,8,8,0,255
+    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   1,  8,   0, 255}, 3,  Obj_Total_Active_Energy_Import, 0, NULL},  //20 done , integrated //[E.E] was 1,0,1,8,0,255
+    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   5,  8,   0, 255}, 3,  Obj_Reactive_Energy_QI, 0, NULL},//21      //done , integrated 	//[E.E] was 1,0,5,8,0,255
+    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   6,  8,   0, 255}, 3,  Obj_Reactive_Energy_QII, 0, NULL},//22     //done , integrated 	//[E.E] was 1,0,6,8,0,255
+    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   7,  8,   0, 255}, 3,  Obj_Reactive_Energy_QIII, 0, NULL},//23    //done , integrated 	//[E.E] was 1,0,7,8,0,255
+    {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   8,  8,   0, 255}, 3,  Obj_Reactive_Energy_QIV, 0, NULL},//24     //done , integrated 	//[E.E] was 1,0,8,8,0,255
     
     {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   2,  7,   0, 255}, 3,  Obj_Active_Power_Negative, 0, NULL},//25   //done fin
     {ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   3,  7,   0, 255}, 3,  Obj_Reactive_Power_Positive, 0, NULL},//26 //done fin
@@ -4132,12 +4175,20 @@ const struct object_desc_s object_list[] =
     /* Instantaneous parameters - profile access */
     {ASSOC_MR_US,       CLASS_ID_PROFILE_GENERIC,          1, {  1,   0,  99,  1,   0, 255}, 8,  Obj_Load_Profile, 2, Obj_Load_Profile_Methods},//5 /* Hourly Load Profile one entry per 1Hr present*/    
     {ASSOC_MR_US,       CLASS_ID_PROFILE_GENERIC,          1, {  0,   0,  99, 98,   0, 255}, 8,  Obj_StandardEventLog, 2, Obj_Event_Log_Methods},//2 //TODO. Object Deleted, 
-    {ASSOC_MR_US,       CLASS_ID_PROFILE_GENERIC,          1, {  0,   0,  21,  0,  06, 255}, 8,  Obj_Instantaneous_Energy_Values, 0, NULL},//3 done 
+    {ASSOC_MR_US,       CLASS_ID_PROFILE_GENERIC,          1, {  0,   0,  21,  0,  06, 255}, 8,  Obj_Instantaneous_Energy_Values, 0, NULL},//3 done
     {ASSOC_MR_US,       CLASS_ID_PROFILE_GENERIC,          1, {  0,   0,  21,  0,  05, 255}, 8,  Obj_Instantaneous_Values_buff, 0, NULL},//4 done 
     {ASSOC_MR_US,       CLASS_ID_PROFILE_GENERIC,          1, {  0,   0,  21,  0,  11, 255}, 8,  Obj_Billing_Profile, 0, NULL},//1    Obj_Load_Billing_Profile_Methods
 
     {ASSOC_MR_US,       CLASS_ID_BALANCE,                  0, {  0,   0, 131,  0,   0, 255}, 3,   Obj_CurrentBalance2, 2, Obj_Balance_Methods},  //6 
-    {ASSOC_MR_US,       CLASS_ID_IMAGE_TRANSFER,           0, {  0,   0, 44,  0,   0, 255},  7,   Obj_ImageTransfer, 4, Obj_ImageTransfer_Methods},  //7    
+    {ASSOC_MR_US,       CLASS_ID_IMAGE_TRANSFER,           0, {  0,   0, 44,  0,   0, 255},  7,   Obj_ImageTransfer, 4, Obj_ImageTransfer_Methods},  //7
+	/*SO2 */
+	{ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   1,  29,   0, 255}, 3,  Obj_Total_Active_Energy_Import_SO2, 0, NULL},  //Ai
+	{ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   2,  29,   0, 255}, 3,  Obj_Total_Active_Energy_Export_SO2, 0, NULL},  //Ae
+	{ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   5,  29,   0, 255}, 3,  Obj_Reactive_Energy_QI_SO2, 0, NULL},          //R1
+	{ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   6,  29,   0, 255}, 3,  Obj_Reactive_Energy_QII_SO2, 0, NULL},         //R2
+	{ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   7,  29,   0, 255}, 3,  Obj_Reactive_Energy_QIII_SO2, 0, NULL},        //R3
+	{ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   8,  29,   0, 255}, 3,  Obj_Reactive_Energy_QIV_SO2, 0, NULL},         //R4
+	{ASSOC_MR_US,       CLASS_ID_DISCONNECT_CONTROL,       0, {  0,   1,  94,  34,  20, 255}, 4,  Obj_Previous_switch_State, 2, Obj_Connect_Methods},//11/*  previous disconnect control not integrated
     {0,0, 0, {0, 0, 0, 0, 0, 0}, 0,  NULL}
 };
 //Tariff Scheam

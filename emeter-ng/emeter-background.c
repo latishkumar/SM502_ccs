@@ -157,7 +157,7 @@ static void __inline__ log_parameters(void)
         transfer_ac_power(phase->metrology.current.dot_prod_logged.P_reactive, phase->metrology.current.dot_prod.P_reactive);
 
         // NEUTRAL_MONITOR_SUPPORT
-   	    transfer_ac_current(phase->metrology.current.dot_prod_logged.I_sq, phase->metrology.current.dot_prod.I_sq);
+   	    transfer_ac_current(phase->metrology.neutral.dot_prod_logged.I_sq, phase->metrology.neutral.dot_prod.I_sq);
         transfer_ac_power(phase->metrology.neutral.dot_prod_logged.P_active, phase->metrology.neutral.dot_prod.P_active);
 
         // REACTIVE_POWER_BY_QUADRATURE_SUPPORT
@@ -329,10 +329,10 @@ ISR(SD24B, adc_interrupt)
 	// NEUTRAL_MONITOR_SUPPORT
 	corrected = adc_i_buffer[1];
 	if ((corrected >= I_ADC_MAX  ||  corrected <= I_ADC_MIN)  &&  phase->metrology.neutral.I_endstops)
-			phase->metrology.current.I_endstops--;
+			phase->metrology.neutral.I_endstops--;
 	phase->metrology.neutral.I_history[0][0] = corrected;
-	I_neutral_sample = dc_filter_current(neutral_c.metrology.current.I_dc_estimate[0], neutral_c.metrology.current.I_history[0][0]);
-	sqac_current(phase->metrology.current.dot_prod.I_sq, I_neutral_sample);
+	I_neutral_sample = dc_filter_current(phase->metrology.neutral.I_dc_estimate[0], phase->metrology.neutral.I_history[0][0]);
+	sqac_current(phase->metrology.neutral.dot_prod.I_sq, I_neutral_sample);
 
 	/*I_neutral_sample = dc_filter_current(neutral_c.metrology.current.I_dc_estimate[0], neutral_c.metrology.current.I_history[0][0]);
 	corrected = adc_i_buffer[1];

@@ -2096,6 +2096,7 @@ void send_get_response(iec62056_46_link_t *link,
 /*- End of function --------------------------------------------------------*/
 
 
+
 static void process_get_request(iec62056_46_link_t *link, const uint8_t msg[], int len)
 {
     int i;

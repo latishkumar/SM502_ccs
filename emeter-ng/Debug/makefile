@@ -4,7 +4,7 @@
 
 SHELL = cmd.exe
 
-CG_TOOL_ROOT := C:/ti/ccs62/ccsv6/tools/compiler/msp430_15.12.3.LTS
+CG_TOOL_ROOT := C:/ti/ccs613/ccsv6/tools/compiler/ti-cgt-msp430_15.12.1.LTS
 
 GEN_OPTS__FLAG := 
 GEN_CMDS__FLAG := 
@@ -220,13 +220,13 @@ all: emeter-ng.out secondary-outputs
 emeter-ng.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: MSP430 Linker'
-	"C:/ti/ccs62/ccsv6/tools/compiler/msp430_15.12.3.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --advice:power=all -g --define=__MSP430F6736__ --define=CUSTOM_EMETER_H="emeter-1ph-neutral-6733_shunt.h" --define=CHUNK_SIZE=100 --define=DLMS_IEC_21 --define=DLMS --define=EEPROM_REV_2 --define=ALARM_ON_TAMPER --define=PHYSICAL_RELAY_DISCONNECT_ENABLED --define=OPT_INT --diag_warning=225 --diag_wrap=off --display_error_number --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --printf_support=minimal -z -m"emeter-ng.map" --stack_size=80 --heap_size=80 --cinit_hold_wdt=on -i"C:/ti/ccs62/ccsv6/ccs_base/msp430/include" -i"M:/sm502-CCS/final/SM502_ccs/emeter-toolkit/Debug" -i"C:/ti/ccs62/ccsv6/ccs_base/msp430/lib/5xx_6xx_FRxx" -i"C:/ti/ccs62/ccsv6/tools/compiler/msp430_15.12.3.LTS/lib" -i"C:/ti/ccs62/ccsv6/tools/compiler/msp430_15.12.3.LTS/include" --reread_libs --warn_sections --display_error_number --diag_wrap=off --xml_link_info="emeter-ng_linkInfo.xml" --use_hw_mpy=F5 --rom_model -o "emeter-ng.out" $(ORDERED_OBJS)
+	"C:/ti/ccs613/ccsv6/tools/compiler/ti-cgt-msp430_15.12.1.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --advice:power=all -g --define=__MSP430F6736__ --define=CUSTOM_EMETER_H="emeter-1ph-neutral-6733_shunt.h" --define=CHUNK_SIZE=100 --define=DLMS_IEC_21 --define=DLMS --define=EEPROM_REV_2 --define=ALARM_ON_TAMPER --define=PHYSICAL_RELAY_DISCONNECT_ENABLED --define=OPT_INT --diag_warning=225 --display_error_number --diag_wrap=off --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --printf_support=minimal -z -m"emeter-ng.map" --heap_size=80 --stack_size=80 --cinit_hold_wdt=on -i"C:/ti/ccs613/ccsv6/ccs_base/msp430/include" -i"C:/Users/user/Desktop/SM502_firmware_ccs/neutral-test/SM502_ccs/emeter-toolkit/Debug" -i"C:/ti/ccs613/ccsv6/ccs_base/msp430/lib/5xx_6xx_FRxx" -i"C:/ti/ccs613/ccsv6/tools/compiler/ti-cgt-msp430_15.12.1.LTS/lib" -i"C:/ti/ccs613/ccsv6/tools/compiler/ti-cgt-msp430_15.12.1.LTS/include" --reread_libs --display_error_number --warn_sections --diag_wrap=off --xml_link_info="emeter-ng_linkInfo.xml" --use_hw_mpy=F5 --rom_model -o "emeter-ng.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 emeter-ng.txt: $(EXE_OUTPUTS)
 	@echo 'Invoking: MSP430 Hex Utility'
-	"C:/ti/ccs62/ccsv6/tools/compiler/msp430_15.12.3.LTS/bin/hex430" --memwidth=8 --romwidth=8 --ti_txt -o "emeter-ng.txt" $(EXE_OUTPUTS__QUOTED)
+	"C:/ti/ccs613/ccsv6/tools/compiler/ti-cgt-msp430_15.12.1.LTS/bin/hex430" --memwidth=8 --romwidth=8 --ti_txt -o "emeter-ng.txt" $(EXE_OUTPUTS__QUOTED)
 	@echo 'Finished building: $@'
 	@echo ' '
 

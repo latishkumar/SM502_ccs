@@ -706,9 +706,9 @@
 #define custom_magnetic_sensor_test()               /**/
 
 #ifdef NEUTRAL_MONITOR_SUPPORT
-#define DEFAULT_I_RMS_SCALE_FACTOR_NEUTRAL 49126//15150
-#define DEFAULT_P_SCALE_FACTOR_NEUTRAL   20
-#define DEFAULT_NEUTRAL_BASE_PHASE_CORRECTION 10
+#define DEFAULT_I_RMS_SCALE_FACTOR_NEUTRAL 478//49126//15150
+#define DEFAULT_P_SCALE_FACTOR_NEUTRAL     54//20
+#define DEFAULT_NEUTRAL_BASE_PHASE_CORRECTION 5
 #endif 
 
 /*! This is called every ADC interrupt, after the main DSP work has finished.

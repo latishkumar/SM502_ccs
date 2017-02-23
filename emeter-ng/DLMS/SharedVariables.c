@@ -119,6 +119,7 @@ uint8_t CurrentActiveTariff = 1;
 
 
 uint16_t Output_State = 0;
+uint16_t previous_output_state= 0;
 uint8_t control_state =0;
 uint8_t control_mode = 5;
 

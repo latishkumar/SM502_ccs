@@ -360,33 +360,22 @@ int32_t voltage(struct phase_parms_s *phase, struct phase_nv_parms_s const *phas
 }
 #endif
 
-#if defined(IRMS_SUPPORT)
-    #if defined(SINGLE_PHASE)
 rms_current_t current(void)
-    #else
-rms_current_t current(struct phase_parms_s *phase, struct phase_nv_parms_s const *phase_nv, int ph)
-#endif
 {
     int16_t i;
     rms_current_t x;
-    #if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)
     rms_current_t y;
-    #endif
-    #if defined(TWENTYFOUR_BIT)
     int64_t tmp;
-    #else
-    int32_t tmp;
-    #endif
     
     /* Calculate the RMS current in 1mA increments. Return -1 for overrange
        (i.e. ADC clip). A side effect of this routine is it updates the dynamic
        phase correction settings, based on the newly calculated current. */
     /* We always have to work out the properly scaled current from both leads, in
        order to work out the FIR coeffs for the next block. */
-    #if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)
     if ((phase->status & I_NEUTRAL_OVERRANGE))
     {
         y = (rms_current_t) ~0;
+        phase->metrology.neutral.I_rms = y ;
     }
     else
     {
@@ -397,28 +386,27 @@ rms_current_t current(struct phase_parms_s *phase, struct phase_nv_parms_s const
         }
         else
         {
-            tmp -=neutral_nv->ac_offset;//  phase_nv->neutral.ac_offset;             
-        #if defined(TWENTYFOUR_BIT)
-            y = isqrt64(tmp) >> 26;
-        #else
-            y = isqrt32(tmp) >> 2;
-        #endif
-        #if defined(LIMP_MODE_SUPPORT)
-            if (operating_mode == OPERATING_MODE_LIMP)
-                i = phase_nv->neutral.I_rms_limp_scale_factor;
-            else
-        #endif
-                i = neutral_nv->I_rms_scale_factor;
-                y = mul48u_32_16(y, i);
+			y = isqrt64(tmp-neutral_nv->ac_offset) >> 26;
+
+			#if defined(LIMP_MODE_SUPPORT)
+				if (operating_mode == OPERATING_MODE_LIMP)
+					i = phase_nv->neutral.I_rms_limp_scale_factor;
+				else
+			#endif
+
+			i = neutral_nv->I_rms_scale_factor;
+			y = mul48u_32_16(y, i);
         }
+        phase->metrology.neutral.I_rms = y;
     }
+
+
         #if defined(PER_SENSOR_PRECALCULATED_PARAMETER_SUPPORT)
     phase->metrology.neutral.readings.I_rms = y;
         #endif
         #if defined(DYNAMIC_PHASE_CORRECTION_SUPPORT)
     dynamic_phase_correction_neutral(phase, phase_nv, ch);
         #endif
-    #endif
 
     if ((phase->status & I_OVERRANGE))
     {
@@ -474,13 +462,13 @@ rms_current_t current(struct phase_parms_s *phase, struct phase_nv_parms_s const
         /* The power calculation has provided us which is the appropriate
            current to use. */
     #if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)
-        if ((phase->status & CURRENT_FROM_NEUTRAL))
+		if ((phase->status & CURRENT_FROM_NEUTRAL))
                x = y;
     #endif
     }
     return  x;
 }
-#endif
+
 
 #if defined(NEUTRAL_MONITOR_SUPPORT)
 extern struct neutral_parms_s neutral_c;
@@ -582,8 +570,9 @@ power_t active_power(struct phase_parms_s *phase, struct phase_nv_parms_s const 
 #endif
 #if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)
     y = div_ac_power(phase->metrology.neutral.dot_prod_logged.P_active, phase->metrology.neutral.dot_prod_logged.sample_count);
-    y >>= 12;
+   // y >>= 12;
     y = mul48_32_16(y, neutral_nv->P_scale_factor[0]);
+    phase->metrology.neutral.active_power = y;
     #if defined(PER_SENSOR_PRECALCULATED_PARAMETER_SUPPORT)
     phase->metrology.neutral.readings.active_power = y;
     #endif
