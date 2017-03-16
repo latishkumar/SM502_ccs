@@ -393,7 +393,7 @@ void main(void)
 
 						  x = reactive_power();
 
-						  if(labs(phase->readings.reactive_power) < MIN_REACTIVE_POWER_CONSIDERED_ZERO)//for reactive power less than 2.5VAr make the reactive power 0
+						  if(labs(x) < MIN_REACTIVE_POWER_CONSIDERED_ZERO)//for reactive power less than 2.5VAr make the reactive power 0
 						  {
 							phase->readings.reactive_power = 0;
 						  }
