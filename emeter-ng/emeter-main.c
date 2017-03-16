@@ -154,7 +154,7 @@ uint8_t energy_export_support = 0;
 uint8_t critial_System_error = 0;
 uint32_t lastEnergyReadingDuringDisconnect;
 
-extern void updateCalibrationFactor(int32_t ErrorPercent,uint8_t type);
+extern void updateCalibrationFactor(int16_t ErrorPercent,uint8_t type);
 
 void restoreBackup();
 extern EnergyLog LastTxEnergyCopy;

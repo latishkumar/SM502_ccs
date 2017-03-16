@@ -1653,7 +1653,7 @@ const uint8_t Standard_Event_Log_Template[] =
 {
    STUFF_DATA | TAG_STRUCTURE, 2,
         STUFF_DATA | TAG_OCTET_STRING, 12,ITEM_TAG_DATETIME_SE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /*Event Time stump*/
-        STUFF_DATA | TAG_UINT8, ITEM_TAG_EVENT_CODE_SE//,  //Event code 
+        STUFF_DATA | TAG_UINT8, INJECT8(ITEM_TAG_EVENT_CODE_SE)//,  //Event code
 //                     TAG_UINT8, 0,//ITEM_TAG_EVENT_GROUP_SE,
 //        STUFF_DATA | TAG_UINT32,INJECT32(ITEM_TAG_EVENT_DATA)//ITEM_TAG_EVENT_DATA, // the data associated with the event  
 };
