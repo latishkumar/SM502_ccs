@@ -3261,27 +3261,88 @@ void reset_alarms(uint8_t *data, uint16_t data_len,uint8_t *response,uint16_t *r
   uint8_t type = *data++;//type is 18
   uint16_t x=0;
   x= *data << 8; 
-  x |= *(++data);//x is the tamper type from 0 --- 3
+  x |= *(++data);//x is the tamper type from 1 --- 4
   status.write_tamper_status = 1;
   *response_len = 0;
   switch(x)
   {
     case 1:
         status.UpperCoverRemovedTamperStatus = 0;
-      return;
+        break;
     case 2:
         status.LowerCoverRemovedTamperStatus = 0;
-      return;
+        break;
     case 3:
         status.MangneticTamperStatus = 0;
-      return;
+        break;
     case 4:
         status.NeutralTamperStatus = 0;
-      return;
+        break;
+    default:
+    	break;
   }
   status.write_tamper_status = 0;
 }
 extern void updateCalibrationFactor(int16_t ErrorPercent,uint8_t type);
+/***********************************Added a callback function for calibration parameters***********************/
+void calibratePMeter_CB(void *data, int data_direction)
+{
+	uint8_t *datap =  data;
+	if(data_direction == ATTR_WRITE)
+	{
+	  int16_t nv_2=0;
+	  uint8_t *ptr2 = data;
+	  nv_2 = *(ptr2+1);
+	  nv_2 |= ((*(ptr2))<<8);
+	  updateCalibrationFactor(nv_2,0);
+	}
+	else if(data_direction == ATTR_READ)
+	{
+		int16_t tmp_power_scale_factor = nv_parms.seg_a.s.chan1.current.P_scale_factor[0];
+		*datap = tmp_power_scale_factor & 0xFF;
+		 datap++;
+		*datap = (tmp_power_scale_factor>>8) & 0xFF;
+	}
+}
+void calibrateIMeter_CB(void *data, int data_direction)
+{
+	uint8_t *datap =  data;
+	if(data_direction == ATTR_WRITE)
+	{
+	  int16_t nv_2=0;
+	  uint8_t *ptr2 = data;
+	  nv_2 = *(ptr2+1);
+	  nv_2 |= ((*(ptr2))<<8);
+	  updateCalibrationFactor(nv_2,1);
+	}
+	else if(data_direction == ATTR_READ)
+	{
+		int16_t tmp_power_scale_factor = nv_parms.seg_a.s.chan1.current.I_rms_scale_factor;
+		*datap = tmp_power_scale_factor & 0xFF;
+		 datap++;
+		*datap = (tmp_power_scale_factor>>8) & 0xFF;
+	}
+}
+void calibrateVMeter_CB(void *data, int data_direction)
+{
+	uint8_t *datap =  data;
+	if(data_direction == ATTR_WRITE)
+	{
+	  int16_t nv_2=0;
+	  uint8_t *ptr2 = data;
+	  nv_2 = *(ptr2+1);
+	  nv_2 |= ((*(ptr2))<<8);
+	  updateCalibrationFactor(nv_2,2);
+	}
+	else if(data_direction == ATTR_READ)
+	{
+		int16_t tmp_power_scale_factor = nv_parms.seg_a.s.chan1.V_rms_scale_factor;
+		*datap = tmp_power_scale_factor & 0xFF;
+		 datap++;
+		*datap = (tmp_power_scale_factor>>8) & 0xFF;
+	}
+}
+/**************************************************************************************************************/
 void calibratePMeter(uint8_t *data, uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
   uint8_t type = *data++;//type is 18
@@ -3321,8 +3382,6 @@ static const struct method_desc_s Obj_Reset_Methods[] =
 static const struct method_desc_s Obj_CalibratePMeter_Methods[] =
 {
     {1, ACCESS_PC___MRRW_USRW, calibratePMeter}
-   // {2, ACCESS_PC___MRRW_USRW, calibrateIMeter},
-   // {3, ACCESS_PC___MRRW_USRW, calibrateVMeter}
 };
 
 static const struct method_desc_s Obj_CalibrateCMeter_Methods[] =
@@ -3541,23 +3600,21 @@ static const struct attribute_desc_s Obj_ResetAlarm[] =
 static const struct attribute_desc_s Obj_CalibratePMeter[] =
 {
     {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[REGISTER_OBJECTS_START + 34].instance_id, NULL},
-    {2, ACCESS_PC___MRR__USR_, TAG_INT16,           (void *) &nv_parms.seg_a.s.chan1.current.P_scale_factor[0], NULL},
+    {2, ACCESS_PC___MRRW_USRW, TAG_INT16,           (void *) Data_Buffer, calibratePMeter_CB}, //&nv_parms.seg_a.s.chan1.current.P_scale_factor[0]
     {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_power_current_voltage_calib, NULL} 
-    //{3, ACCESS_PC___MRR__USR_, TAG_INT16,       (void *) &nv_parms.seg_a.s.chan1.current.I_rms_scale_factor, NULL},
-   // {4, ACCESS_PC___MRR__USR_, TAG_INT16,       (void *) &nv_parms.seg_a.s.chan1.V_rms_scale_factor, NULL}
 };
 
 static const struct attribute_desc_s Obj_CalibrateCMeter[] =
 {
     {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[REGISTER_OBJECTS_START + 35].instance_id, NULL},
-    {2, ACCESS_PC___MRR__USR_, TAG_INT16,           (void *) &nv_parms.seg_a.s.chan1.current.I_rms_scale_factor, NULL},
+    {2, ACCESS_PC___MRRW_USRW, TAG_INT16,           (void *) Data_Buffer, calibrateIMeter_CB}, //&nv_parms.seg_a.s.chan1.current.I_rms_scale_factor
     {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_power_current_voltage_calib, NULL} 
 };
 
 static const struct attribute_desc_s Obj_CalibrateVMeter[] =
 {
     {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[REGISTER_OBJECTS_START + 36].instance_id, NULL},
-    {2, ACCESS_PC___MRR__USR_, TAG_INT16,           (void *) &nv_parms.seg_a.s.chan1.V_rms_scale_factor, NULL},
+    {2, ACCESS_PC___MRRW_USRW, TAG_INT16,           (void *) Data_Buffer, calibrateVMeter_CB}, //&nv_parms.seg_a.s.chan1.V_rms_scale_factor
     {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_power_current_voltage_calib, NULL} 
 };
 
@@ -3639,7 +3696,7 @@ static const struct attribute_desc_s Obj_Reactive_Energy_QIV_SO2[] =
 /**********************************************Added for SO1 support****************************************************/
 static const struct attribute_desc_s Obj_Previous_switch_State[] =
 {
-    {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[11].instance_id, NULL},
+    {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[PROFILE_GENERIC_OBJECTS_START + 14].instance_id, NULL},
     {2, ACCESS_PC___MRR__USR_, TAG_BOOLEAN,         (void *) &previous_output_state, NULL},
     {3, ACCESS_PC___MRR__USR_, TAG_ENUM,       		(void *) &control_state, NULL},
     {4, ACCESS_PC___MRR__USRW, TAG_ENUM,       		(void *) &control_mode, NULL}

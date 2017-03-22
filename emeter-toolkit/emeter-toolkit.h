@@ -575,7 +575,7 @@ void sqac48_16(int16_t z[3], int16_t x);
 
 extern int64_t isqrt64(int64_t x);
 
-
+extern uint64_t mul_32_32(register uint32_t mul1, register uint32_t mul2);
 
 /*! \brief Convert a 16 bit unsigned integer to nibble packed BCD.
     \param bcd The buffer which will contain the BCD result.

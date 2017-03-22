@@ -332,12 +332,12 @@ void IEC_Start_SendBuffer()
     }
 }
 
-extern volatile uint8_t taskScaduled;
-extern volatile uint8_t scaduledResetTaskNumber;
+void receive_firmware_image();
 extern int local_comm_exchange_mode_flag;
-//uint8_t i_test=0x56;
-#if !defined(KIT) && !defined(PLC_USCIA0) 
-// //USCI_A1 interrupt service routine
+
+/*
+ * USCI_A1 interrupt service routine
+ */
 #pragma vector=USCI_A1_VECTOR
 __interrupt void USCI_A1_ISR(void)
 {
@@ -345,104 +345,51 @@ __interrupt void USCI_A1_ISR(void)
 	{
 		receive_firmware_image();
 	}
-	else {
+	else
+	{
 
-
-    switch (__even_in_range(UCA1IV, USCI_UART_UCTXCPTIFG))
-    {
-        case USCI_NONE: break;              // No interrupt
-        case USCI_UART_UCRXIFG:             // RXIFG
-              //UCA1TXBUF = UCA1RXBUF; 
-//            while (!(UCA0IFG & UCTXIFG)) ;  // USCI_A0 TX buffer ready?
-//            UCA0TXBUF = UCA0RXBUF;          // TX -> RXed character
-//            break;
-                if((UCA1STATW & UCRXERR) !=0 )
-                  Error_Char_Recived = 1;
-                
-                #ifdef DLMS_IEC_21
-                    uint32_t now;
-                    now = current_time();
-                    
-                    if (now >= next_octet_timeout[IEC_PORT])
-                    {
-                          if (rx[IEC_PORT].state > 1)
-                            // P1OUT ^= BIT1;
-                            iec62056_46_rx_timeout(&link[IEC_PORT], &rx[IEC_PORT]);
-                    } 
-                
-                    iec62056_46_rx_byte(&link[IEC_PORT], &rx[IEC_PORT], UCA1RXBUF);
-                      
-                    next_octet_timeout[IEC_PORT] = now + ((32768L*TIMEOUT_3_INTRA_FRAME)/1000L);
-
-
-                    next_inactivity_timeout[IEC_PORT] = now + ((32768L*TIMEOUT_2_INACTIVITY)/1000L);
-                    
-               #else
-        	  IEC_Byte_Recived(UCA1RXBUF);
-               #endif 
-                
-                
-               
-                 
-                //UCA1TXBUF = 'A';
-        case USCI_UART_UCTXIFG:
-                 
-               //UCA1TXBUF = i_test;//Delete this Line for Power Test  
-//                i_test++;
-        	//if(Tx_Buffer_Index < CurrentTxLength)
-                if((queue_isEmpty(iec_tx_buff)!=1) &&(Transmit == 1))//
-        	{               
-                       #ifndef DLMS_IEC_21
-                         if(taskScaduled == 1)
-                            CancelTask2(&ResetCommunication);//CancelTask(scaduledResetTaskNumber);
-
-                         scaduledResetTaskNumber =  ScaduleTask(ResetCommunication,InterCharacterTimeOut,IEC_REST_TASK);//SchaduleTask(&ResetCommunication,InterCharacterTimeOut);
-                         taskScaduled = 1;
-                       #endif                        
-                  
-                                              
-                        uint8_t data=0;
-                        if(queue_dequeue(iec_tx_buff,&data) == 1) //IEC_TX_BUF[0];
-                          UCA1TXBUF  = data;
-                        
-        		//UCA1TXBUF = data;//        
-                        //IEC_TX_BUF[IEC_CurrentTX_Index];//TX_BUF[Tx_Buffer_Index];
-        		//Tx_Buffer_Index ++;
-//                        IEC_CurrentTX_Index++;
-        	}
-        	else
-        	{                  
-                  
-                       #ifndef DLMS_IEC_21
-                        if(taskScaduled == 1)
-                        CancelTask2(&ResetCommunication);//CancelTask(scaduledResetTaskNumber);
-     
-                        scaduledResetTaskNumber = ScaduleTask(ResetCommunication,InterFrameTimeOutMax,IEC_REST_TASK);//SchaduleTask(&ResetCommunication,InterFrameTimeOutMax);
-                        taskScaduled = 1;
-                       #endif
-                  
-                                     
-                        
-        		IEC_Tx_Done = 1;
-//                        IEC_TX = 0;
-        		//IEC_CurrentTX_Index = 0;
-                        //IEC_Tx_Buffer_Index = 0;//reset the buffer to 0
-                        Transmit= 0;
-        		
-        	}
-        	break;      // TXIFG
-        case USCI_UART_UCSTTIFG:
-        	break;     // TTIFG
-        case USCI_UART_UCTXCPTIFG:
-                //CurrentTxLength=5;
-//                 if(IEC_Tx_Done == 1 && Transmit == 0)//transmission is completed so that it is safe to switch to
-//                 {
-//                         switch_ready=1;
-//                 }
-        	break;   // TXCPTIFG
-        default:
-        	break;
-    }
+		switch (__even_in_range(UCA1IV, USCI_UART_UCTXCPTIFG))
+		{
+			case USCI_NONE: break;              // No interrupt
+			case USCI_UART_UCRXIFG:             // RXIFG
+				if((UCA1STATW & UCRXERR) !=0 )
+				{
+					Error_Char_Recived = 1;
+				}
+				uint32_t now;
+				now = current_time();
+				if (now >= next_octet_timeout[IEC_PORT])
+				{
+					if (rx[IEC_PORT].state > 1)
+					{
+						iec62056_46_rx_timeout(&link[IEC_PORT], &rx[IEC_PORT]);
+					}
+				}
+				iec62056_46_rx_byte(&link[IEC_PORT], &rx[IEC_PORT], UCA1RXBUF);
+				next_octet_timeout[IEC_PORT] = now + ((32768L*TIMEOUT_3_INTRA_FRAME)/1000L);
+				next_inactivity_timeout[IEC_PORT] = now + ((32768L*TIMEOUT_2_INACTIVITY)/1000L);
+			case USCI_UART_UCTXIFG:
+				 if((queue_isEmpty(iec_tx_buff)!=1) &&(Transmit == 1))//
+				 {
+					 uint8_t data=0;
+					 if(queue_dequeue(iec_tx_buff,&data) == 1)
+					 {
+						 UCA1TXBUF  = data;
+					 }
+				 }
+				 else
+				 {
+					 IEC_Tx_Done = 1;
+	  		 		 Transmit= 0;
+			 	 }
+				break;      // TXIFG
+			case USCI_UART_UCSTTIFG:
+				break;     // TTIFG
+			case USCI_UART_UCTXCPTIFG:
+				break;   // TXCPTIFG
+			default:
+				break;
+		}
 	}
 }
-#endif
+

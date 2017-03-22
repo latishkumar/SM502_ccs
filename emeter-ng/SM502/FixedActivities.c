@@ -33,7 +33,7 @@ extern uint8_t CoverRemovalTripDuration    ;
  uint8_t UnderVoltageTimer  ;
  uint8_t UnderFrequencyTimer;
  uint8_t OverFrequencyTimer ;
- uint8_t LongPowerFailTimer ;
+ uint16_t LongPowerFailTimer ;
  
 extern  MeterStatus status; 
 volatile uint8_t secondCounter =0;

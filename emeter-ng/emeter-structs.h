@@ -804,10 +804,10 @@ struct phase_parms_s
     int32_t active_power_counter;
     int32_t active_energy_counter;
     
-    uint32_t active_energy_counter_QI;
-    uint32_t active_energy_counter_QII;
-    uint32_t active_energy_counter_QIII;
-    uint32_t active_energy_counter_QIV;
+    uint64_t active_energy_counter_QI;
+    uint64_t active_energy_counter_QII;
+    uint64_t active_energy_counter_QIII;
+    uint64_t active_energy_counter_QIV;
     
     //uint32_t consumed_active_energy;
     
