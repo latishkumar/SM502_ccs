@@ -447,10 +447,10 @@ void main(void)
 						  if(phase->readings.active_power >= 0 && phase->readings.reactive_power >= 0 ) //QI
 						  {
 							  phase->active_energy_import_counter += phase->readings.active_power;// variable used for pulse generation purpose
-							  phase->active_energy_counter_QI += mul_32_32(phase->readings.active_power, phase->metrology.dot_prod_logged.sample_count);
-							  while (phase->active_energy_counter_QI > ENERGY_WATT_HOUR_THRESHOLD)
+							  phase->active_energy_counter_QI += phase->readings.active_power;
+							  while (phase->active_energy_counter_QI > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
 							  {
-								  phase->active_energy_counter_QI -= ENERGY_WATT_HOUR_THRESHOLD;
+								  phase->active_energy_counter_QI -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
 								  phase->consumed_active_energy_QI++;
 							  }
 
@@ -466,10 +466,10 @@ void main(void)
 						{
 							 phase->readings.active_power = labs(phase->readings.active_power);
 							 phase->active_energy_export_counter +=phase->readings.active_power;
-							 phase->active_energy_counter_QII += mul_32_32(phase->readings.active_power,phase->metrology.dot_prod_logged.sample_count);
-							 while (phase->active_energy_counter_QII > ENERGY_WATT_HOUR_THRESHOLD)
+                             phase->active_energy_counter_QII += phase->readings.active_power;
+                             while (phase->active_energy_counter_QII > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
 							  {
-								  phase->active_energy_counter_QII -= ENERGY_WATT_HOUR_THRESHOLD;
+								  phase->active_energy_counter_QII -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
 								  phase->consumed_active_energy_QII++;
 							  }
 
@@ -487,10 +487,10 @@ void main(void)
 							 phase->readings.reactive_power = labs(phase->readings.reactive_power);
 
 							 phase->active_energy_export_counter +=phase->readings.active_power;
-							 phase->active_energy_counter_QIII += mul_32_32(phase->readings.active_power, phase->metrology.dot_prod_logged.sample_count);
-							 while (phase->active_energy_counter_QIII > ENERGY_WATT_HOUR_THRESHOLD)
+							 phase->active_energy_counter_QIII += phase->readings.active_power;
+							 while (phase->active_energy_counter_QIII > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
 							 {
-								 phase->active_energy_counter_QIII -= ENERGY_WATT_HOUR_THRESHOLD;
+								 phase->active_energy_counter_QIII -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
 								 phase->consumed_active_energy_QIII++;
 							 }
 
@@ -508,13 +508,19 @@ void main(void)
 							 phase->readings.reactive_power = labs(phase->readings.reactive_power);
 
 							 phase->active_energy_import_counter +=phase->readings.active_power;// * phase->metrology.dot_prod_logged.sample_count;
-							 phase->active_energy_counter_QIV += mul_32_32(phase->readings.active_power, phase->metrology.dot_prod_logged.sample_count);
-							 while (phase->active_energy_counter_QIV > ENERGY_WATT_HOUR_THRESHOLD)
+							 phase->active_energy_counter_QI += phase->readings.active_power;
+							  while (phase->active_energy_counter_QI > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
+							  {
+								  phase->active_energy_counter_QI -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
+								  phase->consumed_active_energy_QI++;
+							  }
+							 /*phase->active_energy_counter_QIV += phase->readings.active_power;
+							 while (phase->active_energy_counter_QIV > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
 							 {
-								 phase->active_energy_counter_QIV -= ENERGY_WATT_HOUR_THRESHOLD;
+								 phase->active_energy_counter_QIV -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
 								 phase->consumed_active_energy_QIV++;
 							 }
-
+*/
 							 phase->reactive_energy_counter_QIV += phase->readings.reactive_power;
 							 while (phase->reactive_energy_counter_QIV > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
 							 {
@@ -525,7 +531,7 @@ void main(void)
 						}
                                                         
                              
-						phase->active_energy_import = phase->consumed_active_energy_QI + phase->consumed_active_energy_QIV ;
+						phase->active_energy_import = phase->consumed_active_energy_QI; //+ phase->consumed_active_energy_QIV ;
 						phase->active_energy_export = phase->consumed_active_energy_QII + phase->consumed_active_energy_QIII;
 
 						/*End of update for 4 quadrant energy measurement */

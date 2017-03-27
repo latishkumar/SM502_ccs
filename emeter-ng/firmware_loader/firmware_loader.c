@@ -126,26 +126,29 @@ void init_usb(){
     UCA1IE |= UCRXIE;//|UCTXIE|UCRXIE;
 }
 #define MCLK_DEF 16   /* 16 MHz */
-void init_firmware_loader(){
+void init_firmware_loader()
+{
 	 init_usb();
-	// EEPROM2Init();
 }
 void InitI2C();
 volatile int download_finished;
-//#pragma vector = USCI_A1_VECTOR
-//__interrupt void USCI_A1_ISR(void){
+void perform_low_battry_backup();
+
 void receive_firmware_image()
 {
-	if(UCA1IFG & UCRXIFG){
+	if(UCA1IFG & UCRXIFG)
+	{
 		ch = UCA1RXBUF;
-		switch(ch){
+		switch(ch)
+		{
 			case NEW_SEC_START:
-				if(fi ->scan_state == SCANING_ADDRESS){
-
+				if(fi ->scan_state == SCANING_ADDRESS)
+				{
 					//mem_block_erase(FIRMWARE_ADDRESS_START,64);
 					asm(" nop");
-
-				}else{
+				}
+				else
+				{
 					/*it must have been the end of previous section, hence, log the section structure*/
 					fs ->program_mem_addr = program_start_address;
 					/*calculate checksum*/
@@ -171,24 +174,29 @@ void receive_firmware_image()
 				PMM_set_vcore(0);
 				AUXCTL0 = AUXKEY;
 				AUXCTL2 |= AUX0LVL_1 * 5 + AUX1LVL_1 * 0 + AUX2LVL_1 * 0;*/
+				perform_low_battry_backup();
 				InitI2C();
 				init_loader();
 				return;
 			case LINE_DELIMITER:
 
-				if(fi ->scan_state == SCANING_ADDRESS){
-					if(byte_counter >= 5){
+				if(fi ->scan_state == SCANING_ADDRESS)
+				{
+					if(byte_counter >= 5)
+					{
 						row_data[0] = '0';
 						decode_hex_to_byte(row_data, machine_byte, byte_counter+1);
 						program_start_address = (uint32_t)machine_byte[0]<<16 |(uint16_t)machine_byte[1]<<8 | (uint16_t)machine_byte[2];
-					}else{
+					}
+					else
+					{
 						decode_hex_to_byte(&row_data[1], machine_byte, byte_counter);
 						program_start_address = (uint16_t)machine_byte[0]<<8 |(uint16_t)machine_byte[1];
 					}
-
-
 					fi ->scan_state = SCANING_CODE;
-				}else{
+				}
+				else
+				{
 					decode_hex_to_byte(&row_data[1], machine_byte, byte_counter);
 					byte_counter >>= 1;    /*the hex ascii characters are merged to generate single byte*/
 					eeprom_write(machine_byte, fi ->next_code_addr, byte_counter);

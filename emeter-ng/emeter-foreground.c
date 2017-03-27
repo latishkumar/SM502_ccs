@@ -696,7 +696,7 @@ power_t reactive_power(struct phase_parms_s *phase, struct phase_nv_parms_s cons
 //        #endif
 //    }
 //    #endif
-    return  -x;//don changed this from x to -x to compensate for current transformer direction
+    return  x;//don changed this from x to -x to compensate for current transformer direction
 }
 #endif
 

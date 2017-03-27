@@ -238,7 +238,7 @@ void getHardwareTime(rtc_t *rtc)
             
             //rtcc.year = RTCYEAR;
             BCD2BIN = RTCYEAR;
-            rtc->year = BCD2BIN ;//(rtcc.year &0xf) +(((rtcc.year>>4)&0x0f)*10) + (((rtcc.year>>8)&0x0f)*100)+((rtcc.year>>12)&0x0f)*1000;
+            rtc->year = BCD2BIN ;//(rtcc.year &0xf)TimeStump +(((rtcc.year>>4)&0x0f)*10) + (((rtcc.year>>8)&0x0f)*100)+((rtcc.year>>12)&0x0f)*1000;
             
 }
 
@@ -252,111 +252,109 @@ __interrupt void one_second_ticker(void)
         case RTCIV_RTCRDYIFG://RTCIV_RT1PSIFG:
                          
             getHardwareTime(&rtc_temp_var);
-           
-            
             
             //This is used by the PLC Initializing Routine to do some waitting
             if(plc_state  == INITIALIZING)
             {
                plc_counter ++;
             }
-            
-              
-             if(rtc_init == 0)//is the first inturrupt after power reset, we need to verify the consistance of the hardware rtc registers  
-             {
-               rtc_init_counter++;
-               if(rtc_init_counter == 3){
-                 rtc_init = 1;
-                 rtc_init_counter = 0;
-               }
-             
-          //      temp_init_rtc=0;
-          //     }
-                //status.rtc_init = 1;
-                if(!is_time_valid(&rtc_temp_var)) //the hardware RTC registers are not fine so reset the time. to fixed set point in time 
-                {                                 //this will be replaced by the RTC diagnosis if the last time stored in the EEPROM is valid 
-
-                    hardware_status.RTCResetToDefaultStatus = 1;                    
-                    adjust_rtc(&default_time,0);
-                }else{
-                    rtcc.year = rtc_temp_var.year;
-                    rtcc.month = rtc_temp_var.month;
-                    rtcc.day = rtc_temp_var.day;
-                    rtcc.hour = rtc_temp_var.hour;
-                    rtcc.minute = rtc_temp_var.minute;
-                    rtcc.second = rtc_temp_var.second;
+            if(rtc_init == 0)//is the first inturrupt after power reset, we need to verify the consistance of the hardware rtc registers
+            {
+            	rtc_init_counter++;
+                if(rtc_init_counter == 3)
+                {
+                	rtc_init = 1;
+                    rtc_init_counter = 0;
                 }
-               
-             }
-             else{
-               
-                    rtcc.year = rtc_temp_var.year;
-                    rtcc.month = rtc_temp_var.month;
-                    rtcc.day = rtc_temp_var.day;
-                    rtcc.hour = rtc_temp_var.hour;
-                    rtcc.minute = rtc_temp_var.minute;
-                    rtcc.second = rtc_temp_var.second;  
+             
+                //      temp_init_rtc=0;
+                //     }
+                //status.rtc_init = 1;
+				if(!is_time_valid(&rtc_temp_var)) //the hardware RTC registers are not fine so reset the time. to fixed set point in time
+				{                                 //this will be replaced by the RTC diagnosis if the last time stored in the EEPROM is valid
 
-                    if(SystemStatus==SYSTEM_INITIALIZING) // if the System is initializing 
+					hardware_status.RTCResetToDefaultStatus = 1;
+					adjust_rtc(&default_time,0);
+				}
+				else
+				{
+					rtcc.year = rtc_temp_var.year;
+					rtcc.month = rtc_temp_var.month;
+					rtcc.day = rtc_temp_var.day;
+					rtcc.hour = rtc_temp_var.hour;
+					rtcc.minute = rtc_temp_var.minute;
+					rtcc.second = rtc_temp_var.second;
+				}
+
+		    }
+            else
+            {
+            	rtcc.year = rtc_temp_var.year;
+                rtcc.month = rtc_temp_var.month;
+                rtcc.day = rtc_temp_var.day;
+                rtcc.hour = rtc_temp_var.hour;
+                rtcc.minute = rtc_temp_var.minute;
+                rtcc.second = rtc_temp_var.second;
+
+                if(SystemStatus==SYSTEM_INITIALIZING) // if the System is initializing
                       return;
                    
-                    bump_rtc_backup();
-                           
-                    
-                     if(rtc_global_temp.minute != rtcc.minute)
-                     {
-                       //per minute activity
-                       rtc_global_temp.minute = rtcc.minute;
-//                       per_minute_activity();//run activities that needs to be executed every minute
-                       status.MiuteElapsed = 1;
-                     }
+                bump_rtc_backup();
 
-                     if(rtc_global_temp.hour != rtcc.hour)
-                     {
-                       //per hour activity
-                       rtc_global_temp.hour = rtcc.hour;
-                       status.UpdateDate = 1; 
-                     }
-                     if(rtc_global_temp.day != rtcc.day)
-                     {
-                       rtc_global_temp.day = rtcc.day;
-                       //per day activity 
-                       if(hardware_status.RTCResetToDefaultStatus != 1 && hardware_status.RTC_Status != 0)
-                         status.DayChanged=1;
+                if(rtc_global_temp.minute != rtcc.minute)
+                {
+                	//per minute activity
+                    rtc_global_temp.minute = rtcc.minute;
+//                  per_minute_activity();//run activities that needs to be executed every minute
+                    status.MiuteElapsed = 1;
+                }
+
+				if(rtc_global_temp.hour != rtcc.hour)
+				{
+					//per hour activity
+				    rtc_global_temp.hour = rtcc.hour;
+				    status.UpdateDate = 1;
+				}
+				if(rtc_global_temp.day != rtcc.day)
+				{
+				   rtc_global_temp.day = rtcc.day;
+				   //per day activity
+				   if(hardware_status.RTCResetToDefaultStatus != 1 && hardware_status.RTC_Status != 0)
+					 status.DayChanged=1;
 //                          per_day_activity();//run activities that needs to be executed every day
-                     }
-                     if(rtc_global_temp.month != rtcc.month)
-                     {
-                       //per month activity      
-                       rtc_global_temp.month = rtcc.month;
-                       if(hardware_status.RTCResetToDefaultStatus != 1 && hardware_status.RTC_Status != 0)      
-                         status.MontheChagned = 1;
+				}
+				if(rtc_global_temp.month != rtcc.month)
+				{
+				   //per month activity
+				   rtc_global_temp.month = rtcc.month;
+				   if(hardware_status.RTCResetToDefaultStatus != 1 && hardware_status.RTC_Status != 0)
+					 status.MontheChagned = 1;
 //                          per_month_activity(); //run activities that needs to be executed every month
-                     }
+				}
 
-                     rtc_global_temp.year = rtcc.year;
-                }
+				rtc_global_temp.year = rtcc.year;
+            }
                   
-               //Since RTC will be running from them moment it is initialized, we need to wait for the 
-               //other modules to finish intializing before doing any thing that depends on them 
-               if(SystemStatus==SYSTEM_INITIALIZING) // if the System is initializing 
-                  return;
-                 
-                status.UpdateTime = 1;
-                //status.UpdateDate = 1;
-                
-                if( operating_mode == OPERATING_MODE_NORMAL)
-                {
-                  #if defined(USE_WATCHDOG)
-                  kick_watchdog();
-                  #endif
-                }
-                else if(operating_mode == OPERATING_MODE_POWERFAIL)
-                {
-                  lpc++;
-                }
-               status.SecondElapsed = 1;
-                set_rtc_sumcheck();
+		   //Since RTC will be running from them moment it is initialized, we need to wait for the
+		   //other modules to finish intializing before doing any thing that depends on them
+		   if(SystemStatus==SYSTEM_INITIALIZING) // if the System is initializing
+			  return;
+
+			status.UpdateTime = 1;
+			//status.UpdateDate = 1;
+
+			if( operating_mode == OPERATING_MODE_NORMAL)
+			{
+			  #if defined(USE_WATCHDOG)
+			  kick_watchdog();
+			  #endif
+			}
+			else if(operating_mode == OPERATING_MODE_POWERFAIL)
+			{
+			  lpc++;
+			}
+		   status.SecondElapsed = 1;
+			set_rtc_sumcheck();
                                            
       break;
       default:
