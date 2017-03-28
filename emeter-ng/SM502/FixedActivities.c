@@ -581,15 +581,26 @@ uint8_t elogMinCounter=0;
 */
 void per_minute_activity(void)
 {
-  
+	int a;
+	rtc_t t;
+	getHardwareTime(&t);
+	a = t.minute;
+	while(a>0)
+	{
+		a -= EnergyLoggingTime;
+	}
+	if(a == 0)
+	{
+		status.LoggingTimeIsUp = 1;
+	}
 
-    
-    minuteCounts++;
+    //[E.E]changed this to make load profile capture period on hh:00:00,hh:XX:00,hh:xx+xx:00....where xx is capture period
+   /* minuteCounts++;
     if(minuteCounts >= EnergyLoggingTime )
     {
         status.LoggingTimeIsUp = 1;
         minuteCounts = 0 ;
-    }
+    }*/
  
     
     if(status.LogEnergyLogged == 1) //wait one minutes before the next power out detection starts working 

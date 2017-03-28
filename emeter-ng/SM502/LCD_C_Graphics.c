@@ -390,7 +390,7 @@ void UpdateDisplay_c() {
                            AM_Energy(1);
                         }
                         
-                        WriteFloat_c(phase->consumed_reactive_energy_QI,3);
+                        WriteFloat_c(phase->consumed_reactive_energy_QI+phase->consumed_reactive_energy_QIV,3);
 			UNIT_KVARH;
 
 			break;
