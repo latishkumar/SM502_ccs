@@ -147,7 +147,7 @@ extern uint16_t Output_State;
 extern uint8_t control_state;
 
 extern volatile uint8_t lpc ;
-
+uint8_t AMR_profile_status_SO2;
 uint8_t ActiveQuadrant = 0;
 uint8_t Phase_Presence = 1;
 uint8_t energy_export_support = 0;
@@ -155,7 +155,7 @@ uint8_t critial_System_error = 0;
 uint32_t lastEnergyReadingDuringDisconnect;
 
 extern void updateCalibrationFactor(int16_t ErrorPercent,uint8_t type);
-
+void reset_firmware_upgrate_parameters();
 void restoreBackup();
 extern EnergyLog LastTxEnergyCopy;
 extern uint8_t OperatingMode;
@@ -614,6 +614,7 @@ void main(void)
              {
             	 configure_uart_port(1,3);  //change to USB
             	 local_comm_exchange_mode_flag = 1;
+            	 reset_firmware_upgrate_parameters();
              }
              else if(local_comm_exchange_mode_flag == 1 && !(P3IN & BIT0))
              {

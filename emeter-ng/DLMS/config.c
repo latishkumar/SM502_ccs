@@ -2003,8 +2003,13 @@ const uint8_t Load_Profile_Capture_Objects[] =
                 TAG_OCTET_STRING, 6, OBIS_GROUP_A_ABSTRACT_OBJECTS, 0, 1, 0, 0, 255, // Date & Time
                 TAG_INT8, 2,
                 TAG_UINT16, INJECT16(0),
+			TAG_STRUCTURE, 4,                                          //AMR profile status
+				TAG_UINT16, INJECT16(CLASS_ID_DATA),
+				TAG_OCTET_STRING, 6, 0, 0, 96, 10, 7, 255,
+				TAG_INT8, 2,
+				TAG_UINT16, INJECT16(0),
             TAG_STRUCTURE, 4,                                          //Ae Import
-                TAG_UINT16, INJECT16(CLASS_ID_DATA),
+                TAG_UINT16, INJECT16(CLASS_ID_REGISTER),
                 TAG_OCTET_STRING, 6, 1, 0, 1, 29, 0, 255,              //[E.E] was 0, 0, 96, 10, 7, 255,
                 TAG_INT8, 2,
                 TAG_UINT16, INJECT16(0),
@@ -2028,16 +2033,16 @@ const uint8_t Load_Profile_Capture_Objects[] =
                 TAG_OCTET_STRING, 6, 1, 0, 7, 29, 0, 255,
                 TAG_INT8, 2,
                 TAG_UINT16, INJECT16(0),
-            TAG_STRUCTURE, 4,                                           //not used   //ReQ4
+            TAG_STRUCTURE, 4,                                           //ReQ4
                 TAG_UINT16, INJECT16(CLASS_ID_REGISTER),
                 TAG_OCTET_STRING, 6, 1, 0, 8, 29, 0, 255,
                 TAG_INT8, 2,
-                TAG_UINT16, INJECT16(0),
-            TAG_STRUCTURE, 4,                                          //not used //Voltage
+                TAG_UINT16, INJECT16(0)
+            /*TAG_STRUCTURE, 4,                                          //not used //Voltage
                 TAG_UINT16, INJECT16(CLASS_ID_REGISTER),
                 TAG_OCTET_STRING, 6, 1, 0, 32, 7, 0, 255,
                 TAG_INT8, 2,
-                TAG_UINT16, INJECT16(0),
+                TAG_UINT16, INJECT16(0),*/
 };
 
 /*TODO. Redo this*/
@@ -3692,6 +3697,13 @@ static const struct attribute_desc_s Obj_Reactive_Energy_QIV_SO2[] =
     {2, ACCESS_PC___MRR__USR_, TAG_UINT32,           (void *) &phase->readings.reactive_energy_Q4, NULL},
     {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_reactive_energy, NULL}
 };
+extern uint8_t AMR_profile_status_SO2;
+static const struct attribute_desc_s Obj_AMR_Profile_Status_SO2[] =
+{
+    {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[PROFILE_GENERIC_OBJECTS_START + 15].instance_id, NULL},
+    {2, ACCESS_PC___MRR__USR_, TAG_UINT32,           (void *) &AMR_profile_status_SO2, NULL},
+};
+
 /************************************************************************************************************************/
 /**********************************************Added for SO1 support****************************************************/
 static const struct attribute_desc_s Obj_Previous_switch_State[] =
@@ -4133,7 +4145,7 @@ const struct object_desc_s object_list[] =
     {ASSOC_MR_US,       CLASS_ID_IEC_HDLC_SETUP,           1, {  0,   0,  22,   0,  0, 255}, 9, Obj_HDLC_Setup, 0, NULL},//7 TODO. check 
     {ASSOC_MR_US,       CLASS_ID_PRIME_PLC_App_ID,         0, {  0,   0,  28,  07, 00, 255}, 4, Obj_Prime_PLC_FW_Version, 0, NULL},  //8    
     {ASSOC_MR_US,       CLASS_ID_ETHERNET_SETUP,           0, {  0,   0,  28,  06, 00, 255}, 4, Obj_Prime_Device_Setup, 0, NULL},  //9     
-    {ASSOC_MR_US,       CLASS_ID_SPECIAL_DAYS,             0, {  0,   0,   11, 0,   0, 255}, 3, Obj_Special_Days, 0, Bbj_Special_days_Method},//10    
+    {ASSOC_MR_US,       CLASS_ID_SPECIAL_DAYS,             0, {  0,   0,   11, 0,   0, 255}, 3, Obj_Special_Days, 2, Bbj_Special_days_Method},//10
     {ASSOC_MR_US,       CLASS_ID_DISCONNECT_CONTROL,       0, {  0,   0,  96,  3,  10, 255}, 4, Obj_DisconnectControl, 2, Obj_Connect_Methods},//11/*  previous disconnect control */ //done 
 
 
@@ -4246,7 +4258,8 @@ const struct object_desc_s object_list[] =
 	{ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   7,  29,   0, 255}, 3,  Obj_Reactive_Energy_QIII_SO2, 0, NULL},        //R3
 	{ASSOC_MR_US,       CLASS_ID_REGISTER,                 0, {  1,   0,   8,  29,   0, 255}, 3,  Obj_Reactive_Energy_QIV_SO2, 0, NULL},         //R4
 	{ASSOC_MR_US,       CLASS_ID_DISCONNECT_CONTROL,       0, {  0,   1,  94,  34,  20, 255}, 4,  Obj_Previous_switch_State, 2, Obj_Connect_Methods},//11/*  previous disconnect control not integrated
-    {0,0, 0, {0, 0, 0, 0, 0, 0}, 0,  NULL}
+	{ASSOC_MR_US,             CLASS_ID_DATA,               0, {  0,   0,  96,  10,   7, 255}, 2,  Obj_AMR_Profile_Status_SO2, 0, NULL},// AMR profile status for Load profile with period 1(S02)
+	{0,0, 0, {0, 0, 0, 0, 0, 0}, 0,  NULL}
 };
 //Tariff Scheam
 //LanguageSetting_SIZE

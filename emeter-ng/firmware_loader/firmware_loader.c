@@ -98,7 +98,19 @@ firmware_sec_t firm_sec ={
 
 firmware_image_t* fi = &firm_image;
 firmware_sec_t* fs = &firm_sec;
+void reset_firmware_upgrate_parameters()
+{
+    fi->checksum = 0;
+    fi->next_code_addr = CODE_ADDRESS_START;
+    fi->next_section_addr = FIRMWARE_SECTION_ADDRESS_START;
+    fi->no_sections = 0;
+    fi->scan_state = 0;
 
+    fs->backup_mem_addr = CODE_ADDRESS_START;
+    fs->checksum = 0;
+    fs->code_size = 0;
+    fs->program_mem_addr = 0;
+}
 
 void init_usb(){
 	P1DIR|=BIT5;
