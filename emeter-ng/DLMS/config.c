@@ -1569,37 +1569,53 @@ uint8_t Last_MD_Rst_DT[] =
 
 
 
-const uint16_t Instantanious_Profile_Column_Szs2[] = {16,19,24,29,34,39,44,49,54,59,64,69,74};
+/*const uint16_t Instantanious_Profile_Column_Szs2[] = {16,19,24,29,34,39,44,49,54,59,64,69,74};
 const uint8_t Instantanious_Profile_Buffer_Template2[] =
 {
    STUFF_DATA | TAG_STRUCTURE, 13,
-        STUFF_DATA | TAG_OCTET_STRING, 12,ITEM_TAG_CURRENT_DATETIME, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /*Time stump*/
-        STUFF_DATA | TAG_UINT16, INJECT16(ITEM_TAG_VR),                       /* VL1 */
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_IR),            /* IL1 */
-                      TAG_UINT32, INJECT32(0),           /* VL2 delete from this */  
-                      TAG_UINT32, INJECT32(0),             /* IL2*/
-                      TAG_UINT32, INJECT32(0),             /* VL3*/
-                      TAG_UINT32, INJECT32(0),             /* IL3 delete to this*/
-                      TAG_UINT32, INJECT32(0),             /* Total Current*/
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_ACTIVE_POWER_IMPORT),             /* Active Power import*/
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_ACTIVE_POWER_EXPORT),             /* Active Power export*/
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_REACTIVE_POWER_IMPORT),             /* reactive Power import*/
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_REACTIVE_POWER_EXPORT),             /* reactive Power export */
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_PF_TOTAL)             /* power factor */
+        STUFF_DATA | TAG_OCTET_STRING, 12,ITEM_TAG_CURRENT_DATETIME, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, Time stump
+        STUFF_DATA | TAG_UINT16, INJECT16(ITEM_TAG_VR),                        VL1
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_IR),             IL1
+                      TAG_UINT32, INJECT32(0),            VL2 delete from this
+                      TAG_UINT32, INJECT32(0),              IL2
+                      TAG_UINT32, INJECT32(0),              VL3
+                      TAG_UINT32, INJECT32(0),              IL3 delete to this
+                      TAG_UINT32, INJECT32(0),              Total Current
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_ACTIVE_POWER_IMPORT),              Active Power import
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_ACTIVE_POWER_EXPORT),              Active Power export
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_REACTIVE_POWER_IMPORT),              reactive Power import
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_REACTIVE_POWER_EXPORT),              reactive Power export
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_PF_TOTAL)              power factor
+};*/
+const uint16_t Instantanious_Profile_Column_Szs2[] = {16,21,26,31,36,41,46,51,56,61,66,71,76};
+const uint8_t Instantanious_Profile_Buffer_Template2[] =
+{
+   STUFF_DATA | TAG_STRUCTURE, 13,
+        STUFF_DATA | TAG_OCTET_STRING, 12,ITEM_TAG_CURRENT_DATETIME, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Time stump
+        STUFF_DATA |  TAG_UINT32, INJECT32(ITEM_TAG_VR),                          // VL1
+        STUFF_DATA |  TAG_UINT32, INJECT32(ITEM_TAG_IR),                          // IL1
+        STUFF_DATA |  TAG_UINT32, INJECT32(0),                                    // VL2
+        STUFF_DATA |  TAG_UINT32, INJECT32(0),                                    // I2
+        STUFF_DATA |  TAG_UINT32, INJECT32(0),                                    // VL3
+        STUFF_DATA |  TAG_UINT32, INJECT32(0),                                    // IL3
+        STUFF_DATA |  TAG_UINT32, INJECT32(ITEM_TAG_IR),                          // Total Current
+        STUFF_DATA |  TAG_UINT32, INJECT32(ITEM_TAG_ACTIVE_POWER_IMPORT),         // Active Power import p1
+        STUFF_DATA |  TAG_UINT32, INJECT32(ITEM_TAG_ACTIVE_POWER_EXPORT),         // Active Power export p1
+        STUFF_DATA |  TAG_UINT32, INJECT32(ITEM_TAG_REACTIVE_POWER_IMPORT),       // reactive Power import p1
+        STUFF_DATA |  TAG_UINT32, INJECT32(ITEM_TAG_REACTIVE_POWER_EXPORT),       // reactive Power export p1
+        STUFF_DATA |  TAG_UINT32, INJECT32(ITEM_TAG_PF_TOTAL)                     // power factor
 };
-
-const uint16_t Instantanious_EnergyProfile_Column_Szs2[] = {16,21,26,31,36,41,46,51};
+const uint16_t Instantanious_EnergyProfile_Column_Szs2[] = {16,21,26,31,36,41,46};
 const uint8_t Instantanious_EnergyProfile_Buffer_Template2[] =
 {
-   STUFF_DATA | TAG_STRUCTURE, 8,
-        STUFF_DATA | TAG_OCTET_STRING, 12,ITEM_TAG_CURRENT_DATETIME, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /*Time stump*/
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_ACTIVE_ENERGY_PLUS),                       /* import Energy */
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_ACTIVE_ENERGY_MINUS),             /* export Energy */
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_RI_PLUS),             /* RE QI   */
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_RC_PLUS),             /* RE QII  */
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_RI_MINUS),            /* RE QIII */
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_RC_MINUS),            /* RE QIV  */
-                     TAG_UINT32, INJECT32(0),            /* RE QIV  *///???????????? NO IDEA WHY,IT JUST SOLVES THE PROBLEM
+   STUFF_DATA | TAG_STRUCTURE, 7,
+        STUFF_DATA | TAG_OCTET_STRING, 12,ITEM_TAG_CURRENT_DATETIME, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Time stump
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_ACTIVE_ENERGY_PLUS),                               // Import Active Energy
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_ACTIVE_ENERGY_MINUS),                              // Export Active Energy
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_RI_PLUS),                                          // RE QI
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_RC_PLUS),                                          // RE QII
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_RI_MINUS),                                         // RE QIII
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_RC_MINUS),                                         // RE QIV
 };
 
 
@@ -2038,18 +2054,13 @@ const uint8_t Load_Profile_Capture_Objects[] =
                 TAG_OCTET_STRING, 6, 1, 0, 8, 29, 0, 255,
                 TAG_INT8, 2,
                 TAG_UINT16, INJECT16(0)
-            /*TAG_STRUCTURE, 4,                                          //not used //Voltage
-                TAG_UINT16, INJECT16(CLASS_ID_REGISTER),
-                TAG_OCTET_STRING, 6, 1, 0, 32, 7, 0, 255,
-                TAG_INT8, 2,
-                TAG_UINT16, INJECT16(0),*/
 };
 
 /*TODO. Redo this*/
 const uint8_t Instantaneous_Energy_Capture_Objects2[] =
 {
-    INJECT16(0x8000 | (8*18 + 1)),
-         8,
+    INJECT16(0x8000 | (7*18 + 1)),
+         7,
             TAG_STRUCTURE, 4,
                 TAG_UINT16, INJECT16(CLASS_ID_CLOCK),
                 TAG_OCTET_STRING, 6, OBIS_GROUP_A_ABSTRACT_OBJECTS, 0, 1, 0, 0, 255, // Date & Time
@@ -2057,40 +2068,34 @@ const uint8_t Instantaneous_Energy_Capture_Objects2[] =
                 TAG_UINT16, INJECT16(0),
             TAG_STRUCTURE, 4,
                 TAG_UINT16, INJECT16(CLASS_ID_DATA),
-                TAG_OCTET_STRING, 6, 1, 0, 1, 8, 0, 255,  
+                TAG_OCTET_STRING, 6, 1, 0, 1, 8, 0, 255,    // Instantaneous Energy A+
                 TAG_INT8, 2,
                 TAG_UINT16, INJECT16(0),
             TAG_STRUCTURE, 4,
                 TAG_UINT16, INJECT16(CLASS_ID_REGISTER),
-                TAG_OCTET_STRING, 6, 1, 0, 2, 8, 0, 255,
+                TAG_OCTET_STRING, 6, 1, 0, 2, 8, 0, 255,    // Instantaneous Energy A-
                 TAG_INT8, 2,
                 TAG_UINT16, INJECT16(0),
             TAG_STRUCTURE, 4,
                 TAG_UINT16, INJECT16(CLASS_ID_REGISTER),
-                TAG_OCTET_STRING, 6, 1, 0, 5, 8, 0, 255,
+                TAG_OCTET_STRING, 6, 1, 0, 5, 8, 0, 255,    // Instantaneous Energy Ri+
                 TAG_INT8, 2,
                 TAG_UINT16, INJECT16(0),
             TAG_STRUCTURE, 4,
                 TAG_UINT16, INJECT16(CLASS_ID_REGISTER),
-                TAG_OCTET_STRING, 6, 1, 0, 6, 8, 0, 255,
+                TAG_OCTET_STRING, 6, 1, 0, 6, 8, 0, 255,   // Instantaneous Energy Rc+
                 TAG_INT8, 2,
                 TAG_UINT16, INJECT16(0),
             TAG_STRUCTURE, 4,
                 TAG_UINT16, INJECT16(CLASS_ID_REGISTER),
-                TAG_OCTET_STRING, 6, 1, 0, 7, 8, 0, 255,
+                TAG_OCTET_STRING, 6, 1, 0, 7, 8, 0, 255,   // Instantaneous Energy Ri-
                 TAG_INT8, 2,
                 TAG_UINT16, INJECT16(0),
             TAG_STRUCTURE, 4,
                 TAG_UINT16, INJECT16(CLASS_ID_REGISTER),
-                TAG_OCTET_STRING, 6, 1, 0, 8, 8, 0, 255,
-                TAG_INT8, 2,
-                TAG_UINT16, INJECT16(0),//,
-            TAG_STRUCTURE, 4,
-                TAG_UINT16, INJECT16(CLASS_ID_REGISTER),
-                TAG_OCTET_STRING, 6, 1, 0, 8, 8, 0, 255,
+                TAG_OCTET_STRING, 6, 1, 0, 8, 8, 0, 255,    // Instantaneous Energy Rc-
                 TAG_INT8, 2,
                 TAG_UINT16, INJECT16(0)  
-     
 };
 
 

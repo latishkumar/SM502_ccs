@@ -64,7 +64,7 @@ extern Blob_Message_t writeBlobMessage;
 
 extern uint8_t device_identifier[];
 extern uint8_t EUI[];
-
+void PLC_Start_SendBuffer();
 /*
 * routine that wiaits for responce from PLC processor 
 * whould be used only inside the PLC initialization mehod.

@@ -81,9 +81,6 @@
 //
 #include <stdint.h>
 #include <stdlib.h>
-
-
-
 #include <msp430.h>
 #include <emeter-toolkit.h>
 #include "config.h"

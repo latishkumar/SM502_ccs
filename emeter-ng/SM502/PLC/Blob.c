@@ -7,7 +7,7 @@
 
 Blob_Message_t readBlobMessage;
 Blob_Message_t writeBlobMessage;
-
+void PLC_Start_SendBuffer();
 void ProcessReadBlob(Blob_Message_t *message)
 {
 //  uint8_t data[] ={ 0x96,0xC0, 0x04, 0x00, 0x01, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00};

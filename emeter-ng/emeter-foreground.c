@@ -100,14 +100,14 @@
 int32_t xxx;
 int32_t yyy;
 
-#if !defined(__IAR_SYSTEMS_ICC__)
+
 static __inline__ long labs(long __x);
 
 static __inline__ long labs(long __x)
 {
     return (__x < 0) ? -__x : __x;
 }
-#endif
+
 
   void set_phase_correction(struct phase_correction_s *s, int correction)
   {

@@ -55,6 +55,7 @@ q1_15_mulr: .asmfunc stack_usage(STACK_USED)
  .if ($defined(__MSP430_HAS_MPY__)  |  $defined(__MSP430_HAS_MPY32__))  &  !$defined(__TOOLKIT_USE_SOFT_MPY__)
 	push    SR
 	dint
+	nop
 	mov     x,&MPYS
 	mov     y,&OP2
 	mov     &RESHI,R13

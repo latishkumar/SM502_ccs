@@ -35,40 +35,27 @@ volatile uint8_t rtc_init_counter=0;
 
 void init_rtc()
 {
-          /* Basic timer setup */
-    /* Set ticker to 32768/(256*256) */
-   RTCPS0CTL = RT0IP_7;                    //  / 256
-   RTCPS1CTL = RT1IP_6;// + RT1PSIE;          //  /128 / 256 = / 32768 -> sec interval
+   /* Basic timer setup */
+   /* Set ticker to 32768/(256*256) */
+   RTCPS0CTL = RT0IP_7;                                 //   256
+   RTCPS1CTL = RT1IP_6;// + RT1PSIE;                    //  /128 / 256 = / 32768 -> sec interval
   
-    #if defined(RTC_SUPPORT)
-    if (!check_rtc_sumcheck())
-    {
-
-    #if defined (__MSP430_HAS_RTC_C__)
-        RTCCTL0_H = RTCKEY_H;                  // Unlock RTC
-        if (RTCCTL0 & RTCOFIFG){  // init if RTCOFIFG is set
-          RTCCTL13 = RTCBCD+RTCHOLD+RTCMODE+RTCTEV_0; // Init RTC
-          RTCCTL0_L &= ~RTCOFIFG_L;   // Clear Flag
-//          RTCSEC   = 0;
-//          RTCMIN   = 0;
-//          RTCHOUR  = 0x5;
-//          RTCDOW   = 0x3;
-//          RTCDAY   = 0x8;
-//          RTCMON   = 0x07;
-//          RTCYEAR  = 0x2013;                    
-          RTCCTL13 &= ~RTCHOLD;                   // Enable RTC
+   if (!check_rtc_sumcheck())
+   {
+       RTCCTL0_H = RTCKEY_H;                            // Unlock RTC
+       if (RTCCTL0 & RTCOFIFG)                          // init if RTCOFIFG is set
+       {
+          RTCCTL13 = RTCBCD+RTCHOLD+RTCMODE+RTCTEV_0;   // Init RTC
+          RTCCTL0_L &= ~RTCOFIFG_L;                     // Clear Flag
+          RTCCTL13 &= ~RTCHOLD;                         // Enable RTC
         }
         else
         {
-          RTCCTL13 = RTCBCD+RTCMODE+RTCTEV_0; // Init RTC          
+          RTCCTL13 = RTCBCD+RTCMODE+RTCTEV_0;           // Init RTC
         }
         RTCCTL0_L |= RTCRDYIE_L;
-        RTCCTL0_H = 0;   // LOCK RTC
-        
-        
-    #endif
+        RTCCTL0_H = 0;                                  // LOCK RTC
     }
-    #endif
 }
 
 int bump_rtc_backup(void)
