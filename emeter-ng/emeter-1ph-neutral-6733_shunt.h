@@ -493,7 +493,7 @@
 
 /*! This is called to perform custom display processing when the meter goes to
     sleep. This is typically turning off the display, to conserve energy. */
-#define custom_lcd_sleep_handler()                          (LCDsleep(), display_power_fail_message())
+//#define custom_lcd_sleep_handler()                          (LCDsleep(), display_power_fail_message())
 
 /*! This is called to perform custom display processing when the meter wakes up from
     the sleeping condition. */
@@ -675,12 +675,12 @@
 
 #define DEFAULT_ROOM_TEMPERATURE                    250
 
-#define DEFAULT_V_RMS_SCALE_FACTOR_A                14368//14432// 14480//ee//14564//m.g//11208//9520
+#define DEFAULT_V_RMS_SCALE_FACTOR_A                14432//14432// 14480//ee//14564//m.g//11208//9520
 #define DEFAULT_V_RMS_LIMP_SCALE_FACTOR             21280
-#define DEFAULT_I_RMS_SCALE_FACTOR_A                11264//11750//7613//ee//15150//5348
+#define DEFAULT_I_RMS_SCALE_FACTOR_A                15414//11750//7613//ee//15150//5348
 #define DEFAULT_I_RMS_LIMP_SCALE_FACTOR             3537
 
-#define DEFAULT_P_SCALE_FACTOR_A_LOW                4096//5296//3450//ee//5300//5308//6365        /* Low current, high gain, range. Test at 2A on 30A max meter */
+#define DEFAULT_P_SCALE_FACTOR_A_LOW                6947//5296//3450//ee//5300//5308//6365        /* Low current, high gain, range. Test at 2A on 30A max meter */
 
 #define DEFAULT_V_PRESCALE_FACTOR                   53//34
 
@@ -706,9 +706,9 @@
 #define custom_magnetic_sensor_test()               /**/
 
 #ifdef NEUTRAL_MONITOR_SUPPORT
-#define DEFAULT_I_RMS_SCALE_FACTOR_NEUTRAL 478//49126//15150
-#define DEFAULT_P_SCALE_FACTOR_NEUTRAL     54//20
-#define DEFAULT_NEUTRAL_BASE_PHASE_CORRECTION 5
+#define DEFAULT_I_RMS_SCALE_FACTOR_NEUTRAL 49126//478//49126//15150
+#define DEFAULT_P_SCALE_FACTOR_NEUTRAL     20//54//20
+#define DEFAULT_NEUTRAL_BASE_PHASE_CORRECTION 10//5
 #endif 
 
 /*! This is called every ADC interrupt, after the main DSP work has finished.

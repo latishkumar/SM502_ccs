@@ -7,44 +7,34 @@
 
 #include <math.h>
 #include <msp430.h>
-#include "SM502/Logger.h"
+#include "Logger.h"
 
-#include "config.h"
-#include "SM502/LCD_C_Graphics.h"//graphics.h"
-#include "SM502/LCD_C.h"
-#include "SM502/EventTypes.h"
-#include "SM502/Status.h"
+#include <configuration_defaults.h>
+#include "LCD_C_Graphics.h"//graphics.h"
+#include "LCD_C.h"
+#include "EventTypes.h"
+#include "Status.h"
 
-#include "SM502/Tamper.h"
-#include "SM502/I2C2EEPROM.h"
-#include "SM502/Tariff.h"
-#include "SM502/UI.h"
-#include "SM502/PLC/PLC.h"
-#include "SM502/self_diagnosis.h"
-#include "SM502/Relay.h"
-#include "SM502/IEC62056/IEC62056.h"       /*[M.G] Restored this line from an older version Oct 22, 2015 - 13:52 */
-#include "SM502/Errors.h"
-#include "SM502/BatteryMonitor.h"
-#include "SM502/Schaduler.h"
+#include "Tamper.h"
+#include "I2C2EEPROM.h"
+#include "Tariff.h"
+#include "UI.h"
+#include "PLC.h"
+#include "self_diagnosis.h"
+#include "Relay.h"
+#include "iec62056_uart.h"
+#include "errors.h"
+#include "battery_monitor.h"
+#include "Schaduler.h"
 
 #include <stdio.h>
-#include "SM502/LCD_C.h"
-#include "SM502/LPBU.h"
+#include "LCD_C.h"
+#include "LPBU.h"
 
-
-#if defined(DLMS) || defined(DLMS_IEC_21)
-   #include "DLMS/DLMS.h"
-   #include "DLMS/core/iec62056_46_link.h"
-   #include "DLMS/core/iec62056_46_user.h"
-   #include "DLMS/uart_comms.h"
-#endif
-
-
-int __low_level_init(void)
-{
-   WDTCTL = WDTPW + WDTHOLD; 
-   return 1;
-}
+#include "DLMS.h"
+#include "iec62056_46_link.h"
+#include "iec62056_46_user.h"
+#include "uart_comms.h"
 
 
 void performPowerQualityMessurement(); // some of the power quality management is performed by the
@@ -90,21 +80,11 @@ int8_t current_reversed;
 
 
 /* The main per-phase working parameter structure */
-#if !defined(SINGLE_PHASE)
-struct phase_parms_s chan[NUM_PHASES];
-#else
 struct phase_parms_s chan1;
-#endif
 
-    #if defined(NEUTRAL_MONITOR_SUPPORT)
+
+// (NEUTRAL_MONITOR_SUPPORT)
 struct neutral_parms_s neutral_c;
-    #endif
-
-
-
-
-
-
 
 rtc_t rtc;
 MeterStatus status;
@@ -125,14 +105,14 @@ extern uint32_t AutoDisplayTime;
 extern volatile uint8_t rtc_init ;
 extern volatile uint8_t secondCounter;
 //over voltage and current ranges and Frequency
-extern uint8_t  MAX_IRMS ;
-extern uint16_t  MAX_VRMS; 
+extern uint8_t  max_irms ;
+extern uint16_t  max_vrms;
 extern uint8_t  MAX_Frequency;
 extern uint32_t MAXActivePowerTripPoint; //in 10m watt steps 
 
 //under voltage and current ranges 
-extern uint8_t MIN_IRMS ;
-extern uint8_t MIN_VRMS ;
+//extern uint8_t MIN_IRMS ;
+extern uint8_t min_vrms ;
 extern uint8_t MIN_Frequency ;
 
 extern uint16_t Nominal_Voltage ;//V
@@ -143,13 +123,13 @@ extern uint16_t ThresholdLongPowerFaile;
 extern uint32_t TempLastEnergyValue;
 extern uint32_t ConsumptionSinceLastBilling;
 
-extern uint16_t Output_State;
+extern uint16_t output_state;
 extern uint8_t control_state;
 
 extern volatile uint8_t lpc ;
-uint8_t AMR_profile_status_SO2;
-uint8_t ActiveQuadrant = 0;
-uint8_t Phase_Presence = 1;
+//uint8_t AMR_profile_status_SO2;
+extern uint8_t active_quadrant;
+extern uint8_t phase_presence;
 uint8_t energy_export_support = 0;
 uint8_t critial_System_error = 0;
 uint32_t lastEnergyReadingDuringDisconnect;
@@ -158,7 +138,6 @@ extern void updateCalibrationFactor(int16_t ErrorPercent,uint8_t type);
 void reset_firmware_upgrate_parameters();
 void restoreBackup();
 extern EnergyLog LastTxEnergyCopy;
-extern uint8_t OperatingMode;
 int local_comm_exchange_mode_flag=0; //optical:0; USB:1
 
 void main(void)
@@ -208,40 +187,6 @@ void main(void)
 
     if(SystemStatus == SYSTEM_RUNNING)
     {
-      
-#ifdef EEPROM_LOW_LEVEL_METHODS_TEST       
-      uint32_t data=0;
-      uint32_t pc=0,fc=0;
-      uint32_t j=0;
-      EEPROM2_WriteLong(0,0,0);
-      for(j=1;j< 131071;j++)
-      {
-         EEPROM2_WriteNextLong(j,0);
-         #if defined(USE_WATCHDOG)
-            kick_watchdog();
-         #endif
-      }
-      EEPROM2_WriteNextLong(j,1);
-      
-      EEPROM2_ReadLong(0,0,&data);
-      for(uint32_t i=1;i< 131071;i++)
-      {
-         #if defined(USE_WATCHDOG)
-            kick_watchdog();
-         #endif
-         EEPROM2_ReadNextLong(0,&data);
-         
-         if(data == i)
-           pc++;
-         else 
-           fc++;
-      }
-      EEPROM2_ReadNextLong(1,&data);         
-      pc++;
-      fc++;
-#endif       
-      
-      
        restoreBackup(); 
        LoadConfigurations();
        
@@ -308,10 +253,6 @@ void main(void)
 
 #endif
 
-#ifdef SM502_CODE_TEST_MODE
-        TestMain();          /* Run test code if test configuration is active */
-#endif
-
 
     for (;;)
     {
@@ -333,12 +274,12 @@ void main(void)
            /* display relay status */
             if(status.RelayStatus == 1) //connected
             {
-               Output_State = 1;
+               output_state = 1;
                control_state = 1;
             }
             else
             {
-               Output_State = 0;
+               output_state = 0;
                control_state = 2;
             }   
 
@@ -362,11 +303,11 @@ void main(void)
 						  phase->readings.V_rms = voltage();
 						  if(phase->readings.V_rms > MIN_PHSE_PRESENCE_RMS_VOLTAGE)//TODO. pick a better value for this
 						  {
-							Phase_Presence |= BIT0; //BIT0 phase 1 BIT1 phase 2, BIT2 phase 3
+							phase_presence |= BIT0; //BIT0 phase 1 BIT1 phase 2, BIT2 phase 3
 						  }
 						  else
 						  {
-							Phase_Presence &= ~BIT0;
+							phase_presence &= ~BIT0;
 						  }
 
 //						  phase->metrology.neutral.I_rms = neutral_current();
@@ -421,19 +362,19 @@ void main(void)
 						  //determin the current Quadrant
 						  if(phase->readings.active_power >= 0 && phase->readings.reactive_power >= 0 ) //QI
 						  {
-							ActiveQuadrant = 1;
+							active_quadrant = 1;
 						  }
 						  else if(phase->readings.active_power < 0 && phase->readings.reactive_power >= 0 ) //QII
 						  {
-							ActiveQuadrant = 2;
+							active_quadrant = 2;
 						  }
 						  else if(phase->readings.active_power < 0 && phase->readings.reactive_power < 0 ) //QIII
 						  {
-							ActiveQuadrant = 3;
+							active_quadrant = 3;
 						  }
 						  else if(phase->readings.active_power >= 0 && phase->readings.reactive_power < 0 ) //QVI
 						  {
-							ActiveQuadrant = 4;
+							active_quadrant = 4;
 						  }
 
 						  if(energy_export_support == 0 &&  phase->readings.active_power < 0)
@@ -564,6 +505,15 @@ void main(void)
                   {
                 	  per_day_activity();//run activities that needs to be executed every day
                 	  status.DayChanged = 0;
+                	  //capture daily snapshot
+                	  EnergyLog daily_snapshot;
+                	  daily_snapshot.ActiveEnergy =chan1.active_energy_import;// chan1.consumed_active_energy;
+                	  daily_snapshot.Reactive_Power_R1 = chan1.consumed_reactive_energy_QI;//chan1.readings.reactive_power;
+                	  daily_snapshot.Active_Power = chan1.readings.active_power;
+                	  daily_snapshot.Reactive_Power_R4 = chan1.consumed_reactive_energy_QIV;//chan1.readings.V_rms;
+                	  daily_snapshot.timeStump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
+                	  daily_snapshot.CRC = daily_snapshot.ActiveEnergy + daily_snapshot.Reactive_Power_R1 + daily_snapshot.timeStump.TimestampLow+ daily_snapshot.timeStump.TimestampUp;
+                      write_to_eeprom(&daily_snapshot,(uint8_t *)0,log_daily_energy_snapshot);
                   }
                   
                   //perform other tasks hear
@@ -774,12 +724,10 @@ void custom_initialisation() {
         InitUI();//should be initalized after scheduler because of its dependency
         
         RedLedOn();
-        EnergyLedOn(); 
+        EnergyLedOn();
         
-#if !defined(CUSTOM_LOGGER ) && !defined(PLC_USCIA0)
-        initIEC62056();  /*[M.G] Un-commented this line Oct 22, 2015 - 13:48 */
-#endif 
-         
+        InitIECUART();
+
          /*global interrupt is required to intialize PLC,so enable it before initizlizing PLC
          enable Global Interrupt*/
 	__bis_SR_register(GIE);       
@@ -840,7 +788,7 @@ void performPowerQualityMessurement()
 {     
         uint32_t temp=phase->readings.I_rms;
            temp/=1000;
-        if((temp) >= MAX_IRMS) 
+        if((temp) >= max_irms)
         {
            status.OverCurrentStatus = 1;
            over_current_temp = phase->readings.I_rms;
@@ -852,7 +800,7 @@ void performPowerQualityMessurement()
         
         
          temp = phase->readings.V_rms/100;
-        if((temp) >= MAX_VRMS)
+        if((temp) >= max_vrms)
         {
            
            status.OverVoltageStatus = 1;
@@ -864,7 +812,7 @@ void performPowerQualityMessurement()
         }
         
         //temp = phase->readings.V_rms/100;
-        if((temp) <= MIN_VRMS)
+        if((temp) <= min_vrms)
         {
            //Event   
            status.UnderVoltageStatus = 1;

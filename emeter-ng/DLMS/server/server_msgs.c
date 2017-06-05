@@ -67,25 +67,16 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-
-#include "../core/cosem.h" /*PATH CORRECTION*/
-#include "../core/obis.h"  /*PATH CORRECTION*/
-#include "../core/iec62056_46_link.h"  /*PATH CORRECTION*/
-#include "../core/msgs.h"  /*PATH CORRECTION*/
-#include "../core/packing.h"  /*PATH CORRECTION*/
-#if defined(LOG_PACKETS)
-#include "iec62056_xml.h"
-#endif
-#include "../config.h" /*PATH CORRECTION*/
+#include "cosem.h"
+#include "obis.h"
+#include "iec62056_46_link.h"
+#include "msgs.h"
+#include "packing.h"
+#include "config.h"
 #include "server_msgs.h"
 
 #define FALSE 0
 #define TRUE (!FALSE)
-
-#if defined(LOG_PACKETS)
-static uint8_t block_log[50000];
-static int block_len;
-#endif
 
 int8_t access_selector;
 uint32_t SA_From_Entry=0, SA_To_Entry=0;

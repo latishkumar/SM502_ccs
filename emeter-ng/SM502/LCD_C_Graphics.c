@@ -52,7 +52,7 @@ uint8_t temp_disp;
 int vrms;
 
 extern MeterStatus status;
-extern uint8_t ActiveQuadrant;
+extern uint8_t active_quadrant;
 
 uint32_t scroll_display_time=15;
 uint32_t AutoDisplayTime = 15000;//msec 
@@ -733,7 +733,7 @@ void UpdateDisplay_c() {
              Relay(0);
           }
         
-         if(ActiveQuadrant == 1 || ActiveQuadrant == 4)
+         if(active_quadrant == 1 || active_quadrant == 4)
          {
            showImportIndicator;
          }

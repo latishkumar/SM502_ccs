@@ -79,11 +79,11 @@
 //    -Power samples are accumulated. The accumulated power samples are averaged (in foreground.c)
 //     after a number of voltage cycles has been detected.
 //
+#include <configuration_defaults.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <msp430.h>
 #include <emeter-toolkit.h>
-#include "config.h"
 #include "SM502/Status.h"
 #include "emeter-structs.h"
 
@@ -200,7 +200,7 @@ ISR(SD24B, adc_interrupt)
 
     //static int16_t adc_buffer[3];
     static int16_t adc_v_buffer[1];
-    static current_sample_t adc_i_buffer[2]; 
+    static current_sample_t adc_i_buffer[2];
     int adc_ptr;
 
     int k;

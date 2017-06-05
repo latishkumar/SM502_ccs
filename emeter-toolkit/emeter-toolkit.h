@@ -526,9 +526,6 @@ static __inline__ void mac64_16_24(int64_t *z, int16_t x, int32_t y)
     *z += RES64;
 }
 
-
-
-extern int16_t Q1_15_mulq(int16_t operand1, int16_t operand2);
 extern void tpd_gen(void);
 
 
@@ -537,16 +534,6 @@ extern void tpd_gen(void);
     \return The square root in the form 16 integer bits : 16 fractional bit.
 */
 extern int32_t isqrt32(int32_t x);
-
-#if defined(__GNUC__)
-extern int64_t isqrt64(int64_t x);
-#endif
-
-/*! \brief Find the square root of a 32 bit integer. The result is a 16 bit integer.
-    \param x The value for which the square root is required.
-    \return The square root, as a 16 bit integer.
-*/
-extern int16_t isqrt32i(int32_t x);
 
 /*! \brief Remove the DC content from a signal.
     \param p A pointer to a running DC estimation. This should be zeroed before the first call to dc_filter.
@@ -592,21 +579,9 @@ extern void bin2bcd32(uint8_t bcd[5], uint32_t bin);
 extern const lcd_cell_t lcd_digit_table[16];
 extern const lcd_cell_t char_minus;
 
-extern void LCDinit(void);
 extern void LCDsleep(void);
 extern void LCDawaken(void);
-extern void LCDchars(const uint8_t *s, int pos, int len);
-extern void LCDchar(uint16_t ch, int pos);
 extern void LCDmodify_char(uint16_t ch, int pos, int on);
-
-extern void LCDdec16(int16_t value, int pos, int digits, int after);
-extern void LCDdec32(int32_t value, int pos, int digits, int after);
-extern void LCDdecu16(uint16_t value, int pos, int digits, int after);
-extern void LCDdecu32(uint32_t value, int pos, int digits, int after);
-
-extern int debounce(uint8_t *deb, uint8_t state);
-
-extern int16_t rand16(void);
 
 extern int16_t dds(int *phase_acc, int phase_rate);
 extern int16_t dds_offset(int phase_acc, int phase_offset);
@@ -635,24 +610,6 @@ extern void flash_replace16(int16_t *ptr, int16_t word);
 extern void flash_replace32(int32_t *ptr, int32_t word);
 extern void flashBackup(int32_t *data,uint8_t length);
 
-extern void host_hex16(uint16_t value);
-extern void host_hex32(uint32_t value);
-extern void host_dec16(int16_t value);
-extern void host_dec32(int32_t value);
-extern void host_decu16(uint16_t value);
-extern void host_decu32(uint32_t value);
-extern int hex2ASCII(int hex);
-extern void host_char(char ch);
-extern void host_str(const char *s);
-
-extern int iicEEPROM_read(uint16_t addr, void *dat, int len);
-extern int iicEEPROM_write(uint16_t addr, void *dat, int len);
-extern int iicEEPROM_init(void);
-
-#if defined(BCSCTL1_)  &&  defined(TACCR0_)
-extern void set_dco(int freq);
-#endif
-
 /* AQ430 and IAR cannot handle int64_t data type. GNU can, but it
    wastes some memory when we are accumulating things only a little
    longer than 32 bits. Use some simple functions to achieve some
@@ -669,9 +626,7 @@ int32_t div48(register int16_t x[3], register int16_t y);
    number. */
 int32_t div_sh48(register int16_t x[3], int sh, register int16_t y);
 
-/* Multiply an int32_t by an int16_t, and return the top 32 bits of the
-   48 bit result. */
-int32_t mul48(int32_t x, int16_t y);
+
 
 void shift48(register int16_t x[3], register int how_far);
 
@@ -706,74 +661,6 @@ static __inline__ void assign48(register int16_t y[3], register int16_t x[3])
     y[1] = x[1];
     y[0] = x[0];
 }
-
-#if defined(__IAR_SYSTEMS_ICC__)
-void accum48(register int16_t x[3], register int32_t y);
-#else
-static __inline__ void accum48(register int16_t x[3], register int32_t y)
-{
-    /* Accumulate a 32 bit integer value into a 48 bit one represented
-       by a 3 element int16_t array */
-#if defined(__MSP430__)
-#if defined(__GNUC__)
-    register int16_t y_ex;
-
-    __asm__ __volatile__ (
-        " mov   %B[y],%[y_ex] \n"
-        " rla   %[y_ex] \n"
-        " subc  %[y_ex],%[y_ex] \n"
-        " inv   %[y_ex] \n"
-        " add   %A[y],0(%[x]) \n"
-        " addc  %B[y],2(%[x]) \n"
-        " addc  %[y_ex],4(%[x]) \n"
-        : 
-        : [x] "r"(x), [y] "r"(y), [y_ex] "r"(y_ex));
-#elif defined(__AQCOMPILER__)
-    register int16_t y_ex;
-
-    /$
-        mov     @y.0,@y_ex
-        rla     @y_ex
-        subc    @y_ex,@y_ex
-        inv     @y_ex
-        add     @y.1,0(@x)
-        addc    @y.0,2(@x)
-        addc    @y_ex,4(@x)
-    $/
-#elif defined(__IAR_SYSTEMS_ICC__)
-    int64_t acc;
-
-    acc = (uint16_t) x[2];
-    acc <<= 16;
-    acc |= (uint16_t) x[1];
-    acc <<= 16;
-    acc |= (uint16_t) x[0];
-    acc += y;
-    x[0] = acc;
-    acc >>= 16;
-    x[1] = acc;
-    acc >>= 16;
-    x[2] = acc;
-#else
-/*#error "Don't know how to accum48"*/
-#endif
-#else
-    int64_t acc;
-
-    acc = (uint16_t) x[2];
-    acc <<= 16;
-    acc |= (uint16_t) x[1];
-    acc <<= 16;
-    acc |= (uint16_t) x[0];
-    acc += y;
-    x[0] = acc;
-    acc >>= 16;
-    x[1] = acc;
-    acc >>= 16;
-    x[2] = acc;
-#endif
-}
-#endif
 
 static void __inline__ brief_pause(register unsigned int n)
 {

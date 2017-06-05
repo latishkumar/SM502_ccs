@@ -10,17 +10,15 @@
 #include "Tariff.h"
 #include "Tamper.h"
 #include "self_diagnosis.h"
-#include "../emeter-rtc.h"
-
-//#include <emeter-toolkit.h>   
-//#include "../TI_aes_128.h"
-#include "../DLMS/aes/TI_aes.h"
-#include "../config.h"
+#include "emeter-rtc.h"
+#include "TI_aes.h"
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "LPBU.h"   
-//#include "../emeter-structs.h"
-   
+#include "power_quality.h"
+#include "long_power_failures.h"
+#include "configuration_defaults.h"
 /*
  * The version of the software loaded on the meter
  * This is 1byte data
@@ -38,7 +36,7 @@ uint8_t MAX_LOG_RETRAY = 5;
 unsigned long LastEnergyLogAddress = EnergyLogAddress_Start;
 unsigned long LastEventLogAddress  = EventLogAddress_Start;
 unsigned long LastEnergyBillingCuttOffLogAddress = EnergyBillingCuttOffLogAddress_start;
-
+unsigned long last_daily_snapshot_log_address = LAST_DAILY_SNAPSHOT_LOG_ADDRESS_START;
 
 
 
@@ -56,10 +54,10 @@ extern CurrentBalance Current_balance;
 
 extern uint16_t ActivePowerTripDuration  ; //in seconds 
 extern uint16_t OverCurrentTripDuration  ;
-extern uint16_t OverVoltageTripDuration  ;
+extern uint16_t over_voltage_trip_duration  ;
 
 extern uint16_t OverFrequencyTripDuration  ;
-extern uint16_t UnderVoltageTripDuration   ;
+extern uint16_t under_voltage_trip_duration   ;
 extern uint16_t UnderFrequencyTripDuration ;
 
 
@@ -86,14 +84,14 @@ extern uint8_t Language ;
 extern uint8_t meter_connected_phase;
 extern uint8_t EnergyLoggingTime;
 
-extern uint16_t ThrusholdVoltageSagPer ;//7% percent 
-extern uint16_t ThrusholdVoltageSwellPer ;//2% percent
-extern uint16_t VoltageThresholdLongPowerFailePer ;
+extern uint16_t voltage_sag_threshold ;//7% percent
+extern uint16_t voltage_swell_threshold ;//2% percent
+extern uint16_t voltage_threshold_for_long_power_failure ;
 
-extern uint8_t MIN_VRMS;
-extern uint16_t MAX_VRMS ; 
+extern uint8_t min_vrms;
+extern uint16_t max_vrms ;
 extern uint16_t ThresholdLongPowerFaile;
-extern uint16_t Nominal_Voltage;
+extern uint16_t nominal_voltage;
 
 extern uint8_t billingSchema;
 extern uint8_t device_identifier[];
@@ -232,369 +230,348 @@ void reFormatMemoryFormatIndicator(uint32_t address)
 
 void InitLogg()
 {
-  
-
-
-        while(rtc_init == 0)
-        {
-           #if defined(USE_WATCHDOG)
-              kick_watchdog();
-           #endif
-        }
+    while(rtc_init == 0)
+    {
+         #if defined(USE_WATCHDOG)
+         kick_watchdog();
+         #endif
+    }
       
 	EEPROM2Init();
-        int8_t MemNotFormatted = 0;//memory is not formatted         
-        MemNotFormatted = isMFormatRequired();//0;
+    int8_t MemNotFormatted = 0;//memory is not formatted
+    MemNotFormatted = isMFormatRequired();//0;
       //  MemNotFormatted=1; //format
         
 	if(MemNotFormatted == 1) //Format is required
 	{
-                      status.ActivePowerExcededTimedOutStatus = 0;
-                      status.AutoDisconnectEnabled = 1;
-                      status.BattryStatus = 0;
-                      status.ConnectCommandRecived = 0;
-                      status.DisconnectCommandRecived = 0;
-                      status.DisplayMode  =0;
-                      status.DisplayState  =0;
-                      status.NeutralTamperStatus = 0;
-                      status.NeutralTamperTimedoutStatus = 0;
-                      status.OverCurrentStatus = 0;
-                      status.OverCurrentTimedOutStatus = 0;
-                      status.OverFreqStatus = 0;
-                      status.OverFreqTimedOutStatus = 0;
-                      status.OverVoltageStatus = 0;
-                      status.OverVoltageTimedOutStatus = 0;
-                      status.RelayStatus = 0;
-                      AutoConnect = 1;
-                      status.TamperDetectedStatus = 0;
-                      status.UnderFreqStatus = 0;
-                      status.UnderFreqTimedOutStatus = 0;
-                      status.UpperCoverRemovedTamperStatus = 0;
-                      status.LowerCoverRemovedTamperStatus = 0;
-                      status.MangneticTamperStatus = 0;
-                      
-                      setBlob(0,0);
-                      setBlob(0,1);
-                      setBlob(0,2);
-                      setBlob(0,3);
+          status.ActivePowerExcededTimedOutStatus = 0;
+          status.AutoDisconnectEnabled = 1;
+          status.BattryStatus = 0;
+          status.ConnectCommandRecived = 0;
+          status.DisconnectCommandRecived = 0;
+          status.DisplayMode  =0;
+          status.DisplayState  =0;
+          status.NeutralTamperStatus = 0;
+          status.NeutralTamperTimedoutStatus = 0;
+          status.OverCurrentStatus = 0;
+          status.OverCurrentTimedOutStatus = 0;
+          status.OverFreqStatus = 0;
+          status.OverFreqTimedOutStatus = 0;
+          status.OverVoltageStatus = 0;
+          status.OverVoltageTimedOutStatus = 0;
+          status.RelayStatus = 0;
+          AutoConnect = 1;
+          status.TamperDetectedStatus = 0;
+          status.UnderFreqStatus = 0;
+          status.UnderFreqTimedOutStatus = 0;
+          status.UpperCoverRemovedTamperStatus = 0;
+          status.LowerCoverRemovedTamperStatus = 0;
+          status.MangneticTamperStatus = 0;
 
-                      write_to_eeprom(&status,(uint8_t *)0,logMeterStatus);
+          setBlob(0,0);
+          setBlob(0,1);
+          setBlob(0,2);
+          setBlob(0,3);
 
-                      uint8_t temp8 = status.RelayStatus = 1;
-                                      AutoConnect = 1;
-                      write_to_eeprom(&temp8,&AutoConnect,setRelayStatus);
+          write_to_eeprom(&status,(uint8_t *)0,logMeterStatus);
+
+          uint8_t temp8 = status.RelayStatus = 1;
+                          AutoConnect = 1;
+          write_to_eeprom(&temp8,&AutoConnect,setRelayStatus);
 
          #if defined(USE_WATCHDOG)
             kick_watchdog();
          #endif                      
-                      write_to_eeprom(&device_identifier,(uint8_t *)0,setLogicDeviceName);
+          write_to_eeprom(&device_identifier,(uint8_t *)0,setLogicDeviceName);
 
-                      write_to_eeprom(&EUI,(uint8_t *)0,setMacAddress);
+          write_to_eeprom(&EUI,(uint8_t *)0,setMacAddress);
 
-                      write_to_eeprom(&OperatingMode,(uint8_t *)0,setOperatingMode);
+          write_to_eeprom(&OperatingMode,(uint8_t *)0,setOperatingMode);
 
-                      write_to_eeprom(&AutoDisplayTime,(uint8_t *)0,setAutoDisplayTime);
+          write_to_eeprom(&AutoDisplayTime,(uint8_t *)0,setAutoDisplayTime);
 
-                      write_to_eeprom(&BackToAutoModeTime,(uint8_t *)0,setBackToAutoModeTime);
+          write_to_eeprom(&BackToAutoModeTime,(uint8_t *)0,setBackToAutoModeTime);
 
-                      write_to_eeprom(&Language,(uint8_t *)0,setLanguageSelection);
+          write_to_eeprom(&Language,(uint8_t *)0,setLanguageSelection);
 
-                      write_to_eeprom(&billingSchema,(uint8_t *)0,setBillingSchema);
+          write_to_eeprom(&billingSchema,(uint8_t *)0,setBillingSchema);
 
-                      write_to_eeprom(&meter_connected_phase,(uint8_t *)0,setMeterConnectedPhase);
+          write_to_eeprom(&meter_connected_phase,(uint8_t *)0,setMeterConnectedPhase);
 
          #if defined(USE_WATCHDOG)
             kick_watchdog();
          #endif                       
-                      temp8 =0;
-                      write_to_eeprom(&ThrusholdVoltageSagPer,&temp8,setMinValues);
+          temp8 =0;
+          write_to_eeprom(&voltage_sag_threshold,&temp8,setMinValues);
+
+
+          temp8 = 0;
+          write_to_eeprom(&voltage_swell_threshold,&temp8,setMaxValues);
+
+          temp8 = 4;
+          write_to_eeprom(&voltage_threshold_for_long_power_failure,&temp8,setNominalValues);
+
+          temp8 = 0;
+          write_to_eeprom(&nominal_voltage,&temp8,setNominalValues);
 
                       
-                      temp8 = 0;
-                      write_to_eeprom(&ThrusholdVoltageSwellPer,&temp8,setMaxValues);
-
-                      temp8 = 4;
-                      write_to_eeprom(&VoltageThresholdLongPowerFailePer,&temp8,setNominalValues);                      
-
-                      temp8 = 0;
-                      write_to_eeprom(&Nominal_Voltage,&temp8,setNominalValues);                       
-
-                      
-                      MIN_VRMS = Nominal_Voltage - (((ThrusholdVoltageSagPer/100) * Nominal_Voltage)/100);  
-                      MAX_VRMS = Nominal_Voltage +( ((ThrusholdVoltageSwellPer/100) * Nominal_Voltage)/100);
-                      ThresholdLongPowerFaile = Nominal_Voltage - (((VoltageThresholdLongPowerFailePer/100) * Nominal_Voltage)/100);
+          min_vrms = nominal_voltage - (((voltage_sag_threshold/100) * nominal_voltage)/100);
+          max_vrms = nominal_voltage +( ((voltage_swell_threshold/100) * nominal_voltage)/100);
+          ThresholdLongPowerFaile = nominal_voltage - (((voltage_threshold_for_long_power_failure/100) * nominal_voltage)/100);
          #if defined(USE_WATCHDOG)
             kick_watchdog();
          #endif                      
                       
-                      temp8 = 0;
-                      write_to_eeprom(&Meter_Sr_No,&temp8,setDeviceIDs);
+          temp8 = 0;
+          write_to_eeprom(&Meter_Sr_No,&temp8,setDeviceIDs);
 
-                      temp8 = 1;
-                      write_to_eeprom(&Manufacturer_Name,&temp8,setDeviceIDs);
+          temp8 = 1;
+          write_to_eeprom(&Manufacturer_Name,&temp8,setDeviceIDs);
 
-                      temp8 = 2;
-                      write_to_eeprom(&Device_ID_2,&temp8,setDeviceIDs);                      
+          temp8 = 2;
+          write_to_eeprom(&Device_ID_2,&temp8,setDeviceIDs);
 
-                      temp8 = 3;
-                      write_to_eeprom(&Device_ID_3,&temp8,setDeviceIDs);
+          temp8 = 3;
+          write_to_eeprom(&Device_ID_3,&temp8,setDeviceIDs);
 
          #if defined(USE_WATCHDOG)
             kick_watchdog();
          #endif                       
-                      temp8 = 4;
-                      write_to_eeprom(&Device_ID_4,&temp8,setDeviceIDs);
+          temp8 = 4;
+          write_to_eeprom(&Device_ID_4,&temp8,setDeviceIDs);
 
-                      temp8 = 5;
-                      write_to_eeprom(&Device_ID_5,&temp8,setDeviceIDs);
+          temp8 = 5;
+          write_to_eeprom(&Device_ID_5,&temp8,setDeviceIDs);
 
-                      temp8 = 6;
-                      write_to_eeprom(&Device_ID_6,&temp8,setDeviceIDs);
+          temp8 = 6;
+          write_to_eeprom(&Device_ID_6,&temp8,setDeviceIDs);
 
-                      temp8 = 7;
-                      write_to_eeprom(&Device_ID_7,&temp8,setDeviceIDs);                      
+          temp8 = 7;
+          write_to_eeprom(&Device_ID_7,&temp8,setDeviceIDs);
 
-                      temp8 = 8;
-                      write_to_eeprom(&Device_ID_8,&temp8,setDeviceIDs);
+          temp8 = 8;
+          write_to_eeprom(&Device_ID_8,&temp8,setDeviceIDs);
 
          #if defined(USE_WATCHDOG)
             kick_watchdog();
          #endif                      
-                      write_to_eeprom(&EnergyLoggingTime,(uint8_t *)0,setEnergyLogTime);                        
-                      
-                      temp8 = 0;
-                      write_to_eeprom(&OverVoltageTripDuration,&temp8,setTripDuration);
-                      
+          write_to_eeprom(&EnergyLoggingTime,(uint8_t *)0,setEnergyLogTime);
 
+          temp8 = 0;
+          write_to_eeprom(&over_voltage_trip_duration,&temp8,setTripDuration);
 
-                      temp8 = 1;
-                      write_to_eeprom(&OverCurrentTripDuration,&temp8,setTripDuration);                      
+          temp8 = 1;
+          write_to_eeprom(&OverCurrentTripDuration,&temp8,setTripDuration);
 
          #if defined(USE_WATCHDOG)
             kick_watchdog();
          #endif                       
-                      temp8 = 2;
-                      write_to_eeprom(&OverFrequencyTripDuration,&temp8,setTripDuration); 
+          temp8 = 2;
+          write_to_eeprom(&OverFrequencyTripDuration,&temp8,setTripDuration);
 
-                      temp8 = 3;
-                      write_to_eeprom(&ActivePowerTripDuration,&temp8,setTripDuration);                      
+          temp8 = 3;
+          write_to_eeprom(&ActivePowerTripDuration,&temp8,setTripDuration);
 
-                      temp8 = 4;
-                      write_to_eeprom(&UnderVoltageTripDuration,&temp8,setTripDuration); 
+          temp8 = 4;
+          write_to_eeprom(&under_voltage_trip_duration,&temp8,setTripDuration);
 
          #if defined(USE_WATCHDOG)
             kick_watchdog();
          #endif                      
-                      temp8 = 5;
-                      write_to_eeprom(&UnderFrequencyTripDuration,&temp8,setTripDuration); 
+          temp8 = 5;
+          write_to_eeprom(&UnderFrequencyTripDuration,&temp8,setTripDuration);
 
-                      temp8 = 6;
-                      write_to_eeprom(&CoverRemovalTripDuration,&temp8,setTripDuration);
+          temp8 = 6;
+          write_to_eeprom(&CoverRemovalTripDuration,&temp8,setTripDuration);
 
-                      
-                      temp8 = 0;
-                      uint32_t tmp32 = EnergyLogAddress_Start;
-                      LastEnergyLogAddress = EnergyLogAddress_Start;
-                      write_to_eeprom(&tmp32,&temp8,setLastLogAddress);
-                      
 
-                      temp8 = 1;
-                      tmp32 = EventLogAddress_Start;
-                      LastEventLogAddress = tmp32;
-                      write_to_eeprom(&tmp32,&temp8,setLastLogAddress);  
+          temp8 = 0;
+          uint32_t tmp32 = EnergyLogAddress_Start;
+          LastEnergyLogAddress = EnergyLogAddress_Start;
+          write_to_eeprom(&tmp32,&temp8,setLastLogAddress);
+
+          temp8 = 3;
+          tmp32 = DAILY_SNAPSHOT_LOG_ADDRESS_START;
+          last_daily_snapshot_log_address = DAILY_SNAPSHOT_LOG_ADDRESS_START;
+          write_to_eeprom(&tmp32,&temp8,setLastLogAddress);
+
+          temp8 = 1;
+          tmp32 = EventLogAddress_Start;
+          LastEventLogAddress = tmp32;
+          write_to_eeprom(&tmp32,&temp8,setLastLogAddress);
 
          #if defined(USE_WATCHDOG)
             kick_watchdog();
          #endif 
-                      temp8 = 2;
-                      tmp32 = EnergyBillingCuttOffLogAddress_start;
-                      LastEnergyBillingCuttOffLogAddress = tmp32;                       
-                      write_to_eeprom(&tmp32,&temp8,setLastLogAddress);  
-                      
+          temp8 = 2;
+          tmp32 = EnergyBillingCuttOffLogAddress_start;
+          LastEnergyBillingCuttOffLogAddress = tmp32;
+          write_to_eeprom(&tmp32,&temp8,setLastLogAddress);
 
-                                                  
-                        
-                      write_to_eeprom(&FirmwareVersion,(uint8_t *)0,setFirmwareVersion);                         
+          write_to_eeprom(&FirmwareVersion,(uint8_t *)0,setFirmwareVersion);
                         
          #if defined(USE_WATCHDOG)
             kick_watchdog();
          #endif                        
-			/*
-			 * set the tamper counts to 0
-			 */
-                      uint8_t temp82 = 0;
-                      temp8 = MagneticTamperType;
-                      write_to_eeprom(&temp82,&temp8,setTamperCount);                      
+          /*
+           * set the tamper counts to 0
+           */
+          uint8_t temp82 = 0;
+          temp8 = MagneticTamperType;
+          write_to_eeprom(&temp82,&temp8,setTamperCount);
 
-                      temp8 = UC_TamperType;
-                      write_to_eeprom(&temp82,&temp8,setTamperCount);                         
+          temp8 = UC_TamperType;
+          write_to_eeprom(&temp82,&temp8,setTamperCount);
 
-                      temp8 = LC_TamperType;
-                      write_to_eeprom(&temp82,&temp8,setTamperCount);                         
+          temp8 = LC_TamperType;
+          write_to_eeprom(&temp82,&temp8,setTamperCount);
 
-                      temp8 = NeutralTamperType;
-                      write_to_eeprom(&temp82,&temp8,setTamperCount);                        
+          temp8 = NeutralTamperType;
+          write_to_eeprom(&temp82,&temp8,setTamperCount);
 
          #if defined(USE_WATCHDOG)
             kick_watchdog();
          #endif                       
-                      temp8 = EarthTamperType;
-                      write_to_eeprom(&temp82,&temp8,setTamperCount); 
-                      
+          temp8 = EarthTamperType;
+          write_to_eeprom(&temp82,&temp8,setTamperCount);
 
-                      temp8 = ReverseConnactionTamperType;
-                      write_to_eeprom(&temp82,&temp8,setTamperCount);                         
+          temp8 = ReverseConnactionTamperType;
+          write_to_eeprom(&temp82,&temp8,setTamperCount);
 
-                      temp8 = ConfigrationPortTamperType;
-                      write_to_eeprom(&temp82,&temp8,setTamperCount);  
-                      
+          temp8 = ConfigrationPortTamperType;
+          write_to_eeprom(&temp82,&temp8,setTamperCount);
 
-                      
-                      temp8 = MeterBypassTamperType;
-                      write_to_eeprom(&temp82,&temp8,setTamperCount);                         
+          temp8 = MeterBypassTamperType;
+          write_to_eeprom(&temp82,&temp8,setTamperCount);
          #if defined(USE_WATCHDOG)
             kick_watchdog();
-         #endif                      
+         #endif
                         
-
-
+           //set Current balance to 0
+          Current_balance.balance = 9000000;
+          write_to_eeprom(&Current_balance,(uint8_t *)0,setCurrentBalance);
                         
-			//set Current balance to 0
-			Current_balance.balance = 9000000;
-//			Current_balance.checksum = 0;
-                        write_to_eeprom(&Current_balance,(uint8_t *)0,setCurrentBalance);
+          //clear event and energy log overlap flag
+          temp8=0;
+          write_to_eeprom(&temp8,(uint8_t *)0,setEventOverlapFlag);
 
-                        
-			//clear event and energy log overlap flag
-                        temp8=0;
-                        write_to_eeprom(&temp8,(uint8_t *)0,setEventOverlapFlag);
+          write_to_eeprom(&temp8,(uint8_t *)0,setEnergyOverlapFlag);
 
-                        write_to_eeprom(&temp8,(uint8_t *)0,setEnergyOverlapFlag);                        
+          write_to_eeprom(&temp8,(uint8_t *)0,setBillingCutOffLogOverlapFlag);
 
-                        write_to_eeprom(&temp8,(uint8_t *)0,setBillingCutOffLogOverlapFlag);                        
+          temp8=3;
+          write_to_eeprom(&temp8,(uint8_t *)0,setEnergyOverlapFlag);
 
                         
          #if defined(USE_WATCHDOG)
             kick_watchdog();
          #endif                        
-                        TempLastEnergyValue = 0;                        
-                        write_to_eeprom(&TempLastEnergyValue,(uint8_t *)0,setTempLastEnergyValue);
-     
-                        
-                        write_to_eeprom(&ConsumptionSinceLastBilling,(uint8_t *)0,setConsumptionSinceLastBilling);
+          TempLastEnergyValue = 0;
+          write_to_eeprom(&TempLastEnergyValue,(uint8_t *)0,setTempLastEnergyValue);
 
+          write_to_eeprom(&ConsumptionSinceLastBilling,(uint8_t *)0,setConsumptionSinceLastBilling);
+            //passwords
+            //intial key's and intial datas
 
-                        
-			//passwords
-                        //intial key's and intial datas
-                                                                       
-                        uint8_t j,i;
-                        for(i=0;i<MaxPasswords;i++) 
-                        {
-                          
-                          for(j=0;j<Password_Length;j++)
-                             Passwords[i].password[j] = default_passwords[i].password[j];
-                          
-                          aes_enc_dec((unsigned char *)(Passwords[i].password+2),(unsigned char*) (default_keys[i].password),0);
+          uint8_t j,i;
+          for(i=0;i<MaxPasswords;i++)
+          {
+              for(j=0;j<Password_Length;j++)
+                 Passwords[i].password[j] = default_passwords[i].password[j];
+
+              aes_enc_dec((unsigned char *)(Passwords[i].password+2),(unsigned char*) (default_keys[i].password),0);
                           
          #if defined(USE_WATCHDOG)
             kick_watchdog();
          #endif                          
                           
-                          write_to_eeprom(&Passwords[i],&i,setPassword);
+              write_to_eeprom(&Passwords[i],&i,setPassword);
 
-                          
-                          for(j=0;j<Password_Length;j++)
-                             Passwords[i].password[j] = default_passwords[i].password[j];
+              for(j=0;j<Password_Length;j++)
+                 Passwords[i].password[j] = default_passwords[i].password[j];
+            }
+            //write EEPROM
 
-                          
-                        }
-                        
-                        //write EEPROM
-                        
-                        phase->active_energy_counter_QI = 0;
-                        phase->active_energy_counter_QII = 0;
-                        phase->active_energy_counter_QIII = 0;
-                        phase->active_energy_counter_QIV = 0;
-                        
-                        phase->reactive_energy_counter_QI = 0;
-                        phase->reactive_energy_counter_QII = 0;
-                        phase->reactive_energy_counter_QIII = 0;
-                        phase->reactive_energy_counter_QIV = 0;
-                        
-                        
-                        phase->consumed_active_energy_QI = 0;
-                        phase->consumed_active_energy_QII = 0;
-                        phase->consumed_active_energy_QIII = 0;
-                        phase->consumed_active_energy_QIV = 0;
-                        
-                        phase->consumed_reactive_energy_QI =0;
-                        phase->consumed_reactive_energy_QII =0;
-                        phase->consumed_reactive_energy_QIII =0;
-                        phase->consumed_reactive_energy_QIV = 0;
-                        
-                        write_to_eeprom(phase,(uint8_t *)0,logPowerFailEnergy);  
-                        
-                        
-                        
-                        //initialize rates                         
-                        for(i=0,j=0;i<120;i++,j++)
-                        {
-                           if(j == 40)
-                                j=0;
-                            
-                           write_to_eeprom(&rates[j],&i,setRate); 
-                           #if defined(USE_WATCHDOG)
-                              kick_watchdog();
-                            #endif 
+            phase->active_energy_counter_QI = 0;
+            phase->active_energy_counter_QII = 0;
+            phase->active_energy_counter_QIII = 0;
+            phase->active_energy_counter_QIV = 0;
+
+            phase->reactive_energy_counter_QI = 0;
+            phase->reactive_energy_counter_QII = 0;
+            phase->reactive_energy_counter_QIII = 0;
+            phase->reactive_energy_counter_QIV = 0;
+
+
+            phase->consumed_active_energy_QI = 0;
+            phase->consumed_active_energy_QII = 0;
+            phase->consumed_active_energy_QIII = 0;
+            phase->consumed_active_energy_QIV = 0;
+
+            phase->consumed_reactive_energy_QI =0;
+            phase->consumed_reactive_energy_QII =0;
+            phase->consumed_reactive_energy_QIII =0;
+            phase->consumed_reactive_energy_QIV = 0;
+
+            write_to_eeprom(phase,(uint8_t *)0,logPowerFailEnergy);
+
+            //initialize rates
+            for(i=0,j=0;i<120;i++,j++)
+            {
+               if(j == 40)
+                    j=0;
+
+               write_to_eeprom(&rates[j],&i,setRate);
+               #if defined(USE_WATCHDOG)
+                  kick_watchdog();
+                #endif
 //                           setRate(i , &rates[j]);
-                            
-                        }
+            }
                         
-                        //initialize power breaks 
-                        for(i=0;i<10;i++)
-                        {
-                           write_to_eeprom(&power_brakes[i],&i,setPowerBreaks);
+            //initialize power breaks
+            for(i=0;i<10;i++)
+            {
+               write_to_eeprom(&power_brakes[i],&i,setPowerBreaks);
 //                           setPowerBreaks(i, &power_brakes[i]);
-                            #if defined(USE_WATCHDOG)
-                                kick_watchdog();
-                            #endif 
-                        }
-                        
-                        //set schadule time slots , set the time slots six hours apart
-                         Schedule_timeslot_t t;                     
-                         uint8_t start_hour[] = {0,6,12,18};
-                   
-                         for (j = 0; j < 12; j++) {
+                #if defined(USE_WATCHDOG)
+                    kick_watchdog();
+                #endif
+            }
 
-                                  t.start_Hour = start_hour[j%4];
-                                  t.start_minute = 00;
-                                  t.rate_values_start_pointer = j*10;
-                                  write_to_eeprom(&t,&j,setTariffSchaduleTimeslot);                                  
+            //set schadule time slots , set the time slots six hours apart
+             Schedule_timeslot_t t;
+             uint8_t start_hour[] = {0,6,12,18};
+                   
+             for (j = 0; j < 12; j++) {
+
+                      t.start_Hour = start_hour[j%4];
+                      t.start_minute = 00;
+                      t.rate_values_start_pointer = j*10;
+                      write_to_eeprom(&t,&j,setTariffSchaduleTimeslot);
 //                                  setTariffSchaduleTimeslot(j, &t);
-                                   write_to_eeprom(&t,&j,setTariffSchaduleTimeslotPassive);
-                                    #if defined(USE_WATCHDOG)
-                                      kick_watchdog();
-                                   #endif  
+                       write_to_eeprom(&t,&j,setTariffSchaduleTimeslotPassive);
+                        #if defined(USE_WATCHDOG)
+                          kick_watchdog();
+                       #endif
 //                                  setTariffSchaduleTimeslotPassive(j, &t);  
-                         }                     
+             }
          #if defined(USE_WATCHDOG)
             kick_watchdog();
          #endif                             
 
             
             
-                        reFormatMemoryFormatIndicator(MemoryFormattedAddressStart);
-                        reFormatMemoryFormatIndicator(MemoryFormattedAddressBackUpStart); 
-            
-                        EventLog evl;
-                       //evl.StartAddress = LastEventLogAddress+1;
-                        evl.EventCode = EEPROM_Formatted;
-                        evl.timeStump = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
-                        evl.Checksum  =(getCheckSum(&(evl.timeStump.TimestampLow),4) + evl.timeStump.TimestampUp + evl.EventCode)&0xff;
-                        evl.value = 0;
+            reFormatMemoryFormatIndicator(MemoryFormattedAddressStart);
+            reFormatMemoryFormatIndicator(MemoryFormattedAddressBackUpStart);
+
+            EventLog evl;
+           //evl.StartAddress = LastEventLogAddress+1;
+            evl.EventCode = EEPROM_Formatted;
+            evl.timeStump = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
+            evl.Checksum  =(getCheckSum(&(evl.timeStump.TimestampLow),4) + evl.timeStump.TimestampUp + evl.EventCode)&0xff;
+            evl.value = 0;
 //                        logEvent(&evl);
-                        write_to_eeprom(&evl,(uint8_t *)0,logEvent);
+            write_to_eeprom(&evl,(uint8_t *)0,logEvent);
                         
          #if defined(USE_WATCHDOG)
             kick_watchdog();
@@ -602,9 +579,7 @@ void InitLogg()
         }
         else //log power out and power back logs from flash, set last RTC_CHECK_VALUE
         {
-          firtstBoot = 0;                                
-
-             
+          firtstBoot = 0;
         }
 
 
@@ -615,265 +590,223 @@ void LoadConfigurations()
 
         EEPROM_InitError = 0;
         validation_arg_t validation_arg;
-                         validation_arg.validate = 1;
-                         validation_arg.validate_by_reading_back = 0;
+        validation_arg.validate = 1;
+        validation_arg.validate_by_reading_back = 0;
         validation_arg_t noValidation = validation_arg_t_default;
         uint8_t temp_did=0;
-   
+
+        getEnergyOverlapFlag(&temp_did);
+        status.energy_log_overlaped = temp_did;
         
-                      getEnergyOverlapFlag(&temp_did);
-                      status.energy_log_overlaped = temp_did;
+        get_daily_snapshot_overlap_flag(&temp_did);
+        status.daily_snapshot_energy_overlaped = temp_did;
         
-                     validation_arg.min = OperatingModeMin;
-                     validation_arg.max = OperatingModeMax;
-                     validation_arg.default_val = OperatingMode;
-                     validation_arg.arg_size = 1;
-                     read_from_eeprom(&OperatingMode,(uint8_t *)0,getOperatingMode,&validation_arg);
-//                      z = getOperatingMode(&OperatingMode);
-//                        pc+=z; 
+        validation_arg.min = OperatingModeMin;
+        validation_arg.max = OperatingModeMax;
+        validation_arg.default_val = OperatingMode;
+        validation_arg.arg_size = 1;
+        read_from_eeprom(&OperatingMode,(uint8_t *)0,getOperatingMode,&validation_arg);
                      
-                     validation_arg.min = AutoDisplayTimeMin;
-                     validation_arg.max = AutoDisplayTimeMax;
-                     validation_arg.default_val = AutoDisplayTime;
-                      validation_arg.arg_size = 4;
-                     read_from_eeprom(&AutoDisplayTime,(uint8_t *)0,getAutoDisplayTime,&validation_arg);
-//                      z = getAutoDisplayTime(&AutoDisplayTime);
-//                        pc+=z;      
-                     validation_arg.min = BackToAutoModeTimeMin;
-                     validation_arg.max = BackToAutoModeTimeMax;
-                     validation_arg.default_val = BackToAutoModeTime;
-                      validation_arg.arg_size = 2;
-                     read_from_eeprom(&BackToAutoModeTime,(uint8_t *)0,getBackToAutoModeTime,&validation_arg);
-//                      z = getBackToAutoModeTime(&BackToAutoModeTime);
-//                        pc+=z;  
+        validation_arg.min = AutoDisplayTimeMin;
+        validation_arg.max = AutoDisplayTimeMax;
+        validation_arg.default_val = AutoDisplayTime;
+        validation_arg.arg_size = 4;
+        read_from_eeprom(&AutoDisplayTime,(uint8_t *)0,getAutoDisplayTime,&validation_arg);
+
+        validation_arg.min = BackToAutoModeTimeMin;
+        validation_arg.max = BackToAutoModeTimeMax;
+        validation_arg.default_val = BackToAutoModeTime;
+        validation_arg.arg_size = 2;
+        read_from_eeprom(&BackToAutoModeTime,(uint8_t *)0,getBackToAutoModeTime,&validation_arg);
                      
-                     validation_arg.min = LanguageMin;
-                     validation_arg.max = LanguageMax;
-                     validation_arg.default_val = Language;
-                      validation_arg.arg_size = 1;
-                     read_from_eeprom(&Language,(uint8_t *)0,getLanguageSelection,&validation_arg);                     
-//                      z = getLanguageSelection(&Language);
-//                        pc+=z;      
+        validation_arg.min = LanguageMin;
+        validation_arg.max = LanguageMax;
+        validation_arg.default_val = Language;
+        validation_arg.arg_size = 1;
+        read_from_eeprom(&Language,(uint8_t *)0,getLanguageSelection,&validation_arg);
+
                      
-                     validation_arg.min = meter_connected_phaseMin;
-                     validation_arg.max = meter_connected_phaseMax; 
-                     validation_arg.default_val = meter_connected_phase;
-                     validation_arg.arg_size = 1;
-                     read_from_eeprom(&meter_connected_phase,(uint8_t *)0,getMeterConnectedPhase,&validation_arg); 
-//                      z = getMeterConnectedPhase(&meter_connected_phase);
-//                        pc+=z; 
-                      
-//                        if(pc<6){
-//                          hardware_status.EEPROM1_Status = 0;
-//                            //return;
-//                        }
+        validation_arg.min = meter_connected_phaseMin;
+        validation_arg.max = meter_connected_phaseMax;
+        validation_arg.default_val = meter_connected_phase;
+        validation_arg.arg_size = 1;
+        read_from_eeprom(&meter_connected_phase,(uint8_t *)0,getMeterConnectedPhase,&validation_arg);
                      
          #if defined(USE_WATCHDOG)
             kick_watchdog();
          #endif
             
-                     temp_did=0;
-                     read_from_eeprom(Meter_Sr_No,&temp_did,getDeviceIDs,&noValidation);                      
-//                      z = getDeviceIDs(Meter_Sr_No, 0); 
+        temp_did=0;
+        read_from_eeprom(Meter_Sr_No,&temp_did,getDeviceIDs,&noValidation);
+        temp_did= 1;
+        read_from_eeprom(Manufacturer_Name,&temp_did,getDeviceIDs,&noValidation);
+        temp_did= 2;
+        read_from_eeprom(Device_ID_2,&temp_did,getDeviceIDs,&noValidation);
+        temp_did= 3;
+        read_from_eeprom(Device_ID_3,&temp_did,getDeviceIDs,&noValidation);
+        temp_did= 4;
+        read_from_eeprom(Device_ID_4,&temp_did,getDeviceIDs,&noValidation);
+        temp_did= 5;
+        read_from_eeprom(Device_ID_5,&temp_did,getDeviceIDs,&noValidation);
+        temp_did= 6;
+        read_from_eeprom(Device_ID_6,&temp_did,getDeviceIDs,&noValidation);
+        temp_did= 7;
+        read_from_eeprom(Device_ID_7,&temp_did,getDeviceIDs,&noValidation);
+        temp_did= 8;
+        read_from_eeprom(Device_ID_8,&temp_did,getDeviceIDs,&noValidation);
 
-                     temp_did= 1; 
-                     read_from_eeprom(Manufacturer_Name,&temp_did,getDeviceIDs,&noValidation);
-//                      z = getDeviceIDs(Manufacturer_Name, 1);                       
-                     temp_did= 2; 
-                     read_from_eeprom(Device_ID_2,&temp_did,getDeviceIDs,&noValidation);                      
-//                      z = getDeviceIDs(Device_ID_2, 2);
-                     temp_did= 3; 
-                     read_from_eeprom(Device_ID_3,&temp_did,getDeviceIDs,&noValidation);                                
-//                      z = getDeviceIDs(Device_ID_3, 3); 
-                     temp_did= 4; 
-                     read_from_eeprom(Device_ID_4,&temp_did,getDeviceIDs,&noValidation);                       
-//                      z = getDeviceIDs(Device_ID_4, 4);
-                     temp_did= 5; 
-                     read_from_eeprom(Device_ID_5,&temp_did,getDeviceIDs,&noValidation);                     
-//                      z = getDeviceIDs(Device_ID_5, 5);
-                     temp_did= 6; 
-                     read_from_eeprom(Device_ID_6,&temp_did,getDeviceIDs,&noValidation);                     
-//                      z = getDeviceIDs(Device_ID_6, 6);
-                     temp_did= 7; 
-                     read_from_eeprom(Device_ID_7,&temp_did,getDeviceIDs,&noValidation);                     
-//                      z = getDeviceIDs(Device_ID_7, 7);
-                     temp_did= 8; 
-                     read_from_eeprom(Device_ID_8,&temp_did,getDeviceIDs,&noValidation);                     
-//                      z = getDeviceIDs(Device_ID_8, 8);
-                     
-                     temp_did = 0;
-                     validation_arg.min = ThrusholdVoltageSagPerMin;
-                     validation_arg.max = ThrusholdVoltageSagPerMax;  
-                      validation_arg.default_val = ThrusholdVoltageSagPer;
-                       validation_arg.arg_size = 2;
-                     read_from_eeprom(&ThrusholdVoltageSagPer,&temp_did,getMinValues,&validation_arg); 
-//                      z = getMinValues(&ThrusholdVoltageSagPer,0);
-                     
-                     validation_arg.min = ThrusholdVoltageSwellPerMin;
-                     validation_arg.max = ThrusholdVoltageSwellPerMax;
-                      validation_arg.default_val = ThrusholdVoltageSwellPer;
-                       validation_arg.arg_size = 2;
-                     read_from_eeprom(&ThrusholdVoltageSwellPer,&temp_did,getMaxValues,&validation_arg); 
-//                      z = getMaxValues(&ThrusholdVoltageSwellPer,0);
-                     
-//                     temp_did = 0;
-                     validation_arg.min = Nominal_VoltageMin;
-                     validation_arg.max = Nominal_VoltageMax;
-                     validation_arg.default_val = Nominal_Voltage;
-                      validation_arg.arg_size = 2;
-                     read_from_eeprom(&Nominal_Voltage,&temp_did,getNominalValues,&validation_arg);                      
-//                      z = getNominalValues(&Nominal_Voltage,0);
-                     
-                     temp_did = 4;
-                     validation_arg.min = VoltageThresholdLongPowerFailePerMin;
-                     validation_arg.max = VoltageThresholdLongPowerFailePerMax;
-                     validation_arg.default_val = VoltageThresholdLongPowerFailePer;
-                      validation_arg.arg_size = 2;                     
-                     read_from_eeprom(&VoltageThresholdLongPowerFailePer,&temp_did,getNominalValues,&validation_arg);                       
-//                      z = getNominalValues(&VoltageThresholdLongPowerFailePer,4);
-                    
-                      
+        temp_did = 0;
+        validation_arg.min = ThrusholdVoltageSagPerMin;
+        validation_arg.max = ThrusholdVoltageSagPerMax;
+        validation_arg.default_val = voltage_sag_threshold;
+        validation_arg.arg_size = 2;
+        read_from_eeprom(&voltage_sag_threshold,&temp_did,getMinValues,&validation_arg);
+
+        validation_arg.min = ThrusholdVoltageSwellPerMin;
+        validation_arg.max = ThrusholdVoltageSwellPerMax;
+        validation_arg.default_val = voltage_swell_threshold;
+        validation_arg.arg_size = 2;
+        read_from_eeprom(&voltage_swell_threshold,&temp_did,getMaxValues,&validation_arg);
+
+        validation_arg.min = Nominal_VoltageMin;
+        validation_arg.max = Nominal_VoltageMax;
+        validation_arg.default_val = nominal_voltage;
+        validation_arg.arg_size = 2;
+        read_from_eeprom(&nominal_voltage,&temp_did,getNominalValues,&validation_arg);
+
+        temp_did = 4;
+        validation_arg.min = VoltageThresholdLongPowerFailePerMin;
+        validation_arg.max = VoltageThresholdLongPowerFailePerMax;
+        validation_arg.default_val = voltage_threshold_for_long_power_failure;
+        validation_arg.arg_size = 2;
+        read_from_eeprom(&voltage_threshold_for_long_power_failure,&temp_did,getNominalValues,&validation_arg);
+
          #if defined(USE_WATCHDOG)
             kick_watchdog();
          #endif                      
-
                      
-                      MIN_VRMS = Nominal_Voltage - (((ThrusholdVoltageSagPer/100) * Nominal_Voltage)/100);  
-                      MAX_VRMS = Nominal_Voltage +( ((ThrusholdVoltageSwellPer/100)* Nominal_Voltage)/100);
-                      ThresholdLongPowerFaile = Nominal_Voltage - (((VoltageThresholdLongPowerFailePer/100) * Nominal_Voltage)/100);
+        min_vrms = nominal_voltage - (((voltage_sag_threshold/100) * nominal_voltage)/100);
+        max_vrms = nominal_voltage +( ((voltage_swell_threshold/100)* nominal_voltage)/100);
+        ThresholdLongPowerFaile = nominal_voltage - (((voltage_threshold_for_long_power_failure/100) * nominal_voltage)/100);
 
-                      
-                     validation_arg.min = billingSchemaMin;
-                     validation_arg.max = billingSchemaMax;     
-                     validation_arg.default_val = billingSchema; 
-                     validation_arg.arg_size = 1;
-                     read_from_eeprom(&billingSchema,(uint8_t *)0,getBillingSchema,&validation_arg);                        
-//                      z = getBillingSchema(&billingSchema);
-                     
-                     validation_arg.min = EnergyLoggingTimeMin;
-                     validation_arg.max = EnergyLoggingTimeMax;  
-                     validation_arg.default_val = EnergyLoggingTime; 
-                     validation_arg.arg_size = 1;                     
-                     read_from_eeprom(&EnergyLoggingTime,(uint8_t *)0,getEnergyLogTime,&validation_arg); 
-//                      z = getEnergyLogTime(&EnergyLoggingTime);   
-                      
-                      
-                      
- 
-                     temp_did = 0;
-                     validation_arg.min = OverVoltageTripDurationMin;
-                     validation_arg.max = OverVoltageTripDurationMax; 
-                     validation_arg.default_val = OverVoltageTripDuration;   
-                     validation_arg.arg_size = 2;
-                     read_from_eeprom(&OverVoltageTripDuration,&temp_did,getTripDuration,&validation_arg);                     
+        validation_arg.min = billingSchemaMin;
+        validation_arg.max = billingSchemaMax;
+        validation_arg.default_val = billingSchema;
+        validation_arg.arg_size = 1;
+        read_from_eeprom(&billingSchema,(uint8_t *)0,getBillingSchema,&validation_arg);
 
-                     temp_did = 1;
-                     validation_arg.min = OverCurrentTripDurationMin;
-                     validation_arg.max = OverCurrentTripDurationMax;      
-                     validation_arg.default_val = OverCurrentTripDuration;
-                     validation_arg.arg_size = 2;
-                     read_from_eeprom(&OverCurrentTripDuration,&temp_did,getTripDuration,&validation_arg);                     
-;
-                     temp_did = 2;
-                     validation_arg.min = OverFrequencyTripDurationMin;
-                     validation_arg.max = OverFrequencyTripDurationMax;   
-                     validation_arg.default_val = OverFrequencyTripDuration;  
-                     validation_arg.arg_size = 2;
-                     read_from_eeprom(&OverFrequencyTripDuration,&temp_did,getTripDuration,&validation_arg);                      
+        validation_arg.min = EnergyLoggingTimeMin;
+        validation_arg.max = EnergyLoggingTimeMax;
+        validation_arg.default_val = EnergyLoggingTime;
+        validation_arg.arg_size = 1;
+        read_from_eeprom(&EnergyLoggingTime,(uint8_t *)0,getEnergyLogTime,&validation_arg);
 
-                     temp_did = 3;
-                     validation_arg.min = ActivePowerTripDurationMin;
-                     validation_arg.max = ActivePowerTripDurationMax;
-                     validation_arg.default_val = ActivePowerTripDuration; 
-                     validation_arg.arg_size = 2;
-                     read_from_eeprom(&ActivePowerTripDuration,&temp_did,getTripDuration,&validation_arg);                     
+         temp_did = 0;
+         validation_arg.min = OverVoltageTripDurationMin;
+         validation_arg.max = OverVoltageTripDurationMax;
+         validation_arg.default_val = over_voltage_trip_duration;
+         validation_arg.arg_size = 2;
+         read_from_eeprom(&over_voltage_trip_duration,&temp_did,getTripDuration,&validation_arg);
 
-                     temp_did = 4;
-                     validation_arg.min = UnderVoltageTripDurationMin;
-                     validation_arg.max = UnderVoltageTripDurationMax;
-                     validation_arg.default_val = UnderVoltageTripDuration;  
-                     validation_arg.arg_size = 2;
-                     read_from_eeprom(&UnderVoltageTripDuration,&temp_did,getTripDuration,&validation_arg);                     
+         temp_did = 1;
+         validation_arg.min = OverCurrentTripDurationMin;
+         validation_arg.max = OverCurrentTripDurationMax;
+         validation_arg.default_val = OverCurrentTripDuration;
+         validation_arg.arg_size = 2;
+         read_from_eeprom(&OverCurrentTripDuration,&temp_did,getTripDuration,&validation_arg);
 
-                     temp_did = 5;
-                     validation_arg.min = UnderFrequencyTripDurationMin;
-                     validation_arg.max = UnderFrequencyTripDurationMax;   
-                     validation_arg.default_val = UnderFrequencyTripDuration;    
-                     validation_arg.arg_size = 2;
-                     read_from_eeprom(&UnderFrequencyTripDuration,&temp_did,getTripDuration,&validation_arg);                      
+         temp_did = 2;
+         validation_arg.min = OverFrequencyTripDurationMin;
+         validation_arg.max = OverFrequencyTripDurationMax;
+         validation_arg.default_val = OverFrequencyTripDuration;
+         validation_arg.arg_size = 2;
+         read_from_eeprom(&OverFrequencyTripDuration,&temp_did,getTripDuration,&validation_arg);
 
-                     temp_did = 6;
-                     validation_arg.min = CoverRemovalTripDurationMin;
-                     validation_arg.max = CoverRemovalTripDurationMax;    
-                     validation_arg.default_val = CoverRemovalTripDuration; 
-                     validation_arg.arg_size = 2;
-                     read_from_eeprom(&CoverRemovalTripDuration,&temp_did,getTripDuration,&validation_arg);                      
+         temp_did = 3;
+         validation_arg.min = ActivePowerTripDurationMin;
+         validation_arg.max = ActivePowerTripDurationMax;
+         validation_arg.default_val = ActivePowerTripDuration;
+         validation_arg.arg_size = 2;
+         read_from_eeprom(&ActivePowerTripDuration,&temp_did,getTripDuration,&validation_arg);
 
+         temp_did = 4;
+         validation_arg.min = UnderVoltageTripDurationMin;
+         validation_arg.max = UnderVoltageTripDurationMax;
+         validation_arg.default_val = under_voltage_trip_duration;
+         validation_arg.arg_size = 2;
+         read_from_eeprom(&under_voltage_trip_duration,&temp_did,getTripDuration,&validation_arg);
+
+         temp_did = 5;
+         validation_arg.min = UnderFrequencyTripDurationMin;
+         validation_arg.max = UnderFrequencyTripDurationMax;
+         validation_arg.default_val = UnderFrequencyTripDuration;
+         validation_arg.arg_size = 2;
+         read_from_eeprom(&UnderFrequencyTripDuration,&temp_did,getTripDuration,&validation_arg);
+
+         temp_did = 6;
+         validation_arg.min = CoverRemovalTripDurationMin;
+         validation_arg.max = CoverRemovalTripDurationMax;
+         validation_arg.default_val = CoverRemovalTripDuration;
+         validation_arg.arg_size = 2;
+         read_from_eeprom(&CoverRemovalTripDuration,&temp_did,getTripDuration,&validation_arg);
                       
           #if defined(USE_WATCHDOG)
             kick_watchdog();
          #endif                    
-                     temp_did = 0;
-                     read_from_eeprom(&LastEnergyLogAddress,&temp_did,getLastLogAddress,&noValidation);                       
-                      //load last energy log address
-                     temp_did = 1;
-                     read_from_eeprom(&LastEventLogAddress,&temp_did,getLastLogAddress,&noValidation);   
-                      //load last event log address
-
-                     temp_did = 2;
-                     read_from_eeprom(&LastEnergyBillingCuttOffLogAddress,&temp_did,getLastLogAddress,&noValidation);                      
-                     //load last energy log address
+         temp_did = 0;
+         read_from_eeprom(&LastEnergyLogAddress,&temp_did,getLastLogAddress,&noValidation);
+          //load last energy log address
+         temp_did = 1;
+         read_from_eeprom(&LastEventLogAddress,&temp_did,getLastLogAddress,&noValidation);
+          //load last event log address
+         temp_did = 2;
+         read_from_eeprom(&LastEnergyBillingCuttOffLogAddress,&temp_did,getLastLogAddress,&noValidation);
+         //load last energy log address
                                                                                         
-                        //initialize rates   
-                        int i,j;                                            
-                        for(i=0,j=0;i<120;i++,j++)
-                        {
-                           if(j == 40)
-                                j=0;
-//                            setRate(i , &rates[j]);
-                           read_from_eeprom(&rates[j],&i,getRate,&noValidation);      
-//                            getRate(i,&rates[j]);
-                        }
-                        
+         //initialize rates
+         int i,j;
+         for(i=0,j=0;i<120;i++,j++)
+         {
+             if(j == 40)
+                 j=0;
+             read_from_eeprom(&rates[j],&i,getRate,&noValidation);
+         }
+
          #if defined(USE_WATCHDOG)
             kick_watchdog();
          #endif                        
-                        //initialize power breaks 
-                        for(i=0;i<10;i++)
-                        {
-                           //setPowerBreaks(i, &power_brakes[i]);
-                           read_from_eeprom(&power_brakes[i],&i,getPowerBreaks,&noValidation); 
-//                           getPowerBreaks(i, &power_brakes[i]);
-                        }
+         //initialize power breaks
+         for(i=0;i<10;i++)
+         {
+             read_from_eeprom(&power_brakes[i],&i,getPowerBreaks,&noValidation);
+         }
 
-                      temp_did =   MagneticTamperType;
-                      read_from_eeprom(&TamperCount.Magnetic_Count,&temp_did,getTamperCount,&noValidation);                      
+         temp_did =   MagneticTamperType;
+         read_from_eeprom(&TamperCount.Magnetic_Count,&temp_did,getTamperCount,&noValidation);
 
-                      temp_did =   UC_TamperType;
-                      read_from_eeprom(&TamperCount.UpperCoverRemoved_Count,&temp_did,getTamperCount,&noValidation);                       
+         temp_did =   UC_TamperType;
+         read_from_eeprom(&TamperCount.UpperCoverRemoved_Count,&temp_did,getTamperCount,&noValidation);
 
-                      temp_did =   LC_TamperType;
-                      read_from_eeprom(&TamperCount.LowerCoverRemoved_Count,&temp_did,getTamperCount,&noValidation); 
+         temp_did =   LC_TamperType;
+         read_from_eeprom(&TamperCount.LowerCoverRemoved_Count,&temp_did,getTamperCount,&noValidation);
 
-                      temp_did =   NeutralTamperType;
-                      read_from_eeprom(&TamperCount.Neutral_Count,&temp_did,getTamperCount,&noValidation);                                                                      
+         temp_did =   NeutralTamperType;
+         read_from_eeprom(&TamperCount.Neutral_Count,&temp_did,getTamperCount,&noValidation);
                       
          #if defined(USE_WATCHDOG)
             kick_watchdog();
          #endif                       
                                          
-                        i=0;
-                        //read the passwords ,uncomment this at the end of testing
-                        for(i=0;i<4;i++) 
-                        {
-    
-                          read_from_eeprom(&Passwords[i],&i,getPassword,&noValidation);
-                          
-                          aes_enc_dec((unsigned char *)(Passwords[i].password+2),(unsigned char*) (default_keys[i].password),1);  
-                           #if defined(USE_WATCHDOG)
-                              kick_watchdog();
-                           #endif  
-                        }                      
+         i=0;
+         //read the passwords ,uncomment this at the end of testing
+         for(i=0;i<4;i++)
+         {
+             read_from_eeprom(&Passwords[i],&i,getPassword,&noValidation);
+             aes_enc_dec((unsigned char *)(Passwords[i].password+2),(unsigned char*) (default_keys[i].password),1);
+           #if defined(USE_WATCHDOG)
+              kick_watchdog();
+           #endif
+        }
 }
 
 
@@ -1043,16 +976,16 @@ uint8_t updateNextLogAddress(uint8_t type)
         uint8_t tmp2;
 	if(type == 0) // energy log
 	{
-          LastEnergyLogAddress += EnergyLogSize;//was 14                       
-            if(LastEnergyLogAddress > EnergyLogAddress_End)
-              {
-                  tmp2 = 1;
-                  uint8_t z = setEnergyOverlapFlag(&tmp2,(uint8_t *)0);
-                  
-                    if(z==0)
-                        return 0;
-                      LastEnergyLogAddress = EnergyLogAddress_Start;
-              }
+        LastEnergyLogAddress += EnergyLogSize;//was 14
+        if(LastEnergyLogAddress >=  EnergyLogAddress_End)
+          {
+              tmp2 = 1;
+              uint8_t z = setEnergyOverlapFlag(&tmp2,(uint8_t *)0);
+
+                if(z==0)
+                    return 0;
+                  LastEnergyLogAddress = EnergyLogAddress_Start;
+          }
             tmp = LastEnergyLogAddress;
            //setLastLogAddress(&tmp,&type); //for no battery back up
 	}
@@ -1070,21 +1003,35 @@ uint8_t updateNextLogAddress(uint8_t type)
                 tmp =  LastEventLogAddress;
                 //setLastLogAddress(&tmp,&type); //for no battery back up
 	}
-        else if(type == 2) //billing cutoff date energy log //test this 
+    else if(type == 2) //billing cutoff date energy log //test this
+    {
+      LastEnergyBillingCuttOffLogAddress += EnergyBillingCutoffDayLogSize;//4*8+4+5 +1
+      if(LastEnergyBillingCuttOffLogAddress >= EnergyBillingCuttOffLogAddress_end)
+      {
+             tmp2 = 1;
+             uint8_t z = setBillingCutOffLogOverlapFlag(&tmp2,(uint8_t *)0);
+     if(z==0)
+         return 0;
+        LastEnergyBillingCuttOffLogAddress = EnergyBillingCuttOffLogAddress_start;
+
+      }
+      tmp = LastEnergyBillingCuttOffLogAddress;
+      //setLastLogAddress(&tmp,&type);//for no battery back up
+    }
+    else if(type == 3)
+    {
+        last_daily_snapshot_log_address += DAILY_SNAPSHOT_LOG_SIZE;//was 14
+        if(last_daily_snapshot_log_address >=  DAILY_SNAPSHOT_LOG_ADDRESS_END)
         {
-          LastEnergyBillingCuttOffLogAddress += EnergyBillingCutoffDayLogSize;//4*8+4+5 +1
-          if(LastEnergyBillingCuttOffLogAddress >= EnergyBillingCuttOffLogAddress_end) 
-          {
-                 tmp2 = 1;
-                 uint8_t z = setBillingCutOffLogOverlapFlag(&tmp2,(uint8_t *)0);
-		 if(z==0)
-		     return 0;
-	        LastEnergyBillingCuttOffLogAddress = EnergyBillingCuttOffLogAddress_start;
-              
-          }
-          tmp = LastEnergyBillingCuttOffLogAddress;
-          //setLastLogAddress(&tmp,&type);//for no battery back up
-        }	
+             tmp2 = 1;
+             uint8_t z = setEnergyOverlapFlag(&tmp2,(uint8_t *)0);
+
+               if(z==0)
+                   return 0;
+               last_daily_snapshot_log_address = DAILY_SNAPSHOT_LOG_ADDRESS_START;
+        }
+        tmp = last_daily_snapshot_log_address;
+    }
         setLastLogAddress(&tmp,&type);//for no battery back up
         return 1;        
 }
@@ -1178,6 +1125,82 @@ int8_t logEnergy(void *l2,void *dummy)
 //          return 0;
         
         updateNextLogAddress(0);//0 for energy log
+        return 1;
+}
+
+int8_t log_daily_energy_snapshot(void *l2,void *dummy)
+{
+        EnergyLog *l = (EnergyLog *)l2;
+        uint8_t x=0;//,i=0;
+        if(last_daily_snapshot_log_address<DAILY_SNAPSHOT_LOG_ADDRESS_START || last_daily_snapshot_log_address>DAILY_SNAPSHOT_LOG_ADDRESS_END)
+            last_daily_snapshot_log_address = DAILY_SNAPSHOT_LOG_ADDRESS_START;
+
+        x=EEPROM2_WriteLong(l->ActiveEnergy,last_daily_snapshot_log_address,0);
+        x= EEPROM2_WriteNextLong(l->Reactive_Power_R1, 0);
+        x= EEPROM2_WriteNextLong(l->Active_Power, 0);
+        x= EEPROM2_WriteNextLong(l->Reactive_Power_R4, 0);
+        x= EEPROM2_WriteNextLong(l->timeStump.TimestampLow,0);
+        x = EEPROM2_WriteNextInt8(l->timeStump.TimestampUp,0);
+        x= EEPROM2_WriteNextInt8(l->CRC,1);
+        if(x==0)
+          return 0;
+        updateNextLogAddress(3);//3 for energy daily snaphot log
+        return 1;
+}
+uint8_t get_daily_snapshot_energy(EnergyLog *l,unsigned long StartAddress)
+{
+    uint8_t x=0,i=0;
+
+    for(;i<MAX_LOG_RETRAY;i++)
+    {
+        x=EEPROM2_ReadLong(StartAddress,0,&(l->ActiveEnergy));
+        if(x==0)
+        {
+            continue;
+        }
+
+        x= EEPROM2_ReadNextLong(0,&(l->Reactive_Power_R1));
+        if(x==0)
+        {
+            continue;
+        }
+
+        x= EEPROM2_ReadNextLong(0,&(l->Active_Power));
+        if(x==0)
+        {
+            continue;
+        }
+
+        x= EEPROM2_ReadNextLong(0,&(l->Reactive_Power_R4));
+        if(x==0)
+        {
+            continue;
+        }
+        x= EEPROM2_ReadNextLong(0,&(l->timeStump.TimestampLow));
+        if(x==0)
+        {
+            continue;
+        }
+
+        x = EEPROM2_ReadNextInt8(0,&(l->timeStump.TimestampUp));
+        if(x==0)
+        {
+            continue;
+        }
+
+        x= EEPROM2_ReadNextInt8(1,&(l->CRC));
+        if(x==0)
+        {
+            continue;
+        }
+
+        else
+          break;
+    }
+
+        if(i>=MAX_LOG_RETRAY)
+          return 0;
+
         return 1;
 }
 uint8_t getEnergy(EnergyLog *l,unsigned long StartAddress)
@@ -1340,7 +1363,8 @@ int8_t getEnergy2(void *lt,uint32_t EntryNumber)
           {
              StartAddress = val + EnergyLogAddress_Start - EventLog_End;            
           }
-          else{
+          else
+          {
              StartAddress = (LastEnergyLogAddress + val); 
           }
        }
@@ -1356,6 +1380,39 @@ int8_t getEnergy2(void *lt,uint32_t EntryNumber)
         return 1;
 }
 
+int8_t get_daily_snapshot_energy_profile(void *lt,uint32_t EntryNumber)
+{
+       int32_t en = --EntryNumber;
+       if(en < 0)
+       {
+           EntryNumber = 0;
+       }
+
+       EnergyLog *l = (EnergyLog*)lt;
+
+       uint32_t StartAddress;
+       if(status.energy_log_overlaped == 1)//handle cirular buffer
+       {
+          uint32_t val = (DAILY_SNAPSHOT_LOG_SIZE*EntryNumber);
+          if(DAILY_SNAPSHOT_LOG_ADDRESS_START + val > DAILY_SNAPSHOT_LOG_ADDRESS_END)
+          {
+              StartAddress = last_daily_snapshot_log_address + val - DAILY_SNAPSHOT_LOG_ADDRESS_END;
+             //StartAddress = val + DAILY_SNAPSHOT_LOG_ADDRESS_START - EventLog_End;
+          }
+          else{
+             StartAddress = (last_daily_snapshot_log_address + val);
+          }
+       }
+       else
+          StartAddress = DAILY_SNAPSHOT_LOG_ADDRESS_START + (DAILY_SNAPSHOT_LOG_SIZE * EntryNumber);
+
+
+       if( get_daily_snapshot_energy(l,StartAddress) == 0 )
+         return 0;
+
+
+        return 1;
+}
 int8_t getEvent2(void *lt,uint32_t EntryNumber)
 {
   
@@ -2207,7 +2264,7 @@ int8_t setLastLogAddress(void *data2,void *type2)
         uint32_t data = *tmp;
         uint8_t *ptr = (uint8_t *)type2;
         uint8_t type = *ptr;
-	uint8_t z;//,i=0;
+        uint8_t z;//,i=0;
         uint32_t address;
 //       
 //        for(;i<MAX_LOG_RETRAY;i++)
@@ -2218,10 +2275,11 @@ int8_t setLastLogAddress(void *data2,void *type2)
 	   else if(type == 1)
              address = LastEventLogAddressStart;
 //		z = EEPROM2_WriteLong(data,(uint32_t)LastEventLogAddressStart,1);
-          else 
+       else if(type ==2)
              address = LastBillingCuttoffLogAddressStart;
-          
-           z= EEPROM2_WriteLong(data,address,1);
+       else if(type == 3)
+           address = LAST_DAILY_SNAPSHOT_LOG_ADDRESS_START;
+       z= EEPROM2_WriteLong(data,address,1);
 	   if( z == 0 )
 	       return 0;
 
@@ -2266,11 +2324,18 @@ int8_t setEnergyOverlapFlag(void *val2,void *dummy)
           if(val == 1)
           {
             status.energy_log_overlaped = 1;
+            z= EEPROM2_WriteInt8(val,EnergyOverlapFlagAddressStart,1);
+            if(z==0)
+            return 0;
           }
-	  z= EEPROM2_WriteInt8(val,EnergyOverlapFlagAddressStart,1);
-	  if(z==0)
-		return 0;
-        
+          else if(val == 3)
+          {
+              status.daily_snapshot_energy_overlaped = 1;
+              z= EEPROM2_WriteInt8(val,DAILY_SNAPSHOT_LOG_OVER_LAP_ADDRESS_START,1);
+             if(z==0)
+              return 0;
+          }
+
 	return 1;
 }
 
@@ -2293,6 +2358,27 @@ uint8_t getEnergyOverlapFlag(uint8_t *flag)
 
 }
 
+uint8_t get_daily_snapshot_overlap_flag(uint8_t *flag)
+{
+    uint8_t z,i=0;
+    for(;i<MAX_LOG_RETRAY;i++)
+    {
+        z= EEPROM2_ReadInt8(DAILY_SNAPSHOT_LOG_OVER_LAP_ADDRESS_START,1,flag);
+        if(z==0)
+        {
+            continue;
+        }
+        else
+        {
+            break;
+        }
+    }
+    if(i>=MAX_LOG_RETRAY)
+    {
+        return 0;
+    }
+    return 1;
+}
 //uint8_t setEventOverlapFlag(uint8_t val)
 int8_t setEventOverlapFlag(void *val2,void * dummy)
 {

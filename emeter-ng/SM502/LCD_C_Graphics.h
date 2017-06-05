@@ -9,7 +9,7 @@
 #define LCD_C_GRAPHICS_H_
 
 #include <stdint.h>
-#include "Errors.h"
+#include "errors.h"
 
    
    

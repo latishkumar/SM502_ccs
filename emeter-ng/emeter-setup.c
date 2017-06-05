@@ -736,7 +736,6 @@ void disable_analog_front_end(void)//static __inline__
 
 #if defined(__MSP430__)
 extern rtc_t rtc;
-extern uint8_t OperatingMode;
 #include "hal_UCS.h"
 #include "hal_pmm.h"
 void system_setup(void)

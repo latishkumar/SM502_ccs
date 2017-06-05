@@ -63,7 +63,6 @@
 //--------------------------------------------------------------------------
 #include <signal.h>
 #include <stdint.h>
-#include "emeter-toolkit-custom.h"
 #include "emeter-toolkit.h"
 
 #if defined(__MSP430__)

@@ -3,14 +3,14 @@
 #include "Status.h"
 #include "Relay.h"
 #include "Tamper.h"
-#include "BatteryMonitor.h"
+#include "battery_monitor.h"
 #include "LCD_C.h"
 #include "LCD_C_Graphics.h"
 #include <stdio.h>
 #include "self_diagnosis.h"
 
 //under voltage and current ranges 
-extern uint8_t MIN_IRMS ;
+//extern uint8_t MIN_IRMS ;
 extern uint8_t MIN_VRMS ;
 extern uint8_t MIN_Frequency ;
 
@@ -21,8 +21,8 @@ extern uint8_t Nominal_Frequency ;//HZ
 
 extern uint16_t ActivePowerTripDuration    ; //in seconds 
 extern uint16_t OverCurrentTripDuration    ;
-extern uint16_t OverVoltageTripDuration    ;
-extern uint16_t UnderVoltageTripDuration   ;
+extern uint16_t over_voltage_trip_duration    ;
+extern uint16_t under_voltage_trip_duration   ;
 extern uint16_t UnderFrequencyTripDuration ;
 extern uint16_t OverFrequencyTripDuration  ;
 extern uint8_t CoverRemovalTripDuration    ;
@@ -48,7 +48,7 @@ extern volatile uint8_t reset_relay_required ;
 uint8_t EnergyLoggingTime = 15; //Minute 
 
 
-extern uint16_t TimeThresholdLongPowerFaile;
+extern uint16_t time_threshold_for_long_power_failure;
 extern uint16_t NeutralTamperTripDuration;
 extern uint32_t Current_Thrushold;
 
@@ -59,7 +59,7 @@ uint8_t low_bat_backup_time = 5;
 
 
 extern void perform_low_battry_backup(); //was __monitor func
-extern uint16_t NumberOfLongPowerFails; 
+extern uint16_t number_of_long_power_failures;
 extern rtc_t activePassiveCalenderTime;
 
 uint8_t minuteCounts = 0;
@@ -307,7 +307,7 @@ void per_second_activity()
    if(status.OverVoltageStatus == 1)
    {
      OverVoltageTimer++;
-     if(OverVoltageTimer >= OverVoltageTripDuration)
+     if(OverVoltageTimer >= over_voltage_trip_duration)
       {
          status.OverVoltageTimedOutStatus = 1;
            //disconnect meter 
@@ -344,7 +344,7 @@ void per_second_activity()
    if(status.UnderVoltageStatus == 1)
    {
      UnderVoltageTimer++;
-     if(UnderVoltageTimer >= UnderVoltageTripDuration)
+     if(UnderVoltageTimer >= under_voltage_trip_duration)
      {
        status.UnderVoltageTimedOutStatus = 1;
 
@@ -383,7 +383,7 @@ void per_second_activity()
    if(status.LongPowerFailStatus == 1)
    {
      LongPowerFailTimer++;
-     if(LongPowerFailTimer >= TimeThresholdLongPowerFaile)
+     if(LongPowerFailTimer >= time_threshold_for_long_power_failure)
      {
        status.LongPowerFaileTimedOutStatus = 1;
        if(status.LongPowerFailLoggedStatus != 1)
@@ -401,8 +401,8 @@ void per_second_activity()
            write_to_eeprom(&l,(uint8_t *)0,logEvent);
            status.LongPowerFailLoggedStatus = 1;
             AddError(LongPowerFailer);
-           NumberOfLongPowerFails++;
-           //logNumberOfLongPowerFailes(&NumberOfLongPowerFails);TODO. impliment this 
+           number_of_long_power_failures++;
+           //logNumberOfLongPowerFailes(&number_of_long_power_failures);TODO. impliment this
            
            //TX event
             return;//?????

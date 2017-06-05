@@ -20,7 +20,7 @@
 #include "../emeter-structs.h"   
    
 #include "Status.h"
-#include "Errors.h"
+#include "errors.h"
 #include "EventTypes.h"
 #define EEPROM_INIT_MAX_RETRAY 5    
 #define Max_DeviceAddress 32
@@ -83,7 +83,7 @@ extern unsigned long FirmwareVersion; // 4 byte
 extern unsigned long LastEnergyLogAddress ;
 extern unsigned long LastEventLogAddress  ;
 extern unsigned long LastEnergyBillingCuttOffLogAddress;
-
+extern unsigned long last_daily_snapshot_log_address;
 
 #define EventLogSize 12
 /*
@@ -600,9 +600,19 @@ int read_from_eeprom(void *readArgument_1,void *readArgument_2,int8_t(*read)(voi
 
 
 #define EnergyLogAddress_Start 131072ul  //   262143 - 131072 / 22  = 5957 logs, log is every 15 minute, 5957*15 =  49.6 days
-#define EnergyLog_SIZE 5957ul //
-#define EnergyLogAddress_End 262126ul//((uint32_t)((EnergyLogAddress_Start)+((uint32_t)(EnergyLog_SIZE * EnergyLogSize))))
-
+#define EnergyLog_SIZE  5856//
+#define EnergyLog_SIZE2  128832  // 128832/22 = 5856, every 15 minute 5856/(4*24)= 61 days //5957ul //
+#define EnergyLogAddress_End EnergyLogAddress_Start + EnergyLog_SIZE2 //262126ul//((uint32_t)((EnergyLogAddress_Start)+((uint32_t)(EnergyLog_SIZE * EnergyLogSize))))
+//Daily snapshot
+#define DAILY_SNAPSHOT_LOG_SIZE 22
+#define LAST_DAILY_SNAPSHOT_LOG_ADDRESS_START   EnergyLogAddress_End
+#define LAST_DAILY_SNAPSHOT_LOG_ADDRESS_SIZE 4ul
+#define DAILY_SNAPSHOT_LOG_OVER_LAP_ADDRESS_START LAST_DAILY_SNAPSHOT_LOG_ADDRESS_START + LAST_DAILY_SNAPSHOT_LOG_ADDRESS_SIZE
+#define DAILY_SNAPSHOT_LOG_OVER_LAP_SIZE 1ul
+#define DAILY_SNAPSHOT_LOG_ADDRESS_START     DAILY_SNAPSHOT_LOG_OVER_LAP_ADDRESS_START + DAILY_SNAPSHOT_LOG_OVER_LAP_SIZE
+#define DAILY_SNAPSHOT_LOG_SIZE2 1342   // 1342/22 = 61 every single day , 61 days
+#define DAILY_SNAPSHOT_MAX_LOGS 61
+#define DAILY_SNAPSHOT_LOG_ADDRESS_END DAILY_SNAPSHOT_LOG_ADDRESS_START + DAILY_SNAPSHOT_LOG_SIZE2
 
 #ifdef EEPROM_REV_2
                                                   
@@ -708,9 +718,8 @@ int8_t logEnergy2(void *l,uint32_t StartAddress);
 * @param EntryNumber: log entry number from 0 -> size of log (45*15*64) 
 */
 int8_t getEnergy2(void *l,uint32_t EntryNumber);
-
-
-
+int8_t log_daily_energy_snapshot(void *l2,void *dummy);
+int8_t get_daily_snapshot_energy_profile(void *lt,uint32_t EntryNumber);
 
 /**
 * Id2: pointer to the array to copy the id to

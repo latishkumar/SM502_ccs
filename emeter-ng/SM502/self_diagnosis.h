@@ -17,6 +17,7 @@ typedef struct{
    
 }HardwareStatus;
 
+extern HardwareStatus hardware_status;
 
 /**
 * this method checks if EEPROM 1 and EEPROM 2 are fine 

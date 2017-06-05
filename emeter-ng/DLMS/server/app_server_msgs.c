@@ -63,35 +63,24 @@
 //
 //--------------------------------------------------------------------------
 //
-//#include <inttypes.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-
-#include "../core/cosem.h"
-#include "../core/obis.h"
-#include "../core/iec62056_46_link.h"
-#include "../core/msgs.h"
-#include "../core/packing.h"
-#if defined(LOG_PACKETS)
-#include "iec62056_xml.h"
-#endif
-
-#include "../config.h"
+#include "cosem.h"
+#include "obis.h"
+#include "iec62056_46_link.h"
+#include "msgs.h"
+#include "packing.h"
+#include "config.h"
 #include "server_msgs.h"
-
+#include "disconnect_control_and_log.h"
 #define FALSE 0
 #define TRUE (!FALSE)
 
-#ifdef EMETER_F47197
-#include "Emeter_Var.h"
-#endif
-
-
-#include "../../SM502/Logger.h"
-#include "../../SM502/utilities.h"
-#include "../../emeter-rtc.h"
+#include "Logger.h"
+#include "utilities.h"
+#include "emeter-rtc.h"
 
 
 
@@ -104,7 +93,7 @@ extern struct neutral_parms_s neutral_c;
 #endif
 
 extern rtc_t rtcc;
-extern uint8_t ActiveQuadrant;
+extern uint8_t active_quadrant;
 typedef struct{
   rtc_t preset_time;
   rtc_t validity_interval_start;
@@ -135,13 +124,13 @@ typedef struct{
   uint8_t day_id;
 }PublicHolidayEntry;
 
-typedef struct{        
+/*typedef struct{
     rtc_t execution_time;
     uint16_t control_script_type;        
 }DisconnectControlScript;
 
 //TODO .write this to EEPROM 
-DisconnectControlScript disconnect_script;
+DisconnectControlScript disconnect_script;*///n
 
 currentEntryToTX currentEnergyLogEntry = {init_EnergyLog,0};//{0, 0, 0, 0, { 0, 0}, 0}
 uint8_t currentEnergyLogEntryData[12];
@@ -329,11 +318,7 @@ extern int16_t sPF_B;
 extern int16_t sPF_Avg;
 extern int32_t P_Reactive;
 extern int32_t P_Active; 
-extern uint32_t P_Apparent; 
-extern uint32_t Cum_Power_Off_Count; 
-extern uint32_t Cum_Tamper_Count;
-extern uint32_t Cum_MD_Reset_Count;
-extern uint32_t Cum_Prog_Count;
+//extern uint32_t P_Apparent;
 extern uint32_t Temp_Uint32; 
 
 extern uint32_t image_size;
@@ -375,7 +360,7 @@ int64_t get_numeric_item(int item)
     case ITEM_TAG_KW_TOTAL:       //instantanious profile , done test                             
       val = phase->readings.active_power;        
     break;
-    case ITEM_TAG_KVAR_TOTAL:             val = P_Apparent;        break;
+    case ITEM_TAG_KVAR_TOTAL:   break;       //   val = P_Apparent; changed by E.E need to be implemented
     
     case ITEM_TAG_CUM_KWH_TOTAL:  //instantanious profile , done test 
       val = phase->active_energy_import;        
@@ -402,7 +387,7 @@ int64_t get_numeric_item(int item)
       break;
     
     case ITEM_TAG_ACTIVE_POWER_IMPORT:
-        if(ActiveQuadrant ==1||ActiveQuadrant==4)
+        if(active_quadrant ==1||active_quadrant==4)
         {
           val = phase->readings.active_power;
         }
@@ -410,7 +395,7 @@ int64_t get_numeric_item(int item)
           val = 0;
       break;
     case ITEM_TAG_ACTIVE_POWER_EXPORT:
-        if(ActiveQuadrant ==2||ActiveQuadrant==3)
+        if(active_quadrant ==2||active_quadrant==3)
         {
           val = labs(phase->readings.active_power);
         }
@@ -418,7 +403,7 @@ int64_t get_numeric_item(int item)
           val = 0;
       break;
     case ITEM_TAG_REACTIVE_POWER_IMPORT:
-        if(ActiveQuadrant ==1||ActiveQuadrant==2)
+        if(active_quadrant ==1||active_quadrant==2)
         {
           val = (phase->readings.reactive_power);
         }
@@ -426,7 +411,7 @@ int64_t get_numeric_item(int item)
           val = 0;
       break;
     case ITEM_TAG_REACTIVE_POWER_EXPORT:
-        if(ActiveQuadrant ==3||ActiveQuadrant==4)
+        if(active_quadrant ==3||active_quadrant==4)
         {
           val = labs(phase->readings.reactive_power);
         }
@@ -437,11 +422,11 @@ int64_t get_numeric_item(int item)
     case ITEM_TAG_CUM_KVAR_LAGH_TOTAL:    val = 42;        break;
     case ITEM_TAG_CUM_KVAR_LEADH_TOTAL:   val = 42;        break;
     case ITEM_TAG_CUM_KVAH_TOTAL:         val = 42;        break;
-    case ITEM_TAG_NUM_POWER_OFFS:         val = Cum_Power_Off_Count;        break;
+    case ITEM_TAG_NUM_POWER_OFFS:         val = 0;        break;
     case ITEM_TAG_CUM_POWER_OFF_DURATION: val = 42;        break;
-    case ITEM_TAG_CUM_TAMPER_COUNT:       val = Cum_Tamper_Count;        break;
-    case ITEM_TAG_CUM_MD_RESET_COUNT:     val = Cum_MD_Reset_Count;        break;
-    case ITEM_TAG_CUM_PROGRAMMING_COUNT:  val = Cum_Prog_Count ;        break;
+    case ITEM_TAG_CUM_TAMPER_COUNT:       val = 0;        break;
+    case ITEM_TAG_CUM_MD_RESET_COUNT:     val = 0;        break;
+    case ITEM_TAG_CUM_PROGRAMMING_COUNT:  val = 0;        break;
     case ITEM_TAG_KW_MAX_DEMAND:          val = 42;        break;
     case ITEM_TAG_KVA_MAX_DEMAND:         val = 42;        break;
         
@@ -1159,16 +1144,16 @@ void remove_object(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *r
 }
 /*- End of function --------------------------------------------------------*/
 
-void billing_script_execute(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
+/*void billing_script_execute(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
-}
+}*///n
 /*- End of function --------------------------------------------------------*/
 
 void tariff_script_execute(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
 }
 /*- End of function --------------------------------------------------------*/
-void GlobalReset_script_execute(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
+/*void GlobalReset_script_execute(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
     if(*data == 1) // parameter reset this is the script-ID in the coresponding script table 
     {
@@ -1180,8 +1165,8 @@ void GlobalReset_script_execute(uint8_t *data,uint16_t data_len,uint8_t *respons
     {
       //TODO. reset the Meter logged data's event,load profile and billing profile.
     }
-}
-void Disconnect_script_execute(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
+}*///n
+/*void Disconnect_script_execute(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
   //test this method and try to use the data_len argument 
     uint16_t methodNumber = *data;
@@ -1195,24 +1180,24 @@ void Disconnect_script_execute(uint8_t *data,uint16_t data_len,uint8_t *response
      {
         status.ConnectCommandRecived = 1;
      }
-}
+}*///n
 
-void insert_special_day(uint8_t *data, uint16_t data_len,uint8_t *response,uint16_t *response_len)
+/*void insert_special_day(uint8_t *data, uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
 }
 void delete_special_day(uint8_t *data, uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
-}
-void remote_reconnect(uint8_t *data, uint16_t data_len,uint8_t *response,uint16_t *response_len)
+}*///n
+/*void remote_reconnect(uint8_t *data, uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
     status.ConnectCommandRecived = 1;
     status.DisconnectCommandRecived = 0;
-}
-void remote_disconnect(uint8_t *data, uint16_t data_len,uint8_t *response,uint16_t *response_len)
+}*///n
+/*void remote_disconnect(uint8_t *data, uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
    status.DisconnectCommandRecived = 1;
    status.ConnectCommandRecived = 0;
-}
+}*///n
 
 void pre_remote_disconnect(uint8_t *data, uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
@@ -1221,9 +1206,9 @@ void pre_remote_reconnect(uint8_t *data, uint16_t data_len,uint8_t *response,uin
 {
 }
 
-void activate_passive_calendar(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
+/*void activate_passive_calendar(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
-}
+}*///n
 /*- End of function --------------------------------------------------------*/
 
 void Obj_Instant_Profile_reset(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
@@ -1246,7 +1231,7 @@ void Obj_Instant_Scaler_Profile_capture(uint8_t *data,uint16_t data_len,uint8_t 
 }
 /*- End of function --------------------------------------------------------*/
 
-void Obj_Load_Profile_reset(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
+/*void Obj_Load_Profile_reset(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
       uint32_t tmp32 = EnergyLogAddress_Start;
       uint8_t temp8=0;
@@ -1254,25 +1239,25 @@ void Obj_Load_Profile_reset(uint8_t *data,uint16_t data_len,uint8_t *response,ui
       write_to_eeprom(&tmp32,&temp8,setLastLogAddress);      
       write_to_eeprom(&temp8,(uint8_t *)0,setEnergyOverlapFlag); 
   
-}
+}*///n
 /*- End of function --------------------------------------------------------*/
 
 void Obj_Load_Profile_capture(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
 }
-void Obj_Event_Log_reset(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
+/*void Obj_Event_Log_reset(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
       uint32_t tmp32 =EventLogAddress_Start;
       uint8_t temp8=1;
       LastEventLogAddress = EventLogAddress_Start;
       write_to_eeprom(&tmp32,&temp8,setLastLogAddress);      
       write_to_eeprom(&temp8,(uint8_t *)0,setEventOverlapFlag);   
-}
+}*///n
 /*- End of function --------------------------------------------------------*/
 
-void Obj_Event_Log_capture(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
+/*void Obj_Event_Log_capture(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
-}
+}*///n
 
 /*- End of function --------------------------------------------------------*/
 

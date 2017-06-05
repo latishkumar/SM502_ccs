@@ -7,7 +7,7 @@
 //#include "RTCC.h"
 #include "Logger.h" 
 #include <stdint.h>
-#include "Errors.h"
+#include "errors.h"
 
 #include "PLC/PLC.h"
 #include "Schaduler.h"
@@ -52,9 +52,7 @@ uint16_t init_tamper_time=5000;
  */
 void initTamper()
 {
-  
-        
-        COVER_IF = 0;//clear all pending interrupts as this might be noice 
+    COVER_IF = 0;   //clear all pending interrupts as this might be noice
   	/*
 	 * make all port tamper port directions as input
 	 */
@@ -62,14 +60,14 @@ void initTamper()
 	LC_TamperDIR &= ~LC_TamperBIT;
 	Magnetic_TamperDIR &= ~Magnetic_TamperBIT;
         
-        LC_IE |= LC_TamperBIT; //Rising edge is selected as trigger source 
-        UC_IE |= UC_TamperBIT;
-        LC_IES &= ~LC_TamperBIT;
-        UC_IES &= ~UC_TamperBIT;
+    LC_IE |= LC_TamperBIT; //Rising edge is selected as trigger source
+    UC_IE |= UC_TamperBIT;
+    LC_IES &= ~LC_TamperBIT;
+    UC_IES &= ~UC_TamperBIT;
         
-             validation_arg_t validation_arg;
-                    validation_arg.validate = 0;
-        read_from_eeprom(&status,(uint8_t *)0,getMeterStatus,&validation_arg);                         
+    validation_arg_t validation_arg;
+    validation_arg.validate = 0;
+    read_from_eeprom(&status,(uint8_t *)0,getMeterStatus,&validation_arg);
 }
 /**
  * Initializes the tamper module by 

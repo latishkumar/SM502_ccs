@@ -57,13 +57,13 @@ uint8_t Current_billing_Duration_Counter = 1;
 */
 void initTariff()
 {
-     validation_arg_t validation_arg;
-                    validation_arg.validate = 0;   
+    validation_arg_t validation_arg;
+    validation_arg.validate = 0;
     read_from_eeprom(&Current_balance,(uint8_t *)0,getCurrentBalance,&validation_arg);
         
     //load public holidays 
     uint8_t i=0;
-    for(;i<=MAX_HOLIDAYS;i++)
+    for(;i < MAX_HOLIDAYS;i++)
     {
       getPublicHoliday(i,&holidays[i]);
     }
@@ -77,6 +77,7 @@ void initTariff()
       getPowerBreaks(&power_brakes[i],&i );
     }     
 }
+
 /**
 * calclated the billing based on the day, tariff rate, and consumption according to the current EEU billing schema
 */

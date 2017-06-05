@@ -1,34 +1,28 @@
 
 #include "Data_Transfer.h"
 #include "PLC.h"
-#include "../Status.h"
-#include "../Logger.h"
-//#include "../../emeter-structs.h"
+#include "Status.h"
+#include "Logger.h"
 #include "System_Info.h"
-#include "../Tariff.h"
-#include "../self_diagnosis.h"
-#include "../Relay.h"
-#include "../Errors.h"
-#include "../Status.h"
-//#include "../graphics.h"
-#include "../UI.h"
-#include "../Tamper.h"
+#include "Tariff.h"
+#include "self_diagnosis.h"
+#include "Relay.h"
+#include "errors.h"
+#include "Status.h"
+#include "UI.h"
+#include "Tamper.h"
 #define MaxDataPayloadLength  120  //the protocol allows a max of 1500 byte of data
 
+#include "iec62056_46_link.h"
+#include "DLMS.h"
+#include "uart_comms.h"
 
-#ifdef DLMS
-#include "../../DLMS/core/iec62056_46_link.h"
-#include "../../DLMS/DLMS.h"
-#include "../../DLMS/uart_comms.h"
-
-
-
+extern async_hdlc_tx_t *txptr[MAX_USCI_PORTS];
 extern iec62056_46_link_t link[];
 extern async_hdlc_rx_t rx[];
-
 extern uint32_t next_octet_timeout[MAX_USCI_PORTS],next_inactivity_timeout[MAX_USCI_PORTS];
 
-#endif 
+
 
 #define DestinationLSAP   89
 #define SourceLSAP  90
@@ -62,10 +56,6 @@ extern uint32_t MAXActivePowerTripPoint ; //in w watt steps
 
 extern uint8_t Frame_Received[];
 
-#ifdef DLMS
-#include "../../DLMS/uart_comms.h"
-extern async_hdlc_tx_t *txptr[MAX_USCI_PORTS];
-#endif 
 
 void DataTransferRequest(uint8_t *dataPayload,int length)
 {

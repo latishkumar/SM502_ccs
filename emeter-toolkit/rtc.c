@@ -62,7 +62,6 @@
 //
 //--------------------------------------------------------------------------
 #include <stdint.h>
-#include "emeter-toolkit-custom.h"
 #include "emeter-toolkit.h"
 
 const int8_t month_lengths[13] =
@@ -80,7 +79,7 @@ void set_rtc_sumcheck(void)
 }
 
 //donayam changed this method, the RTC registers will allways be available, the variables in memory might be cleared on reset.
-//so instade of using the variables to count the day and time use the registers.
+//so instead of using the variables to count the day and time use the registers.
 //If ethiopian calander is required, this method can be modified to change the dates from Europian calander to Ethiopian calander 
 //int bump_rtc(void)
 //{

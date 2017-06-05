@@ -63,8 +63,7 @@
 //--------------------------------------------------------------------------
 #include <signal.h>
 #include <stdint.h>
-#include "emeter-toolkit-custom.h"
-//#include "emeter-toolkit.h"
+#include "io.h"
 
 #if defined(__MSP430__)
 void flash_secure(void)

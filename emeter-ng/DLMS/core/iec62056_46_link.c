@@ -63,19 +63,14 @@
 //
 //--------------------------------------------------------------------------
 //
-//#include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#if defined(LOG_PACKETS)
-#include <sys/time.h>
-#endif
-
 #include "cosem.h"
 #include "obis.h"
 #include "iec62056_46_link.h"
 #include "iec62056_46_user.h"
-#include "../uart_comms.h"
+#include "uart_comms.h"
 extern async_hdlc_tx_t tx[];
 
 #ifndef IEC_PORT

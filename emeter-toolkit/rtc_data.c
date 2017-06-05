@@ -62,7 +62,6 @@
 //
 //--------------------------------------------------------------------------
 #include <stdint.h>
-#include "emeter-toolkit-custom.h"
 #include "emeter-toolkit.h"
 /*For NOINIT variables - variables that are not zero-initialized at startup or reset. */
 #define __uninitialized__ __attribute__((noinit))

@@ -62,7 +62,6 @@
 //
 //--------------------------------------------------------------------------
 #include <stdint.h>
-#include "emeter-toolkit-custom.h"
 #include "emeter-toolkit.h"
 
 int32_t div48(register int16_t x[3], register int16_t y)

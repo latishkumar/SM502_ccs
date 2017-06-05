@@ -130,6 +130,7 @@ typedef struct
   volatile uint8_t energy_log_overlaped:1;
   volatile uint8_t event_log_overlaped:1;
   volatile uint8_t task_exec_finished:1;
+  volatile uint8_t daily_snapshot_energy_overlaped:1;
   //uint8_t Power_out;
 //  uint8_t rtc_init:1;
   
