@@ -16,6 +16,8 @@ extern uint32_t instantaneous_values_capture_period;
 
 extern uint8_t instantaneous_values_sort_method;
 
+extern uint32_t instant_l2_l3_v_c;
+
 extern const uint8_t instantaneous_values_capture_objects[];
 
 void capture_instantaneous_profile_data(void *data,int direction);

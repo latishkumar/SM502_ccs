@@ -170,7 +170,6 @@ void loadEnergyToRam(unsigned int entry_no)
                    msg_info.entries_remaining = 1;
               }
            }
-
            
           //formate the timestump and copy it to the buffer
           rtc_t time = getTime(&currentEnergyLogEntry.l.timeStump);
@@ -191,6 +190,34 @@ void loadEnergyToRam(unsigned int entry_no)
 //          memcpy(buf, currentEnergyLogEntryData, len);
 }
 
+void load_daily_energy_to_ram(unsigned int entry_no)
+{
+	get_daily_snapshot_energy_profile(&currentEnergyLogEntry.l,entry_no);
+    currentEnergyLogEntry.logEntryNo = entry_no;
+
+	if(access_selector == 1) //if this is selective access by range
+	{
+		rtc_t time_last = getTime(&currentEnergyLogEntry.l.timeStump);
+		if(time_last.isValid==0)
+		{
+			msg_info.entries_remaining = 1;
+			return;
+		}
+		int8_t com3 = compare_time(&required_last_entry_time,&time_last);
+		if(com3<0)//time_last comes after required_last_entry_time
+		{
+		   msg_info.entries_remaining = 1;
+		}
+	}
+
+	//formate the timestump and copy it to the buffer
+	rtc_t time = getTime(&currentEnergyLogEntry.l.timeStump);
+	uint8_t currentEnergyLogEntryData2[] = {
+	INJECT16(time.year), time.month, time.day, ((time.day - 1) > 0)?(time.day - 1):0,time.hour, time.minute,time.second, 0xFF, INJECT16(120), 0x00,
+	};
+
+	memcpy(currentEnergyLogEntryData,currentEnergyLogEntryData2,12);
+}
 void loadEventToRam(unsigned int entry_no)
 {
 //           uint32_t address = EventLogSize * (entry_no-1);
@@ -676,10 +703,6 @@ int64_t get_numeric_item(int item)
      
       break;
       
-      
-      
-      
-      
     //special days list
       case ITEM_TAG_SPECIAL_DAY_INDEX:
             entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
@@ -708,8 +731,55 @@ int64_t get_numeric_item(int item)
 
             val = disconnect_script.control_script_type;
             val |= disconnect_script.control_script_type>>8;
-
       break;
+/*
+ * Daily snapshot/Daily absolute enegry profile/Load profile with recording period 2
+ */
+      case ITEM_TAG_CUM_KWH_TOTAL_LP_2:
+
+    	  entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+          if(currentEnergyLogEntry.logEntryNo == entry_no)
+		  {
+
+		  }
+          else
+          {
+        	  load_daily_energy_to_ram(entry_no);
+          }
+          val = currentEnergyLogEntry.l.ActiveEnergy;
+          break;
+
+      case ITEM_TAG_REACTIVE_ENERGY_QI_LP_2:
+
+    	  entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+    	  if(currentEnergyLogEntry.logEntryNo == entry_no)
+    	  {
+
+    	  }
+    	  else
+    	  {
+    		  load_daily_energy_to_ram(entry_no);
+    	  }
+    	  val = currentEnergyLogEntry.l.Reactive_Power_R1;
+    	  break;
+
+      case ITEM_TAG_REACTIVE_ENERGY_QIV_LP_2:
+
+    	  entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+    	  if(currentEnergyLogEntry.logEntryNo == entry_no)
+    	  {
+
+    	  }
+    	  else
+    	  {
+    		  load_daily_energy_to_ram(entry_no);
+    	  }
+    	  val = currentEnergyLogEntry.l.Reactive_Power_R4;
+    	  break;
+/*******/
+      default:
+    	  val=0;
+    	  break;
     }
     return val;
 }
@@ -749,7 +819,7 @@ int get_string_item(uint8_t *buf, int len, int item)
     return len;
     case ITEM_TAG_CUM_LAST_MD_EVENT_DATETIME: memcpy(buf, zzz, len); return len;
 
-// Load Profile Data
+// Load Profile Data-period 1(hourly load profile
     case ITEM_TAG_DATETIME_LP: // done, test 
       /**/
       entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
@@ -763,10 +833,8 @@ int get_string_item(uint8_t *buf, int len, int item)
       }
           memcpy(buf, currentEnergyLogEntryData, len);//currentEnergyLogEntryData
       
-      
     return len;  
-    
-    
+
     case ITEM_TAG_DATETIME_SE: //
       entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
       if(currentEventLogEntry.logEntryNo == entry_no)
@@ -779,10 +847,7 @@ int get_string_item(uint8_t *buf, int len, int item)
       }
           memcpy(buf, currentEventLogEntryData, len);//currentEnergyLogEntryData
     return len;
-      
 
-    
-    
 // Billing Data
     case ITEM_TAG_BILLING_DATETIME_MAX_CURR:
       entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
@@ -795,7 +860,6 @@ int get_string_item(uint8_t *buf, int len, int item)
       //memcpy(buf,(Billing_Data+(entry_no-1)*sizeof(sBilling_Profile)),sizeof(sBilling_Profile));
       memcpy(buf,  Billing_Data[entry_no-1].MAX_DE_DATE, len);
       break;
- 
        
     case ITEM_TAG_BILLING_SCHEDULE_EXEC_TIME: memcpy(buf, xxx ,len); return len;
     case ITEM_TAG_BILLING_SCHEDULE_EXEC_DAY: memcpy(buf, xxx ,len); return len;
@@ -812,10 +876,22 @@ int get_string_item(uint8_t *buf, int len, int item)
         }
         
         memcpy(buf,currentHoliday_date,len);
-        
         return len;
       break;
-         
+
+// Daily snapshot profile(Load profile with period 2)
+    case ITEM_TAG_DATETIME_LP_2:
+    	 entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+		 if(currentEnergyLogEntry.logEntryNo == entry_no)
+		 {
+		  //memcpy(buf, currentEnergyLogEntryData, len);//currentEnergyLogEntryData
+		 }
+		 else
+		 {
+		   load_daily_energy_to_ram(entry_no);
+		 }
+		 memcpy(buf, currentEnergyLogEntryData, len);//currentEnergyLogEntryData
+		return len;
     default:   memset(buf, 0, len); return len;
     }
     return 0;

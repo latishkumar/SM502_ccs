@@ -28,14 +28,14 @@ const uint16_t daily_load_profile_column_szs[] = {16,18,23,28,33,38,43,48};//
 const uint8_t daily_load_profile_buffer_template[] =
 {
    STUFF_DATA | TAG_STRUCTURE, 8,
-        STUFF_DATA | TAG_OCTET_STRING, 12,ITEM_TAG_DATETIME_LP, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //Time stump
+        STUFF_DATA | TAG_OCTET_STRING, 12,ITEM_TAG_DATETIME_LP_2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //Time stump
                      TAG_UINT8, INJECT8(1),                                   //    AMR profile status
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_CUM_KWH_TOTAL_LP),         //    Active Energy A+     :Ai
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_CUM_KWH_TOTAL_LP_2),       //    Active Energy A+     :Ai
                      TAG_UINT32, INJECT32(0),                                 //    Active Energy A-     :Ae
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_REACTIVE_POWER_LP),        //    Reactive Energy QI   :R1
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_REACTIVE_ENERGY_QI_LP_2),  //    Reactive Energy QI   :R1
                      TAG_UINT32, INJECT32(0),                                 //    Reactive Energy QII  :R2
                      TAG_UINT32, INJECT32(0),                                 //    Reactive Energy QIII :R3
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_VR_LP),                    //    Reactive Energy QIV  :R4 //originally this was for voltage
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_REACTIVE_ENERGY_QIV_LP_2)  //    Reactive Energy QIV  :R4 //originally this was for voltage
 
 };
 
@@ -215,11 +215,9 @@ uint8_t find_num_total_daily_energy_log_entries(uint16_t *num_entries,uint16_t *
  */
 void capture_daily_load_profile_data(void *data, int direction)
 {
-    /* Load Template for Load Profile */
+    /* Load Template for Load Profile 2*/
    msg_info.template=daily_load_profile_buffer_template;
    msg_info.sz_template=sizeof(daily_load_profile_buffer_template);
-
-
 
    if(access_selector == 1) //range_descriptor specifically by date range
    {
@@ -248,8 +246,6 @@ void capture_daily_load_profile_data(void *data, int direction)
    {
       find_num_total_daily_energy_log_entries(&msg_info.num_entries,&msg_info.start_entry);
    }
-
-   //find_num_total_energy_log_entries(&msg_info.num_entries,&msg_info.start_entry);
    msg_info.column_szs=daily_load_profile_column_szs;
 }
 

@@ -11,7 +11,7 @@ uint32_t instantaneous_values_entries_in_use = 1;
 uint32_t instantaneous_values_entries = 1;          // 1:Profile entries is limited to 1
 uint32_t instantaneous_values_capture_period = 0;   // 0:Asynchronously
 uint8_t instantaneous_values_sort_method = 1;       // 1:unsorted (FIFO)
-
+uint32_t instant_l2_l3_v_c=0;							//instantaneous current and voltage for l2 and l3
 const uint16_t instantanious_profile_column_szs[] = {16,21,26,31,36,41,46,51,56,61,66,71,76};
 const uint8_t instantanious_profile_buffer_template[] =
 {

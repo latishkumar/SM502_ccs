@@ -761,8 +761,9 @@ void LoadConfigurations()
           //load last event log address
          temp_did = 2;
          read_from_eeprom(&LastEnergyBillingCuttOffLogAddress,&temp_did,getLastLogAddress,&noValidation);
-         //load last energy log address
-                                                                                        
+         //load last daily snapshot energy log address
+         temp_did = 3;
+         read_from_eeprom(&last_daily_snapshot_log_address,&temp_did,getLastLogAddress,&noValidation);
          //initialize rates
          int i,j;
          for(i=0,j=0;i<120;i++,j++)
@@ -2230,9 +2231,6 @@ int8_t getTamperCount(void *count2,void *TamperType2)
 	return TRUE;
 }
 
-
-
-
 int8_t getLastLogAddress(void *data2,void *type2)
 {
         uint32_t *data = (uint32_t *)data2;
@@ -2246,14 +2244,15 @@ int8_t getLastLogAddress(void *data2,void *type2)
           address = LastEnergyLogAddressStart;
 	else if(type ==1)
           address = LastEventLogAddressStart;
-        else if(type ==2)
+	else if(type ==2)
           address = LastBillingCuttoffLogAddressStart;
-        
-        z= EEPROM2_ReadLong(address,1,data);
+	else if(type == 3)
+		  address = LAST_DAILY_SNAPSHOT_LOG_ADDRESS_START;
+
+	z= EEPROM2_ReadLong(address,1,data);
 	if(z==0)
 		return 0;
 
-        
 	return 1;
 }
 
@@ -2279,6 +2278,7 @@ int8_t setLastLogAddress(void *data2,void *type2)
              address = LastBillingCuttoffLogAddressStart;
        else if(type == 3)
            address = LAST_DAILY_SNAPSHOT_LOG_ADDRESS_START;
+
        z= EEPROM2_WriteLong(data,address,1);
 	   if( z == 0 )
 	       return 0;
@@ -4186,41 +4186,37 @@ int8_t getMacAddress(void *macAddress,void *dumy){
 //uint8_t setMacAddress(const uint8_t *macAddress)
 int8_t setMacAddress(void *macAddress2,void *dummy)
 {
-        uint8_t *macAddress = (uint8_t *)macAddress2;
+	uint8_t *macAddress = (uint8_t *)macAddress2;
  	uint8_t z,i=0,r=0;
-        const uint8_t *did = macAddress;
-        
-        for(;i<MAX_LOG_RETRAY;i++)
-        {
-            z= EEPROM2_WriteInt8(*did,MACAddressStart,0);
-            if(z==0)
-                  continue;
-                did++;
-              
-            for(r=0;r<4;r++)
-            {        
-              z= EEPROM2_WriteNextInt8(*did,0);  
-              if(z==0)
-                      break;
-              did++;
-            }
-            if(r!=4)
-              continue;
-            z= EEPROM2_WriteNextInt8(*did,1);
-            if(z==0)
-                  continue;
-            else 
-              break;
-            
+	const uint8_t *did = macAddress;
 
-                    
-        }
-        
-        if(i>=MAX_LOG_RETRAY)
-          return 0;
+	for(;i<MAX_LOG_RETRAY;i++)
+	{
+		z= EEPROM2_WriteInt8(*did,MACAddressStart,0);
+		if(z==0)
+			  continue;
+			did++;
+
+		for(r=0;r<4;r++)
+		{
+		  z= EEPROM2_WriteNextInt8(*did,0);
+		  if(z==0)
+				  break;
+		  did++;
+		}
+		if(r!=4)
+		  continue;
+		z= EEPROM2_WriteNextInt8(*did,1);
+		if(z==0)
+			  continue;
+		else
+		  break;
+	}
+
+	if(i>=MAX_LOG_RETRAY)
+	  return 0;
         
 	return 1;
-  
 }
 
 

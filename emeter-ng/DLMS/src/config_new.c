@@ -2375,7 +2375,7 @@ const struct object_desc_s object_list[] =
                                      ,(const struct attribute_desc_s[]) {
 
                                              {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[INST_VALUES_START + 2].instance_id, NULL},
-                                             {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) NULL, NULL},
+                                             {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &instant_l2_l3_v_c, NULL},
                                              {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_V, NULL}
 
                                      }
@@ -2392,7 +2392,7 @@ const struct object_desc_s object_list[] =
                                      ,(const struct attribute_desc_s[]) {
 
                                              {1, ACCESS_PCR__MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[INST_VALUES_START + 3].instance_id, NULL},
-                                             {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) NULL, NULL},
+                                             {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &instant_l2_l3_v_c, NULL},
                                              {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_I, NULL}
 
                                      }
@@ -2409,7 +2409,7 @@ const struct object_desc_s object_list[] =
                                      ,(const struct attribute_desc_s[]) {
 
                                              {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[INST_VALUES_START + 4].instance_id, NULL},
-                                             {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) NULL , NULL},
+                                             {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &instant_l2_l3_v_c, NULL},
                                              {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_V, NULL}
 
                                      }
@@ -2426,7 +2426,7 @@ const struct object_desc_s object_list[] =
                                      ,(const struct attribute_desc_s[]) {
 
                                              {1, ACCESS_PCR__MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[INST_VALUES_START + 5].instance_id, NULL},
-                                             {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) NULL, NULL},
+                                             {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &instant_l2_l3_v_c, NULL},
                                              {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_I, NULL}
 
                                      }
@@ -2814,7 +2814,7 @@ const struct object_desc_s object_list[] =
                                      ,(const struct attribute_desc_s[]) {
 
                                               {1, ACCESS_PCR__MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[PRIME_PLC_START + 1].instance_id, NULL},
-                                              {2, ACCESS_PC___MRR__USRW, TAG_OCTET_STRING,    (void *) &mac_address, get_set_mac_address}
+                                              {2, ACCESS_PC___MRRW_USRW, TAG_OCTET_STRING,    (void *) &mac_address, get_set_mac_address}
 
                                      }
                                      ,0
