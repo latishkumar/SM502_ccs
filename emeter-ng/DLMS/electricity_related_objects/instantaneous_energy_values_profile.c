@@ -51,7 +51,7 @@ const uint8_t instantaneous_energy_capture_objects[] =
                 TAG_INT8, 2,
                 TAG_UINT16, INJECT16(0),
             TAG_STRUCTURE, 4,
-                TAG_UINT16, INJECT16(CLASS_ID_DATA),
+                TAG_UINT16, INJECT16(CLASS_ID_REGISTER),
                 TAG_OCTET_STRING, 6, 1, 0, 1, 8, 0, 255,    // Instantaneous Energy A+
                 TAG_INT8, 2,
                 TAG_UINT16, INJECT16(0),

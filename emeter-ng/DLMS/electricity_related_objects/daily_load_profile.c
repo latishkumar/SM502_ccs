@@ -59,7 +59,7 @@ uint8_t find_num_daily_energy_log_entries_between(const sSA_Range *startRange,co
      if(last_daily_snapshot_log_address > DAILY_SNAPSHOT_LOG_ADDRESS_START)//if we have entries
      {
 
-         if(status.energy_log_overlaped == 1) // if the cirular buffer is full
+         if(status.energy_log_overlapped == 1) // if the cirular buffer is full
          {
            MAX_Entries = DAILY_SNAPSHOT_MAX_LOGS;
          }
@@ -187,7 +187,7 @@ uint8_t find_num_total_daily_energy_log_entries(uint16_t *num_entries,uint16_t *
    *num_entries = 0;
    int32_t x=0;
 
-   if(status.event_log_overlaped == 1)
+   if(status.daily_snapshot_energy_overlapped == 1)
    {
      *num_entries = DAILY_SNAPSHOT_MAX_LOGS; // the buffer is full, so return all Logs
    }
@@ -328,13 +328,24 @@ void obj_daily_load_profile_reset(uint8_t *data,uint16_t data_len,uint8_t *respo
       write_to_eeprom(&temp8,(uint8_t *)0,setEnergyOverlapFlag);
 
 }
-
+void capture_daily_snapshot()
+{
+	EnergyLog daily_snapshot;
+	daily_snapshot.active_energy =chan1.active_energy_import;// chan1.consumed_active_energy;
+	daily_snapshot.reactive_energy_QI = chan1.consumed_reactive_energy_QI;//chan1.readings.reactive_power;
+	daily_snapshot.active_power = chan1.readings.active_power;
+	daily_snapshot.reactive_energy_QIV = chan1.consumed_reactive_energy_QIV;//chan1.readings.V_rms;
+	daily_snapshot.timeStump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
+	daily_snapshot.CRC = daily_snapshot.active_energy + daily_snapshot.reactive_energy_QI + daily_snapshot.timeStump.TimestampLow+ daily_snapshot.timeStump.TimestampUp;
+	write_to_eeprom(&daily_snapshot,(uint8_t *)0,log_daily_energy_snapshot);
+}
 /*
  * Hourly Load Profile
  * Capture method
  */
 void obj_daily_load_profile_capture(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
+	capture_daily_snapshot();
 }
 
 

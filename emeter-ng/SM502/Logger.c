@@ -36,9 +36,13 @@ uint8_t MAX_LOG_RETRAY = 5;
 unsigned long LastEnergyLogAddress = EnergyLogAddress_Start;
 unsigned long LastEventLogAddress  = EventLogAddress_Start;
 unsigned long LastEnergyBillingCuttOffLogAddress = EnergyBillingCuttOffLogAddress_start;
-unsigned long last_daily_snapshot_log_address = LAST_DAILY_SNAPSHOT_LOG_ADDRESS_START;
-
-
+unsigned long last_daily_snapshot_log_address = DAILY_SNAPSHOT_LOG_ADDRESS_START;
+unsigned long last_fraud_event_log_address  = FRAUD_EVENT_LOG_ADDRESS_START;
+unsigned long last_power_qual_event_log_address  = POWER_QUAL_LOG_ADDRESS_START;
+unsigned long last_common_event_log_address  = COMMON_LOG_ADDRESS_START;
+unsigned long last_firmware_event_log_address  = FIRMWARE_LOG_ADDRESS_START;
+unsigned long last_synchronization_event_log_address  = SYNCHRONIZATION_LOG_ADDRESS_START;
+unsigned long last_disconnect_event_log_address  = DISCONNECT_LOG_ADDRESS_START;
 
 Tamper_Count TamperCount;
 
@@ -268,6 +272,7 @@ void InitLogg()
           status.LowerCoverRemovedTamperStatus = 0;
           status.MangneticTamperStatus = 0;
 
+
           setBlob(0,0);
           setBlob(0,1);
           setBlob(0,2);
@@ -284,7 +289,8 @@ void InitLogg()
          #endif                      
           write_to_eeprom(&device_identifier,(uint8_t *)0,setLogicDeviceName);
 
-          write_to_eeprom(&EUI,(uint8_t *)0,setMacAddress);
+          //write_to_eeprom(&EUI,(uint8_t *)0,setMacAddress);
+          write_to_eeprom(&mac_address[1],(uint8_t *)0,setMacAddress);
 
           write_to_eeprom(&OperatingMode,(uint8_t *)0,setOperatingMode);
 
@@ -390,23 +396,56 @@ void InitLogg()
           LastEnergyLogAddress = EnergyLogAddress_Start;
           write_to_eeprom(&tmp32,&temp8,setLastLogAddress);
 
-          temp8 = 3;
+          temp8 = 1;
           tmp32 = DAILY_SNAPSHOT_LOG_ADDRESS_START;
           last_daily_snapshot_log_address = DAILY_SNAPSHOT_LOG_ADDRESS_START;
           write_to_eeprom(&tmp32,&temp8,setLastLogAddress);
 
-          temp8 = 1;
-          tmp32 = EventLogAddress_Start;
-          LastEventLogAddress = tmp32;
-          write_to_eeprom(&tmp32,&temp8,setLastLogAddress);
-
-         #if defined(USE_WATCHDOG)
-            kick_watchdog();
-         #endif 
           temp8 = 2;
           tmp32 = EnergyBillingCuttOffLogAddress_start;
           LastEnergyBillingCuttOffLogAddress = tmp32;
           write_to_eeprom(&tmp32,&temp8,setLastLogAddress);
+
+          temp8 = 3;
+          tmp32 = EventLogAddress_Start;
+          LastEventLogAddress = tmp32;
+          write_to_eeprom(&tmp32,&temp8,setLastLogAddress);
+
+          temp8 = 4;
+		  tmp32 = FRAUD_EVENT_LOG_ADDRESS_START;
+		  last_fraud_event_log_address = tmp32;
+		  write_to_eeprom(&tmp32,&temp8,setLastLogAddress);
+
+		  temp8 = 5;
+		  tmp32 = POWER_QUAL_LOG_ADDRESS_START;
+		  last_power_qual_event_log_address = tmp32;
+		  write_to_eeprom(&tmp32,&temp8,setLastLogAddress);
+
+		  temp8 = 6;
+		  tmp32 = COMMON_LOG_ADDRESS_START;
+		  last_common_event_log_address = tmp32;
+		  write_to_eeprom(&tmp32,&temp8,setLastLogAddress);
+
+		  temp8 = 7;
+		  tmp32 = FIRMWARE_LOG_ADDRESS_START;
+		  last_firmware_event_log_address = tmp32;
+		  write_to_eeprom(&tmp32,&temp8,setLastLogAddress);
+
+		  temp8 = 8;
+		  tmp32 = SYNCHRONIZATION_LOG_ADDRESS_START;
+		  last_synchronization_event_log_address = tmp32;
+		  write_to_eeprom(&tmp32,&temp8,setLastLogAddress);
+
+		  temp8 = 9;
+		  tmp32 = DISCONNECT_LOG_ADDRESS_START;
+		  last_disconnect_event_log_address = tmp32;
+		  write_to_eeprom(&tmp32,&temp8,setLastLogAddress);
+
+
+         #if defined(USE_WATCHDOG)
+            kick_watchdog();
+         #endif 
+
 
           write_to_eeprom(&FirmwareVersion,(uint8_t *)0,setFirmwareVersion);
                         
@@ -453,14 +492,20 @@ void InitLogg()
                         
           //clear event and energy log overlap flag
           temp8=0;
-          write_to_eeprom(&temp8,(uint8_t *)0,setEventOverlapFlag);
+          write_to_eeprom(&temp8,(uint8_t *)3,setEventOverlapFlag);
+          write_to_eeprom(&temp8,(uint8_t *)4,setEventOverlapFlag);
+          write_to_eeprom(&temp8,(uint8_t *)5,setEventOverlapFlag);
+          write_to_eeprom(&temp8,(uint8_t *)6,setEventOverlapFlag);
+          write_to_eeprom(&temp8,(uint8_t *)7,setEventOverlapFlag);
+          write_to_eeprom(&temp8,(uint8_t *)8,setEventOverlapFlag);
+          write_to_eeprom(&temp8,(uint8_t *)9,setEventOverlapFlag);
 
           write_to_eeprom(&temp8,(uint8_t *)0,setEnergyOverlapFlag);
 
           write_to_eeprom(&temp8,(uint8_t *)0,setBillingCutOffLogOverlapFlag);
 
-          temp8=3;
-          write_to_eeprom(&temp8,(uint8_t *)0,setEnergyOverlapFlag);
+          temp8=0;
+          write_to_eeprom(&temp8,(uint8_t *)1,setEnergyOverlapFlag);
 
                         
          #if defined(USE_WATCHDOG)
@@ -559,19 +604,15 @@ void InitLogg()
             kick_watchdog();
          #endif                             
 
-            
-            
             reFormatMemoryFormatIndicator(MemoryFormattedAddressStart);
             reFormatMemoryFormatIndicator(MemoryFormattedAddressBackUpStart);
 
-            EventLog evl;
-           //evl.StartAddress = LastEventLogAddress+1;
-            evl.EventCode = EEPROM_Formatted;
-            evl.timeStump = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
-            evl.Checksum  =(getCheckSum(&(evl.timeStump.TimestampLow),4) + evl.timeStump.TimestampUp + evl.EventCode)&0xff;
-            evl.value = 0;
-//                        logEvent(&evl);
-            write_to_eeprom(&evl,(uint8_t *)0,logEvent);
+            EventLog l;
+            l.EventCode = EEPROM_Formatted;
+            l.timeStump = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
+            l.Checksum  =(getCheckSum(&(l.timeStump.TimestampLow),4) + l.timeStump.TimestampUp + l.EventCode)&0xff;
+            l.value = 0;
+            write_to_eeprom(&l,(uint8_t *)3,log_events);
                         
          #if defined(USE_WATCHDOG)
             kick_watchdog();
@@ -587,7 +628,6 @@ void InitLogg()
 
 void LoadConfigurations()
 {
-
         EEPROM_InitError = 0;
         validation_arg_t validation_arg;
         validation_arg.validate = 1;
@@ -596,11 +636,32 @@ void LoadConfigurations()
         uint8_t temp_did=0;
 
         getEnergyOverlapFlag(&temp_did);
-        status.energy_log_overlaped = temp_did;
+        status.energy_log_overlapped = temp_did;
         
         get_daily_snapshot_overlap_flag(&temp_did);
-        status.daily_snapshot_energy_overlaped = temp_did;
+        status.daily_snapshot_energy_overlapped = temp_did;
+
+        get_event_overlap_flag(&temp_did, (uint8_t *)3); // standard event log
+        status.standard_event_log_overlapped = temp_did;
+
+        get_event_overlap_flag(&temp_did, (uint8_t *)4); // fraud event log
+		status.fraud_event_log_overlapped = temp_did;
+
+		get_event_overlap_flag(&temp_did, (uint8_t *)5); // power quality event log
+		status.power_qual_event_log_overlapped = temp_did;
+
+		get_event_overlap_flag(&temp_did, (uint8_t *)6); // common  event log
+		status.common_event_log_overlapped = temp_did;
         
+		get_event_overlap_flag(&temp_did, (uint8_t *)7); // firmware event log
+		status.firmware_event_log_overlapped = temp_did;
+
+		get_event_overlap_flag(&temp_did, (uint8_t *)8); // synchronization event log
+		status.synchronization_event_log_overlapped = temp_did;
+
+		get_event_overlap_flag(&temp_did, (uint8_t *)9); // disconnect control event log
+		status.disconnect_event_log_overlapped = temp_did;
+
         validation_arg.min = OperatingModeMin;
         validation_arg.max = OperatingModeMax;
         validation_arg.default_val = OperatingMode;
@@ -625,7 +686,6 @@ void LoadConfigurations()
         validation_arg.arg_size = 1;
         read_from_eeprom(&Language,(uint8_t *)0,getLanguageSelection,&validation_arg);
 
-                     
         validation_arg.min = meter_connected_phaseMin;
         validation_arg.max = meter_connected_phaseMax;
         validation_arg.default_val = meter_connected_phase;
@@ -753,17 +813,37 @@ void LoadConfigurations()
           #if defined(USE_WATCHDOG)
             kick_watchdog();
          #endif                    
+         //load last energy log address
          temp_did = 0;
          read_from_eeprom(&LastEnergyLogAddress,&temp_did,getLastLogAddress,&noValidation);
-          //load last energy log address
+         //load last daily snapshot energy log address
          temp_did = 1;
-         read_from_eeprom(&LastEventLogAddress,&temp_did,getLastLogAddress,&noValidation);
-          //load last event log address
+         read_from_eeprom(&last_daily_snapshot_log_address,&temp_did,getLastLogAddress,&noValidation);
+         //load last energy billing cuttoff log adddress
          temp_did = 2;
          read_from_eeprom(&LastEnergyBillingCuttOffLogAddress,&temp_did,getLastLogAddress,&noValidation);
-         //load last daily snapshot energy log address
+         //load last standard event log address
          temp_did = 3;
-         read_from_eeprom(&last_daily_snapshot_log_address,&temp_did,getLastLogAddress,&noValidation);
+         read_from_eeprom(&LastEventLogAddress,&temp_did,getLastLogAddress,&noValidation);
+         //load last fraud event log address
+         temp_did = 4;
+         read_from_eeprom(&last_fraud_event_log_address,&temp_did,getLastLogAddress,&noValidation);
+         //load last power quality event log address
+         temp_did = 5;
+         read_from_eeprom(&last_power_qual_event_log_address,&temp_did,getLastLogAddress,&noValidation);
+         //load last common event log address
+         temp_did = 6;
+         read_from_eeprom(&last_common_event_log_address,&temp_did,getLastLogAddress,&noValidation);
+         //load last firmware event log address
+         temp_did = 7;
+         read_from_eeprom(&last_firmware_event_log_address,&temp_did,getLastLogAddress,&noValidation);
+         //load last synchronization event log address
+         temp_did = 8;
+         read_from_eeprom(&last_synchronization_event_log_address,&temp_did,getLastLogAddress,&noValidation);
+         //load last disconnect control event log address
+         temp_did = 9;
+         read_from_eeprom(&last_disconnect_event_log_address,&temp_did,getLastLogAddress,&noValidation);
+
          //initialize rates
          int i,j;
          for(i=0,j=0;i<120;i++,j++)
@@ -967,21 +1047,28 @@ int8_t compare_event(void *event0,void *event1)
 * Updates the address where the next energy is logged. 
 * @param type:- the type of log
 *               0 ernergy log
-*               1 event log
+*               1 daily snapshot energy profile log
 *               2 billing cutoff log 
+*               3 standard event log
+*               4 fraud event log
+*               5 power quality event log
+*               6 common event log
+*               7 firmware event log
+*               8 synchronization event log
+*               9 dsiconnect control event log
 */
 uint8_t updateNextLogAddress(uint8_t type)
 {
 
-        uint32_t tmp;
-        uint8_t tmp2;
-	if(type == 0) // energy log
+    uint32_t tmp;
+    uint8_t tmp2;
+	if(type == 0) // incremental energy log
 	{
         LastEnergyLogAddress += EnergyLogSize;//was 14
         if(LastEnergyLogAddress >=  EnergyLogAddress_End)
           {
               tmp2 = 1;
-              uint8_t z = setEnergyOverlapFlag(&tmp2,(uint8_t *)0);
+              uint8_t z = setEnergyOverlapFlag(&tmp2,&type);
 
                 if(z==0)
                     return 0;
@@ -990,20 +1077,20 @@ uint8_t updateNextLogAddress(uint8_t type)
             tmp = LastEnergyLogAddress;
            //setLastLogAddress(&tmp,&type); //for no battery back up
 	}
-	else if(type == 1) //event log
-	{
-          LastEventLogAddress += EventLogSize;          
-		if(LastEventLogAddress > EventLog_End)
-		{
-                       tmp2 = 1;
-			uint8_t z = setEventOverlapFlag(&tmp2,(uint8_t *)0);
-			if(z==0)
-				return 0;
-			LastEventLogAddress = EventLogAddress_Start;
-		}
-                tmp =  LastEventLogAddress;
-                //setLastLogAddress(&tmp,&type); //for no battery back up
-	}
+	else if(type == 1)
+    {
+        last_daily_snapshot_log_address += DAILY_SNAPSHOT_LOG_SIZE;//was 14
+        if(last_daily_snapshot_log_address >=  DAILY_SNAPSHOT_LOG_ADDRESS_END)
+        {
+             tmp2 = 1;
+             uint8_t z = setEnergyOverlapFlag(&tmp2,&type);
+
+               if(z==0)
+                   return 0;
+               last_daily_snapshot_log_address = DAILY_SNAPSHOT_LOG_ADDRESS_START;
+        }
+        tmp = last_daily_snapshot_log_address;
+    }
     else if(type == 2) //billing cutoff date energy log //test this
     {
       LastEnergyBillingCuttOffLogAddress += EnergyBillingCutoffDayLogSize;//4*8+4+5 +1
@@ -1019,22 +1106,113 @@ uint8_t updateNextLogAddress(uint8_t type)
       tmp = LastEnergyBillingCuttOffLogAddress;
       //setLastLogAddress(&tmp,&type);//for no battery back up
     }
-    else if(type == 3)
-    {
-        last_daily_snapshot_log_address += DAILY_SNAPSHOT_LOG_SIZE;//was 14
-        if(last_daily_snapshot_log_address >=  DAILY_SNAPSHOT_LOG_ADDRESS_END)
-        {
-             tmp2 = 1;
-             uint8_t z = setEnergyOverlapFlag(&tmp2,(uint8_t *)0);
+    else if(type == 3) //standard event log
+	{
+        LastEventLogAddress += EventLogSize;
+		if(LastEventLogAddress > EventLog_End)
+		{
+            tmp2 = 1;
+			uint8_t z = setEventOverlapFlag(&tmp2,&type);
+			if(z==0)
+				return 0;
+			LastEventLogAddress = EventLogAddress_Start;
+		}
 
-               if(z==0)
-                   return 0;
-               last_daily_snapshot_log_address = DAILY_SNAPSHOT_LOG_ADDRESS_START;
+		tmp =  LastEventLogAddress;
+	}
+
+	else if(type == 4) // fraud event log
+    {
+		last_fraud_event_log_address += EVENT_LOG_TYPE_SIZE;
+
+        if(last_fraud_event_log_address >  FRAUD_EVENT_LOG_ADDRESS_END)
+        {
+        	tmp2 = 1;
+			uint8_t z = setEventOverlapFlag(&tmp2,&type);
+
+		    if(z==0)
+			   return 0;
+		    last_fraud_event_log_address = FRAUD_EVENT_LOG_ADDRESS_START;
         }
-        tmp = last_daily_snapshot_log_address;
+        tmp = last_fraud_event_log_address;
     }
-        setLastLogAddress(&tmp,&type);//for no battery back up
-        return 1;        
+	else if(type == 5) // power quality event log
+    {
+		last_power_qual_event_log_address += EVENT_LOG_TYPE_SIZE;
+
+        if(last_power_qual_event_log_address >  POWER_QUAL_LOG_ADDRESS_END)
+        {
+        	tmp2 = 1;
+			uint8_t z = setEventOverlapFlag(&tmp2,&type);
+
+		    if(z==0)
+			   return 0;
+		    last_power_qual_event_log_address = POWER_QUAL_LOG_ADDRESS_START;
+        }
+        tmp = last_power_qual_event_log_address;
+    }
+	else if(type == 6) // common event log
+    {
+		last_common_event_log_address += EVENT_LOG_TYPE_SIZE;
+
+        if(last_common_event_log_address >  COMMON_LOG_ADDRESS_END)
+        {
+        	tmp2 = 1;
+			uint8_t z = setEventOverlapFlag(&tmp2,&type);
+
+		    if(z==0)
+			   return 0;
+		    last_common_event_log_address = COMMON_LOG_ADDRESS_START;
+        }
+        tmp = last_common_event_log_address;
+    }
+	else if(type == 7) // firmware event log
+    {
+		last_firmware_event_log_address += FIRMWARE_EVENT_LOG_TYPE_SIZE;
+
+        if(last_firmware_event_log_address >  FIRMWARE_LOG_ADDRESS_END)
+        {
+        	tmp2 = 1;
+			uint8_t z = setEventOverlapFlag(&tmp2,&type);
+
+		    if(z==0)
+			   return 0;
+		    last_firmware_event_log_address = FIRMWARE_LOG_ADDRESS_START;
+        }
+        tmp = last_firmware_event_log_address;
+    }
+	else if(type == 8) // synchronization event log
+    {
+		last_synchronization_event_log_address += TIME_BOUND_EVENT_LOG_TYPE_SIZE;
+
+        if(last_synchronization_event_log_address >  SYNCHRONIZATION_LOG_ADDRESS_END)
+        {
+        	tmp2 = 1;
+			uint8_t z = setEventOverlapFlag(&tmp2,&type);
+
+		    if(z==0)
+			   return 0;
+		    last_synchronization_event_log_address = SYNCHRONIZATION_LOG_ADDRESS_START;
+        }
+        tmp = last_synchronization_event_log_address;
+    }
+	else if(type == 9) // disconnect control event log
+    {
+		last_disconnect_event_log_address +=DISCONNECT_EVENT_LOG_TYPE_SIZE;
+
+        if(last_disconnect_event_log_address >  DISCONNECT_LOG_ADDRESS_END)
+        {
+        	tmp2 = 1;
+			uint8_t z =	setEventOverlapFlag(&tmp2,&type);
+
+		    if(z==0)
+			   return 0;
+		    last_disconnect_event_log_address = DISCONNECT_LOG_ADDRESS_START;
+        }
+        tmp = last_disconnect_event_log_address;
+    }
+	setLastLogAddress(&tmp,&type);//for no battery back up
+	return 1;
 }
 
 
@@ -1079,6 +1257,119 @@ int8_t logEvent(void *l2,void *dummy)
         return 1;
 }
 
+/*
+ * Logs different types of events into the eeprom
+ */
+int8_t log_events(void *l2,void *type)
+{
+	uint8_t x = 0;
+    uint8_t *ptr = (uint8_t *)type;
+	uint8_t val = *ptr;
+    if(val == 3) // standard event log
+    {
+    	EventLog *l = (EventLog *)l2;
+    	if(LastEventLogAddress < EventLogAddress_Start || LastEventLogAddress > EventLog_End)
+    		LastEventLogAddress = EventLogAddress_Start;
+
+        x = EEPROM2_WriteInt8(l->EventCode,LastEventLogAddress,0);
+	    x = EEPROM2_WriteNextLong(l->value,0);
+		x = EEPROM2_WriteNextInt8(l->EventGroup,0);
+	    x = EEPROM2_WriteNextLong(l->timeStump.TimestampLow,0);
+        x = EEPROM2_WriteNextInt8(l->timeStump.TimestampUp,0);
+        x = EEPROM2_WriteNextInt8(l->Checksum,1);
+    	if(x==0)
+    		return 0;
+    }
+    else if(val == 4) // fraud event log
+    {
+    	event_log *l = (event_log *)l2;
+    	if(last_fraud_event_log_address < FRAUD_EVENT_LOG_ADDRESS_START || last_fraud_event_log_address > FRAUD_EVENT_LOG_ADDRESS_END)
+           last_fraud_event_log_address = FRAUD_EVENT_LOG_ADDRESS_START;
+
+        x = EEPROM2_WriteInt8(l->event_code,LastEventLogAddress,0);
+        x = EEPROM2_WriteNextLong(l->time_stamp.TimestampLow,0);
+        x = EEPROM2_WriteNextInt8(l->time_stamp.TimestampUp,0);
+        x = EEPROM2_WriteNextInt8(l->checksum,1);
+        if(x==0)
+        	return 0;
+    }
+    else if(val == 5) // power quality event log
+    {
+    	event_log *l = (event_log *)l2;
+    	if(last_power_qual_event_log_address < POWER_QUAL_LOG_ADDRESS_START || last_power_qual_event_log_address > POWER_QUAL_LOG_ADDRESS_END)
+    		last_power_qual_event_log_address = POWER_QUAL_LOG_ADDRESS_START;
+
+        x = EEPROM2_WriteInt8(l->event_code,LastEventLogAddress,0);
+        x = EEPROM2_WriteNextLong(l->time_stamp.TimestampLow,0);
+        x = EEPROM2_WriteNextInt8(l->time_stamp.TimestampUp,0);
+        x = EEPROM2_WriteNextInt8(l->checksum,1);
+        if(x==0)
+        	return 0;
+    }
+    else if(val == 6) // common event log
+    {
+    	event_log *l = (event_log *)l2;
+    	if(last_common_event_log_address < COMMON_LOG_ADDRESS_START || last_common_event_log_address > COMMON_LOG_ADDRESS_END)
+    		last_common_event_log_address = COMMON_LOG_ADDRESS_START;
+
+        x = EEPROM2_WriteInt8(l->event_code,LastEventLogAddress,0);
+        x = EEPROM2_WriteNextLong(l->time_stamp.TimestampLow,0);
+        x = EEPROM2_WriteNextInt8(l->time_stamp.TimestampUp,0);
+        x = EEPROM2_WriteNextInt8(l->checksum,1);
+        if(x==0)
+        	return 0;
+    }
+    else if(val == 7) // firmware event log
+    {
+    	firmware_event_log *l = (firmware_event_log *)l2;
+    	if(last_firmware_event_log_address < FIRMWARE_LOG_ADDRESS_START || last_firmware_event_log_address > FIRMWARE_LOG_ADDRESS_END)
+    		last_firmware_event_log_address = FIRMWARE_LOG_ADDRESS_START;
+
+        x = EEPROM2_WriteInt8(l->event_code,LastEventLogAddress,0);
+        x = EEPROM2_WriteNextInt8(l->active_firmware[0],0);
+        x = EEPROM2_WriteNextInt8(l->active_firmware[1],0);
+        x = EEPROM2_WriteNextInt8(l->active_firmware[2],0);
+        x = EEPROM2_WriteNextInt8(l->active_firmware[3],0);
+        x = EEPROM2_WriteNextInt8(l->active_firmware[4],0);
+        x = EEPROM2_WriteNextLong(l->time_stamp.TimestampLow,0);
+        x = EEPROM2_WriteNextInt8(l->time_stamp.TimestampUp,0);
+        x = EEPROM2_WriteNextInt8(l->checksum,1);
+        if(x==0)
+        	return 0;
+    }
+    else if(val == 8) // synchronization event log
+    {
+    	time_bound_event_log *l = (time_bound_event_log *)l2;
+    	if(last_synchronization_event_log_address < SYNCHRONIZATION_LOG_ADDRESS_START || last_synchronization_event_log_address > SYNCHRONIZATION_LOG_ADDRESS_END)
+    		last_synchronization_event_log_address = SYNCHRONIZATION_LOG_ADDRESS_START;
+
+        x = EEPROM2_WriteInt8(l->event_code,LastEventLogAddress,0);
+        x = EEPROM2_WriteNextLong(l->begin_time_stamp.TimestampLow,0);
+	    x = EEPROM2_WriteNextInt8(l->begin_time_stamp.TimestampUp,0);
+	    x = EEPROM2_WriteNextLong(l->end_time_stamp.TimestampLow,0);
+		x = EEPROM2_WriteNextInt8(l->end_time_stamp.TimestampUp,0);
+        x = EEPROM2_WriteNextInt8(l->checksum,1);
+        if(x==0)
+        	return 0;
+    }
+	else if(val == 9) // disconnect control event log
+	{
+		disconnect_event_log *l = (disconnect_event_log *)l2;
+		if(last_disconnect_event_log_address < DISCONNECT_LOG_ADDRESS_START || last_disconnect_event_log_address > DISCONNECT_LOG_ADDRESS_END)
+			last_disconnect_event_log_address = DISCONNECT_LOG_ADDRESS_START;
+
+		x = EEPROM2_WriteInt8(l->event_code,LastEventLogAddress,0);
+		x = EEPROM2_WriteNextInt8(l->disconnect_control_status,0);
+		x = EEPROM2_WriteNextLong(l->time_stamp.TimestampLow,0);
+		x = EEPROM2_WriteNextInt8(l->time_stamp.TimestampUp,0);
+		x = EEPROM2_WriteNextInt8(l->checksum,1);
+		if(x==0)
+			return 0;
+	}
+
+    updateNextLogAddress(val); //4  for fraud event log
+    return 1;
+}
 //uint8_t logEnergy(EnergyLog *l)
 int8_t logEnergy(void *l2,void *dummy)
 {
@@ -1090,19 +1381,19 @@ int8_t logEnergy(void *l2,void *dummy)
 //        for(;i<MAX_LOG_RETRAY;i++)
 //        {
 		//x=EEPROM2_WriteLong(l->ActiveEnergy,l->startAddress,0);
-    	x=EEPROM2_WriteLong(l->ActiveEnergy,LastEnergyLogAddress,0);
+    	x=EEPROM2_WriteLong(l->active_energy,LastEnergyLogAddress,0);
 //	if(x==0)
 //		continue;
 
-	x= EEPROM2_WriteNextLong(l->Reactive_Power_R1, 0);
+	x= EEPROM2_WriteNextLong(l->reactive_energy_QI, 0);
 //	if(x==0)
 //		continue;
 //       Uncomment this if power and voltage log is enabled 
-        x= EEPROM2_WriteNextLong(l->Active_Power, 0);
+        x= EEPROM2_WriteNextLong(l->active_power, 0);
 //	if(x==0)
 //		continue;
         
-        x= EEPROM2_WriteNextLong(l->Reactive_Power_R4, 0);
+        x= EEPROM2_WriteNextLong(l->reactive_energy_QIV, 0);
 //	if(x==0)
 //		continue;
         
@@ -1136,16 +1427,16 @@ int8_t log_daily_energy_snapshot(void *l2,void *dummy)
         if(last_daily_snapshot_log_address<DAILY_SNAPSHOT_LOG_ADDRESS_START || last_daily_snapshot_log_address>DAILY_SNAPSHOT_LOG_ADDRESS_END)
             last_daily_snapshot_log_address = DAILY_SNAPSHOT_LOG_ADDRESS_START;
 
-        x=EEPROM2_WriteLong(l->ActiveEnergy,last_daily_snapshot_log_address,0);
-        x= EEPROM2_WriteNextLong(l->Reactive_Power_R1, 0);
-        x= EEPROM2_WriteNextLong(l->Active_Power, 0);
-        x= EEPROM2_WriteNextLong(l->Reactive_Power_R4, 0);
+        x=EEPROM2_WriteLong(l->active_energy,last_daily_snapshot_log_address,0);
+        x= EEPROM2_WriteNextLong(l->reactive_energy_QI, 0);
+        x= EEPROM2_WriteNextLong(l->active_power, 0);
+        x= EEPROM2_WriteNextLong(l->reactive_energy_QIV, 0);
         x= EEPROM2_WriteNextLong(l->timeStump.TimestampLow,0);
         x = EEPROM2_WriteNextInt8(l->timeStump.TimestampUp,0);
         x= EEPROM2_WriteNextInt8(l->CRC,1);
         if(x==0)
           return 0;
-        updateNextLogAddress(3);//3 for energy daily snaphot log
+        updateNextLogAddress(1);//1 for energy daily snaphot log
         return 1;
 }
 uint8_t get_daily_snapshot_energy(EnergyLog *l,unsigned long StartAddress)
@@ -1154,25 +1445,25 @@ uint8_t get_daily_snapshot_energy(EnergyLog *l,unsigned long StartAddress)
 
     for(;i<MAX_LOG_RETRAY;i++)
     {
-        x=EEPROM2_ReadLong(StartAddress,0,&(l->ActiveEnergy));
+        x=EEPROM2_ReadLong(StartAddress,0,&(l->active_energy));
         if(x==0)
         {
             continue;
         }
 
-        x= EEPROM2_ReadNextLong(0,&(l->Reactive_Power_R1));
+        x= EEPROM2_ReadNextLong(0,&(l->reactive_energy_QI));
         if(x==0)
         {
             continue;
         }
 
-        x= EEPROM2_ReadNextLong(0,&(l->Active_Power));
+        x= EEPROM2_ReadNextLong(0,&(l->active_power));
         if(x==0)
         {
             continue;
         }
 
-        x= EEPROM2_ReadNextLong(0,&(l->Reactive_Power_R4));
+        x= EEPROM2_ReadNextLong(0,&(l->reactive_energy_QIV));
         if(x==0)
         {
             continue;
@@ -1210,20 +1501,20 @@ uint8_t getEnergy(EnergyLog *l,unsigned long StartAddress)
         
         for(;i<MAX_LOG_RETRAY;i++)
         {
-	x=EEPROM2_ReadLong(StartAddress,0,&(l->ActiveEnergy));
+	x=EEPROM2_ReadLong(StartAddress,0,&(l->active_energy));
 	if(x==0)
 		continue;
 
-	x= EEPROM2_ReadNextLong(0,&(l->Reactive_Power_R1));
+	x= EEPROM2_ReadNextLong(0,&(l->reactive_energy_QI));
 	if(x==0)
 		continue;
 
 //       Uncomment this if power and voltage log is enabled 
-        x= EEPROM2_ReadNextLong(0,&(l->Active_Power));
+        x= EEPROM2_ReadNextLong(0,&(l->active_power));
 	if(x==0)
 		continue;
         
-        x= EEPROM2_ReadNextLong(0,&(l->Reactive_Power_R4));
+        x= EEPROM2_ReadNextLong(0,&(l->reactive_energy_QIV));
 	if(x==0)
 		continue;                        
 		x= EEPROM2_ReadNextLong(0,&(l->timeStump.TimestampLow));
@@ -1291,6 +1582,7 @@ uint8_t getEvent(EventLog *l,unsigned long StartAddres)
 
 
 
+/*
 int8_t logEvent2(void *lt,void *StartAddress)
 {
           EventLog *l = (EventLog*)lt;
@@ -1312,6 +1604,7 @@ int8_t logEvent2(void *lt,void *StartAddress)
 
         return 1;
 }
+*/
 
 int8_t logEnergy2(void *lt,uint32_t StartAddress)
 {
@@ -1319,18 +1612,18 @@ int8_t logEnergy2(void *lt,uint32_t StartAddress)
     	uint8_t x=0;//,i=0;
         
 
-    	x=EEPROM2_WriteLong(l->ActiveEnergy,StartAddress,0);
+    	x=EEPROM2_WriteLong(l->active_energy,StartAddress,0);
 
 
-	x= EEPROM2_WriteNextLong(l->Reactive_Power_R1, 0);
+    	x= EEPROM2_WriteNextLong(l->reactive_energy_QI, 0);
 
-        x= EEPROM2_WriteNextLong(l->Active_Power, 0);
-
-        
-        x= EEPROM2_WriteNextLong(l->Reactive_Power_R4, 0);
+        x= EEPROM2_WriteNextLong(l->active_power, 0);
 
         
-	x= EEPROM2_WriteNextLong(l->timeStump.TimestampLow,0);
+        x= EEPROM2_WriteNextLong(l->reactive_energy_QIV, 0);
+
+        
+        x= EEPROM2_WriteNextLong(l->timeStump.TimestampLow,0);
 
 
         x = EEPROM2_WriteNextInt8(l->timeStump.TimestampUp,0);
@@ -1357,7 +1650,7 @@ int8_t getEnergy2(void *lt,uint32_t EntryNumber)
 //       uint8_t x=0;//,i=0;
        
        uint32_t StartAddress;
-       if(status.energy_log_overlaped == 1)//handle cirular buffer 
+       if(status.energy_log_overlapped == 1)//handle cirular buffer
        {
           uint32_t val = (EnergyLogSize*EntryNumber);
           if(val > EnergyLogAddress_End)
@@ -1372,12 +1665,9 @@ int8_t getEnergy2(void *lt,uint32_t EntryNumber)
        else       
           StartAddress = EnergyLogAddress_Start + (EnergyLogSize*EntryNumber);
        
-       
-       
        if( getEnergy(l,StartAddress) == 0 )
          return 0;
 
-        
         return 1;
 }
 
@@ -1392,10 +1682,10 @@ int8_t get_daily_snapshot_energy_profile(void *lt,uint32_t EntryNumber)
        EnergyLog *l = (EnergyLog*)lt;
 
        uint32_t StartAddress;
-       if(status.energy_log_overlaped == 1)//handle cirular buffer
+       if(status.daily_snapshot_energy_overlapped == 1)//handle cirular buffer
        {
           uint32_t val = (DAILY_SNAPSHOT_LOG_SIZE*EntryNumber);
-          if(DAILY_SNAPSHOT_LOG_ADDRESS_START + val > DAILY_SNAPSHOT_LOG_ADDRESS_END)
+          if(last_daily_snapshot_log_address + val > DAILY_SNAPSHOT_LOG_ADDRESS_END)
           {
               StartAddress = last_daily_snapshot_log_address + val - DAILY_SNAPSHOT_LOG_ADDRESS_END;
              //StartAddress = val + DAILY_SNAPSHOT_LOG_ADDRESS_START - EventLog_End;
@@ -1416,40 +1706,375 @@ int8_t get_daily_snapshot_energy_profile(void *lt,uint32_t EntryNumber)
 }
 int8_t getEvent2(void *lt,uint32_t EntryNumber)
 {
-  
-  
       --EntryNumber;//handle zero based index 
        EventLog *l = (EventLog*)lt;
 //       uint8_t x=0;//,i=0;
        
        uint32_t StartAddress;
-       if(status.event_log_overlaped == 1)//handle cirular buffer 
+       if(status.standard_event_log_overlapped == 1)//handle cirular buffer
        {
           uint32_t val = (EventLogSize*EntryNumber);
-          if(val > EventLog_End)
+          if(val + LastEventLogAddress > EventLog_End)
           {
-             StartAddress = val + EventLogAddress_Start - EventLog_End;            
+             StartAddress = val + LastEventLogAddress - EventLog_End;
           }
           else{
-             StartAddress = (LastEventLogAddress + val); 
+             StartAddress = (LastEventLogAddress + val); //TODO it jumps the first entry
           }
        }
        else       
           StartAddress = EventLogAddress_Start + (EventLogSize*EntryNumber);
-  
-  
        if(getEvent(l,StartAddress)==0)
          return 0;
-       
-
 
         return 1;
 }
+int8_t compare_fraud_event(void *event0,void *event1)
+{
+	event_log *el = (event_log*)event0;
+	event_log *el2 = (event_log*)event1;
 
+	temp_rtc0 = getTime(&el->time_stamp);
+	temp_rtc1 = getTime(&el2->time_stamp);
 
+	return compare_time(&temp_rtc0,&temp_rtc1);
+}
+uint8_t get_fraud_event_log(event_log *l,unsigned long StartAddres)
+{
+	uint8_t x=0,i=0;
+    for(;i<MAX_LOG_RETRAY;i++)
+    {
+    	x= EEPROM2_ReadInt8(StartAddres,0,&(l->event_code));
+		if(x==0)
+			continue;
+		x= EEPROM2_ReadNextLong(0,&(l->time_stamp.TimestampLow));
+		if(x==0)
+        	continue;
 
+        x = EEPROM2_ReadNextInt8(0,&(l->time_stamp.TimestampUp));
+        if(x==0)
+        	continue;
 
+        x= EEPROM2_ReadNextInt8(1,&(l->checksum));
+        if(x==0)
+        	continue;
+        else
+          break;
+        }
+        if(i>=MAX_LOG_RETRAY)
+          return 0;
+        return 1;
+}
+int8_t get_fraud_event(void *lt,uint32_t EntryNumber)
+{
+      --EntryNumber;//handle zero based index
+       event_log *l = (event_log*)lt;
+       uint32_t StartAddress;
+       if(status.fraud_event_log_overlapped == 1)//handle cirular buffer
+       {
+          uint32_t val = (EVENT_LOG_TYPE_SIZE*EntryNumber);
+          if(val + last_fraud_event_log_address > FRAUD_EVENT_LOG_ADDRESS_END)
+          {
+             StartAddress = val + last_fraud_event_log_address - FRAUD_EVENT_LOG_ADDRESS_END;
+          }
+          else{
+             StartAddress = (last_fraud_event_log_address + val); //TODO it jumps the first entry
+          }
+       }
+       else
+          StartAddress = FRAUD_EVENT_LOG_ADDRESS_START + (EVENT_LOG_TYPE_SIZE*EntryNumber);
+       if(get_fraud_event_log(l,StartAddress)==0)
+         return 0;
 
+        return 1;
+}
+uint8_t get_power_qual_event_log(event_log *l,unsigned long StartAddres)
+{
+	uint8_t x=0,i=0;
+    for(;i<MAX_LOG_RETRAY;i++)
+    {
+    	x= EEPROM2_ReadInt8(StartAddres,0,&(l->event_code));
+		if(x==0)
+			continue;
+		x= EEPROM2_ReadNextLong(0,&(l->time_stamp.TimestampLow));
+		if(x==0)
+        	continue;
+        x = EEPROM2_ReadNextInt8(0,&(l->time_stamp.TimestampUp));
+        if(x==0)
+        	continue;
+        x= EEPROM2_ReadNextInt8(1,&(l->checksum));
+        if(x==0)
+        	continue;
+        else
+          break;
+        }
+        if(i>=MAX_LOG_RETRAY)
+          return 0;
+        return 1;
+}
+int8_t get_power_qual_event(void *lt,uint32_t EntryNumber)
+{
+      --EntryNumber;//handle zero based index
+       event_log *l = (event_log*)lt;
+       uint32_t StartAddress;
+       if(status.power_qual_event_log_overlapped == 1)//handle cirular buffer
+       {
+          uint32_t val = (EVENT_LOG_TYPE_SIZE*EntryNumber);
+          if(val + last_power_qual_event_log_address > POWER_QUAL_LOG_ADDRESS_END)
+          {
+             StartAddress = val + last_power_qual_event_log_address - POWER_QUAL_LOG_ADDRESS_END;
+          }
+          else{
+             StartAddress = (last_power_qual_event_log_address + val); //TODO it jumps the first entry
+          }
+       }
+       else
+          StartAddress = POWER_QUAL_LOG_ADDRESS_START + (EVENT_LOG_TYPE_SIZE*EntryNumber);
+       if(get_power_qual_event_log(l,StartAddress)==0)
+         return 0;
+
+        return 1;
+}
+uint8_t get_common_event_log(event_log *l,unsigned long StartAddres)
+{
+	uint8_t x=0,i=0;
+    for(;i<MAX_LOG_RETRAY;i++)
+    {
+    	x= EEPROM2_ReadInt8(StartAddres,0,&(l->event_code));
+		if(x==0)
+			continue;
+		x= EEPROM2_ReadNextLong(0,&(l->time_stamp.TimestampLow));
+		if(x==0)
+        	continue;
+        x = EEPROM2_ReadNextInt8(0,&(l->time_stamp.TimestampUp));
+        if(x==0)
+        	continue;
+        x= EEPROM2_ReadNextInt8(1,&(l->checksum));
+        if(x==0)
+        	continue;
+        else
+          break;
+        }
+        if(i>=MAX_LOG_RETRAY)
+          return 0;
+        return 1;
+}
+int8_t get_common_event(void *lt,uint32_t EntryNumber)
+{
+      --EntryNumber;//handle zero based index
+       event_log *l = (event_log*)lt;
+       uint32_t StartAddress;
+       if(status.common_event_log_overlapped == 1)//handle cirular buffer
+       {
+          uint32_t val = (EVENT_LOG_TYPE_SIZE*EntryNumber);
+          if(val + last_common_event_log_address > COMMON_LOG_ADDRESS_END)
+          {
+             StartAddress = val + last_common_event_log_address - COMMON_LOG_ADDRESS_END;
+          }
+          else{
+             StartAddress = (last_common_event_log_address + val); //TODO it jumps the first entry
+          }
+       }
+       else
+          StartAddress = COMMON_LOG_ADDRESS_START + (EVENT_LOG_TYPE_SIZE*EntryNumber);
+       if(get_common_event_log(l,StartAddress)==0)
+         return 0;
+
+        return 1;
+}
+int8_t compare_firmware_event(void *event0,void *event1)
+{
+	firmware_event_log *el = (firmware_event_log*)event0;
+	firmware_event_log *el2 = (firmware_event_log*)event1;
+
+	temp_rtc0 = getTime(&el->time_stamp);
+	temp_rtc1 = getTime(&el2->time_stamp);
+
+	return compare_time(&temp_rtc0,&temp_rtc1);
+}
+uint8_t get_firmware_event_log(firmware_event_log *l,unsigned long StartAddres)
+{
+	uint8_t x=0,i=0;
+    for(;i<MAX_LOG_RETRAY;i++)
+    {
+    	x= EEPROM2_ReadInt8(StartAddres,0,&(l->event_code));
+		if(x==0)
+			continue;
+		x = EEPROM2_ReadNextInt8(0,&(l->active_firmware[0]));
+		if(x==0)
+			continue;
+		x = EEPROM2_ReadNextInt8(0,&(l->active_firmware[1]));
+		if(x==0)
+			continue;
+		x = EEPROM2_ReadNextInt8(0,&(l->active_firmware[2]));
+		if(x==0)
+			continue;
+		x = EEPROM2_ReadNextInt8(0,&(l->active_firmware[3]));
+		if(x==0)
+			continue;
+		x = EEPROM2_ReadNextInt8(0,&(l->active_firmware[4]));
+		if(x==0)
+			continue;
+		x= EEPROM2_ReadNextLong(0,&(l->time_stamp.TimestampLow));
+		if(x==0)
+        	continue;
+        x = EEPROM2_ReadNextInt8(0,&(l->time_stamp.TimestampUp));
+        if(x==0)
+        	continue;
+        x= EEPROM2_ReadNextInt8(1,&(l->checksum));
+        if(x==0)
+        	continue;
+        else
+          break;
+	}
+	if(i>=MAX_LOG_RETRAY)
+	  return 0;
+	return 1;
+}
+int8_t get_firmware_event(void *lt,uint32_t EntryNumber)
+{
+      --EntryNumber;//handle zero based index
+       firmware_event_log *l = (firmware_event_log*)lt;
+       uint32_t StartAddress;
+       if(status.firmware_event_log_overlapped == 1)//handle cirular buffer
+       {
+          uint32_t val = (FIRMWARE_EVENT_LOG_TYPE_SIZE * EntryNumber);
+          if(val + last_firmware_event_log_address > FIRMWARE_LOG_ADDRESS_END)
+          {
+             StartAddress = val + last_firmware_event_log_address - FIRMWARE_LOG_ADDRESS_END;
+          }
+          else{
+             StartAddress = (last_firmware_event_log_address + val); //TODO it jumps the first entry
+          }
+       }
+       else
+          StartAddress = FIRMWARE_LOG_ADDRESS_START + (FIRMWARE_EVENT_LOG_TYPE_SIZE*EntryNumber);
+       if(get_firmware_event_log(l,StartAddress)==0)
+         return 0;
+
+        return 1;
+}
+int8_t compare_synchronization_event(void *event0,void *event1)
+{
+	time_bound_event_log *el = (time_bound_event_log*)event0;
+	time_bound_event_log *el2 = (time_bound_event_log*)event1;
+
+	temp_rtc0 = getTime(&el->end_time_stamp);
+	temp_rtc1 = getTime(&el2->end_time_stamp);
+
+	return compare_time(&temp_rtc0,&temp_rtc1);
+}
+uint8_t get_synchronization_event_log(time_bound_event_log *l,unsigned long StartAddres)
+{
+	uint8_t x=0,i=0;
+    for(;i<MAX_LOG_RETRAY;i++)
+    {
+    	x= EEPROM2_ReadInt8(StartAddres,0,&(l->event_code));
+		if(x==0)
+			continue;
+		x= EEPROM2_ReadNextLong(0,&(l->begin_time_stamp.TimestampLow));
+		if(x==0)
+        	continue;
+		x= EEPROM2_ReadNextInt8(0,&(l->begin_time_stamp.TimestampUp));
+		if(x==0)
+        	continue;
+		x= EEPROM2_ReadNextLong(0,&(l->end_time_stamp.TimestampLow));
+		if(x==0)
+        	continue;
+        x = EEPROM2_ReadNextInt8(0,&(l->end_time_stamp.TimestampUp));
+        if(x==0)
+        	continue;
+        x= EEPROM2_ReadNextInt8(1,&(l->checksum));
+        if(x==0)
+        	continue;
+        else
+          break;
+	}
+	if(i>=MAX_LOG_RETRAY)
+	  return 0;
+	return 1;
+}
+int8_t get_synchronization_event(void *lt,uint32_t EntryNumber)
+{
+      --EntryNumber;//handle zero based index
+      time_bound_event_log *l = (time_bound_event_log*)lt;
+       uint32_t StartAddress;
+       if(status.synchronization_event_log_overlapped == 1)//handle cirular buffer
+       {
+          uint32_t val = (TIME_BOUND_EVENT_LOG_TYPE_SIZE * EntryNumber);
+          if(val + last_synchronization_event_log_address > SYNCHRONIZATION_LOG_ADDRESS_END)
+          {
+             StartAddress = val + last_synchronization_event_log_address - SYNCHRONIZATION_LOG_ADDRESS_END;
+          }
+          else{
+             StartAddress = (last_synchronization_event_log_address + val); //TODO it jumps the first entry
+          }
+       }
+       else
+          StartAddress = SYNCHRONIZATION_LOG_ADDRESS_START + (TIME_BOUND_EVENT_LOG_TYPE_SIZE*EntryNumber);
+       if(get_synchronization_event_log(l,StartAddress)==0)
+         return 0;
+        return 1;
+}
+int8_t compare_disconnect_event(void *event0,void *event1)
+{
+	disconnect_event_log *el = (disconnect_event_log*)event0;
+	disconnect_event_log *el2 = (disconnect_event_log*)event1;
+
+	temp_rtc0 = getTime(&el->time_stamp);
+	temp_rtc1 = getTime(&el2->time_stamp);
+
+	return compare_time(&temp_rtc0,&temp_rtc1);
+}
+uint8_t get_disconnect_event_log(disconnect_event_log *l,unsigned long StartAddres)
+{
+	uint8_t x=0,i=0;
+    for(;i<MAX_LOG_RETRAY;i++)
+    {
+    	x= EEPROM2_ReadInt8(StartAddres,0,&(l->event_code));
+		if(x==0)
+			continue;
+		x= EEPROM2_ReadNextInt8(0,&(l->disconnect_control_status));
+		if(x==0)
+        	continue;
+		x= EEPROM2_ReadNextLong(0,&(l->time_stamp.TimestampLow));
+		if(x==0)
+        	continue;
+        x = EEPROM2_ReadNextInt8(0,&(l->time_stamp.TimestampUp));
+        if(x==0)
+        	continue;
+        x= EEPROM2_ReadNextInt8(1,&(l->checksum));
+        if(x==0)
+        	continue;
+        else
+          break;
+	}
+	if(i>=MAX_LOG_RETRAY)
+	  return 0;
+	return 1;
+}
+int8_t get_disconnect_event(void *lt,uint32_t EntryNumber)
+{
+      --EntryNumber;//handle zero based index
+      disconnect_event_log *l = (disconnect_event_log*)lt;
+       uint32_t StartAddress;
+       if(status.disconnect_event_log_overlapped == 1)//handle cirular buffer
+       {
+          uint32_t val = (DISCONNECT_EVENT_LOG_TYPE_SIZE * EntryNumber);
+          if(val + last_disconnect_event_log_address > DISCONNECT_LOG_ADDRESS_END)
+          {
+             StartAddress = val + last_disconnect_event_log_address - DISCONNECT_LOG_ADDRESS_END;
+          }
+          else{
+             StartAddress = (last_disconnect_event_log_address + val); //TODO it jumps the first entry
+          }
+       }
+       else
+          StartAddress = DISCONNECT_LOG_ADDRESS_START + (DISCONNECT_EVENT_LOG_TYPE_SIZE*EntryNumber);
+       if(get_disconnect_event_log(l,StartAddress)==0)
+         return 0;
+        return 1;
+}
 //uint8_t setDeviceIDs(const uint8_t *id,uint8_t type)
 int8_t setDeviceIDs(void *id2,void *type2)
 {
@@ -2233,22 +2858,32 @@ int8_t getTamperCount(void *count2,void *TamperType2)
 
 int8_t getLastLogAddress(void *data2,void *type2)
 {
-        uint32_t *data = (uint32_t *)data2;
-	uint8_t z,type;//,i=0
-        uint8_t *ptr= (uint8_t*)type2;
-        type = *ptr;
-        uint32_t address;
-//        for(;i<MAX_LOG_RETRAY;i++)
-//        {
-	if(type == 0)
-          address = LastEnergyLogAddressStart;
-	else if(type ==1)
-          address = LastEventLogAddressStart;
-	else if(type ==2)
-          address = LastBillingCuttoffLogAddressStart;
-	else if(type == 3)
-		  address = LAST_DAILY_SNAPSHOT_LOG_ADDRESS_START;
+    uint32_t *data = (uint32_t *)data2;
+	uint8_t z,type;
+    uint8_t *ptr= (uint8_t*)type2;
+    type = *ptr;
+    uint32_t address;
 
+	if(type == 0)
+        address = LastEnergyLogAddressStart;
+	else if(type ==1)
+		address = LAST_DAILY_SNAPSHOT_LOG_ADDRESS_START;
+	else if(type ==2)
+        address = LastBillingCuttoffLogAddressStart;
+	else if(type == 3)
+		address = LastEventLogAddressStart;
+	else if(type == 4)
+		address = LAST_FRAUD_EVENT_ADDRESS_START;
+	else if(type == 5)
+		address = LAST_POWER_QUAL_EVENT_ADDRESS_START;
+	else if(type == 6)
+		address = LAST_COMMON_EVENT_ADDRESS_START;
+	else if(type == 7)
+		address = LAST_FIRMWARE_EVENT_ADDRESS_START;
+	else if(type == 8)
+		address = LAST_SYNCHRONIZATION_EVENT_ADDRESS_START;
+	else if(type == 9)
+		address = LAST_DISCONNECT_EVENT_ADDRESS_START;
 	z= EEPROM2_ReadLong(address,1,data);
 	if(z==0)
 		return 0;
@@ -2269,21 +2904,29 @@ int8_t setLastLogAddress(void *data2,void *type2)
 //        for(;i<MAX_LOG_RETRAY;i++)
 //        {
 	   if(type == 0)
-             address = LastEnergyLogAddressStart;
-//		z = EEPROM2_WriteLong(data,(uint32_t)LastEnergyLogAddressStart,1);
+            address = LastEnergyLogAddressStart;
 	   else if(type == 1)
-             address = LastEventLogAddressStart;
-//		z = EEPROM2_WriteLong(data,(uint32_t)LastEventLogAddressStart,1);
+            address = LAST_DAILY_SNAPSHOT_LOG_ADDRESS_START;
        else if(type ==2)
-             address = LastBillingCuttoffLogAddressStart;
+            address = LastBillingCuttoffLogAddressStart;
        else if(type == 3)
-           address = LAST_DAILY_SNAPSHOT_LOG_ADDRESS_START;
+    	   address = LastEventLogAddressStart;
+       else if(type == 4)
+    	   address = LAST_FRAUD_EVENT_ADDRESS_START;
+       else if(type == 5)
+    	   address = LAST_POWER_QUAL_EVENT_ADDRESS_START;
+       else if(type == 6)
+    	   address = LAST_COMMON_EVENT_ADDRESS_START;
+       else if(type == 7)
+    	   address = LAST_FIRMWARE_EVENT_ADDRESS_START;
+       else if(type == 8)
+    	   address = LAST_SYNCHRONIZATION_EVENT_ADDRESS_START;
+       else if(type == 9)
+    	   address = LAST_DISCONNECT_EVENT_ADDRESS_START;
 
        z= EEPROM2_WriteLong(data,address,1);
 	   if( z == 0 )
 	       return 0;
-
-        
 	return 1;
 }
 //uint8_t setBillingSchema(uint8_t val)
@@ -2314,24 +2957,26 @@ int8_t getBillingSchema(void *flag2,void *dummy)
 	return 1;
 }
 //uint8_t setEnergyOverlapFlag(uint8_t val)
-int8_t setEnergyOverlapFlag(void *val2,void *dummy)
+int8_t setEnergyOverlapFlag(void *val,void *type)
 {
-        uint8_t *tmp = (uint8_t *)val2;
-        uint8_t val = *tmp;
-	uint8_t z;//,i=0;
+        uint8_t *tmp = (uint8_t *)val;
+        uint8_t val1 = *tmp;
+        uint8_t *tmp1 = (uint8_t *) type;
+        uint8_t val2 = *tmp1;
+	    uint8_t z;//,i=0;
 //        for(;i<MAX_LOG_RETRAY;i++)
 //        {
-          if(val == 1)
+          if(val2 == 0)
           {
-            status.energy_log_overlaped = 1;
-            z= EEPROM2_WriteInt8(val,EnergyOverlapFlagAddressStart,1);
+            status.energy_log_overlapped = val1;
+            z= EEPROM2_WriteInt8(val1,EnergyOverlapFlagAddressStart,1);
             if(z==0)
             return 0;
           }
-          else if(val == 3)
+          else if(val2 == 1)
           {
-              status.daily_snapshot_energy_overlaped = 1;
-              z= EEPROM2_WriteInt8(val,DAILY_SNAPSHOT_LOG_OVER_LAP_ADDRESS_START,1);
+              status.daily_snapshot_energy_overlapped = val1;
+              z= EEPROM2_WriteInt8(val1,DAILY_SNAPSHOT_LOG_OVER_LAP_ADDRESS_START,1);
              if(z==0)
               return 0;
           }
@@ -2380,35 +3025,112 @@ uint8_t get_daily_snapshot_overlap_flag(uint8_t *flag)
     return 1;
 }
 //uint8_t setEventOverlapFlag(uint8_t val)
-int8_t setEventOverlapFlag(void *val2,void * dummy)
+int8_t setEventOverlapFlag(void *data,void * type)
 {
-        uint8_t *ptr = (uint8_t *)val2;
-        uint8_t val = *ptr;
-	uint8_t z;//,i=0;
-//        for(;i<MAX_LOG_RETRAY;i++)
-//        {
-	  z= EEPROM2_WriteInt8(val,EventOverlapFlagAddressStart,1);
-	  if(z==0)
+    uint8_t *ptr = (uint8_t *)data;
+    uint8_t val = *ptr;
+	uint8_t *ptr2 = (uint8_t *)type;
+	uint8_t val2 = *ptr2;
+	uint32_t tmp;
+	switch(val2)
+	{
+	case 3: // standard event log
+		status.standard_event_log_overlapped = val;
+		tmp = EventOverlapFlagAddressStart;
+		break;
+
+	case 4: // fraud event log
+		status.fraud_event_log_overlapped = val;
+		tmp = FRAUD_EVENT_OVERLAP_ADDRESS_START;
+		break;
+
+	case 5: // power quality event log
+		status.power_qual_event_log_overlapped = val;
+		tmp = POWER_QUAL_EVENT_OVERLAP_ADDRESS_START;
+		break;
+
+	case 6: // common event log
+		status.common_event_log_overlapped = val;
+		tmp = COMMON_EVENT_OVERLAP_ADDRESS_START;
+		break;
+
+	case 7: // firmware event log
+		status.fraud_event_log_overlapped = val;
+		tmp = FIRMWARE_EVENT_OVERLAP_ADDRESS_START;
+		break;
+
+	case 8: // synchronization event log
+		status.synchronization_event_log_overlapped = val;
+		tmp = SYNCHRONIZATION_EVENT_OVERLAP_ADDRESS_START;
+		break;
+
+	case 9: // disconnect control event log
+		status.disconnect_event_log_overlapped = val;
+		tmp = DISCONNECT_EVENT_OVERLAP_ADDRESS_START;
+		break;
+
+	default:
+		break;
+	}
+	uint8_t z;
+	z= EEPROM2_WriteInt8(val,tmp,1);
+	if(z==0)
 		return 0;
 
-        
 	return 1;
 }
 
-uint8_t getEventOverlapFlag(uint8_t *flag)
+uint8_t get_event_overlap_flag(uint8_t *flag, uint8_t *type)
 {
+	uint8_t *ptr2 = (uint8_t *)type;
+	uint8_t val2 = *ptr2;
+	uint32_t tmp;
+	switch(val2)
+	{
+	case 3: // standard event log
+		tmp = EventOverlapFlagAddressStart;
+		break;
+
+	case 4: // fraud event log
+		tmp = FRAUD_EVENT_OVERLAP_ADDRESS_START;
+		break;
+
+	case 5: // power quality event log
+		tmp = POWER_QUAL_EVENT_OVERLAP_ADDRESS_START;
+		break;
+
+	case 6: // common event log
+		tmp = COMMON_EVENT_OVERLAP_ADDRESS_START;
+		break;
+
+	case 7: // firmware event log
+		tmp = FIRMWARE_EVENT_OVERLAP_ADDRESS_START;
+		break;
+
+	case 8: // synchronization event log
+		tmp = SYNCHRONIZATION_EVENT_OVERLAP_ADDRESS_START;
+		break;
+
+	case 9: // disconnect control event log
+		tmp = DISCONNECT_EVENT_OVERLAP_ADDRESS_START;
+		break;
+
+	default:
+		break;
+	}
+
 	uint8_t z,i=0;
-        for(;i<MAX_LOG_RETRAY;i++)
-        {
-	  z = EEPROM2_ReadInt8(EventOverlapFlagAddressStart,1,flag);
-	  if(z==0)
-	      continue;
-          else 
+    for(;i<MAX_LOG_RETRAY;i++)
+	{
+    	z = EEPROM2_ReadInt8(tmp,1,flag);
+	    if(z==0)
+	    	continue;
+        else
            break;
-        }
+	}
         
-        if(i>=MAX_LOG_RETRAY)
-          return 0;
+    if(i>=MAX_LOG_RETRAY)
+         return 0;
         
 	return 1;
 }

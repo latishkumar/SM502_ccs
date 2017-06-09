@@ -152,42 +152,64 @@ extern rtc_t required_last_entry_time;
 EnergyLog LastTxEnergyCopy;//variable used for incrimental energy tx
 void loadEnergyToRam(unsigned int entry_no)
 {
-           getEnergy2(&currentEnergyLogEntry.l,entry_no);
-           currentEnergyLogEntry.logEntryNo = entry_no;
-           
-           
-           if(access_selector == 1) //if this is selective access by range
-           {
-             rtc_t time_last = getTime(&currentEnergyLogEntry.l.timeStump);
-             if(time_last.isValid==0)
-             {
-               msg_info.entries_remaining = 1;
-               return;
-             }
-             int8_t com3 = compare_time(&required_last_entry_time,&time_last);
-             if(com3<0)//time_last comes after required_last_entry_time
-              {
-                   msg_info.entries_remaining = 1;
-              }
-           }
-           
-          //formate the timestump and copy it to the buffer
-          rtc_t time = getTime(&currentEnergyLogEntry.l.timeStump);
-          uint8_t currentEnergyLogEntryData2[] = {
-            INJECT16(time.year), time.month, time.day, ((time.day - 1) > 0)?(time.day - 1):0,time.hour, time.minute,time.second, 0xFF, INJECT16(120), 0x00, 
-          };
-          
-          uint32_t x = currentEnergyLogEntry.l.ActiveEnergy;
-          //calculate for incrimental data
-          if(currentEnergyLogEntry.l.ActiveEnergy>=LastTxEnergyCopy.ActiveEnergy)
-              currentEnergyLogEntry.l.ActiveEnergy -= LastTxEnergyCopy.ActiveEnergy;
-          else 
-           currentEnergyLogEntry.l.ActiveEnergy = 0;
-          //end of update for incrimental energy log
-          
-          memcpy(currentEnergyLogEntryData,currentEnergyLogEntryData2,12);
-          LastTxEnergyCopy.ActiveEnergy = x;
-//          memcpy(buf, currentEnergyLogEntryData, len);
+	   getEnergy2(&currentEnergyLogEntry.l,entry_no);
+	   currentEnergyLogEntry.logEntryNo = entry_no;
+
+
+	   if(access_selector == 1) //if this is selective access by range
+	   {
+		 rtc_t time_last = getTime(&currentEnergyLogEntry.l.timeStump);
+		 if(time_last.isValid==0)
+		 {
+			 msg_info.entries_remaining = 1;
+			 return;
+		 }
+		 int8_t com3 = compare_time(&required_last_entry_time,&time_last);
+		 if(com3<0)//time_last comes after required_last_entry_time
+		  {
+			 msg_info.entries_remaining = 1;
+		  }
+	   }
+
+	  //formate the timestump and copy it to the buffer
+	  rtc_t time = getTime(&currentEnergyLogEntry.l.timeStump);
+	  uint8_t currentEnergyLogEntryData2[] = {
+		INJECT16(time.year), time.month, time.day, ((time.day - 1) > 0)?(time.day - 1):0,time.hour, time.minute,time.second, 0xFF, INJECT16(120), 0x00,
+	  };
+
+	  uint32_t x = currentEnergyLogEntry.l.active_energy;
+	  //calculate for incrimental data
+	  if(currentEnergyLogEntry.l.active_energy>=LastTxEnergyCopy.active_energy)
+	  {
+		  currentEnergyLogEntry.l.active_energy -= LastTxEnergyCopy.active_energy;
+	  }
+	  else {
+		 currentEnergyLogEntry.l.active_energy = 0;
+	  }
+	  LastTxEnergyCopy.active_energy = x;
+	  //end of update for incrimental energy log
+
+	  x = currentEnergyLogEntry.l.reactive_energy_QI;
+	  //calculate for incrimental data for R_QI
+	  if(currentEnergyLogEntry.l.reactive_energy_QI>=LastTxEnergyCopy.reactive_energy_QI){
+			currentEnergyLogEntry.l.reactive_energy_QI -= LastTxEnergyCopy.reactive_energy_QI;
+	  }
+	  else {
+		  currentEnergyLogEntry.l.reactive_energy_QI = 0;
+	  }
+	  LastTxEnergyCopy.reactive_energy_QI = x;
+
+	  x = currentEnergyLogEntry.l.reactive_energy_QIV;
+	  //calculate for incrimental data for R_QIV
+	  if(currentEnergyLogEntry.l.reactive_energy_QIV>=LastTxEnergyCopy.reactive_energy_QIV){
+			currentEnergyLogEntry.l.reactive_energy_QIV -= LastTxEnergyCopy.reactive_energy_QIV;
+	  }
+	  else {
+		  currentEnergyLogEntry.l.reactive_energy_QIV = 0;
+	  }
+	  LastTxEnergyCopy.reactive_energy_QIV = x;
+
+	  memcpy(currentEnergyLogEntryData,currentEnergyLogEntryData2,12);
 }
 
 void load_daily_energy_to_ram(unsigned int entry_no)
@@ -467,7 +489,7 @@ int64_t get_numeric_item(int item)
           {
               loadEnergyToRam(entry_no);
           }
-          val = currentEnergyLogEntry.l.Reactive_Power_R4;
+          val = currentEnergyLogEntry.l.reactive_energy_QIV;
       
     break; //update this correctly 
     case ITEM_TAG_EVENT_GROUP_SE:
@@ -518,7 +540,7 @@ int64_t get_numeric_item(int item)
           {
               loadEnergyToRam(entry_no);
           }
-          val = currentEnergyLogEntry.l.Active_Power;
+          val = currentEnergyLogEntry.l.active_power;
     break; //update this correctly 
     case ITEM_TAG_REACTIVE_POWER_LP:  //done test
       
@@ -530,7 +552,7 @@ int64_t get_numeric_item(int item)
           {
               loadEnergyToRam(entry_no);
           }
-          val = currentEnergyLogEntry.l.Reactive_Power_R1;
+          val = currentEnergyLogEntry.l.reactive_energy_QI;
       
     break; //update this correctly
     
@@ -543,7 +565,7 @@ int64_t get_numeric_item(int item)
         {
             loadEnergyToRam(entry_no);
         }
-        val = currentEnergyLogEntry.l.ActiveEnergy;
+        val = currentEnergyLogEntry.l.active_energy;
       
     break;
 
@@ -746,7 +768,7 @@ int64_t get_numeric_item(int item)
           {
         	  load_daily_energy_to_ram(entry_no);
           }
-          val = currentEnergyLogEntry.l.ActiveEnergy;
+          val = currentEnergyLogEntry.l.active_energy;
           break;
 
       case ITEM_TAG_REACTIVE_ENERGY_QI_LP_2:
@@ -760,7 +782,7 @@ int64_t get_numeric_item(int item)
     	  {
     		  load_daily_energy_to_ram(entry_no);
     	  }
-    	  val = currentEnergyLogEntry.l.Reactive_Power_R1;
+    	  val = currentEnergyLogEntry.l.reactive_energy_QI;
     	  break;
 
       case ITEM_TAG_REACTIVE_ENERGY_QIV_LP_2:
@@ -774,7 +796,7 @@ int64_t get_numeric_item(int item)
     	  {
     		  load_daily_energy_to_ram(entry_no);
     	  }
-    	  val = currentEnergyLogEntry.l.Reactive_Power_R4;
+    	  val = currentEnergyLogEntry.l.reactive_energy_QIV;
     	  break;
 /*******/
       default:

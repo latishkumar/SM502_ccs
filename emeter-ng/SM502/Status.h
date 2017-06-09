@@ -127,10 +127,16 @@ typedef struct
   volatile uint8_t write_tamper_status:1;
   volatile uint8_t write_status:1;
   
-  volatile uint8_t energy_log_overlaped:1;
-  volatile uint8_t event_log_overlaped:1;
+  volatile uint8_t energy_log_overlapped:1;
   volatile uint8_t task_exec_finished:1;
-  volatile uint8_t daily_snapshot_energy_overlaped:1;
+  volatile uint8_t daily_snapshot_energy_overlapped:1;
+  volatile uint8_t standard_event_log_overlapped:1;
+  volatile uint8_t fraud_event_log_overlapped:1;
+  volatile uint8_t power_qual_event_log_overlapped:1;
+  volatile uint8_t common_event_log_overlapped:1;
+  volatile uint8_t firmware_event_log_overlapped:1;
+  volatile uint8_t synchronization_event_log_overlapped:1;
+  volatile uint8_t disconnect_event_log_overlapped:1;
   //uint8_t Power_out;
 //  uint8_t rtc_init:1;
   

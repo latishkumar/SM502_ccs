@@ -35,7 +35,7 @@
 #include "iec62056_46_link.h"
 #include "iec62056_46_user.h"
 #include "uart_comms.h"
-
+#include "daily_load_profile.h"
 
 void performPowerQualityMessurement(); // some of the power quality management is performed by the
 
@@ -505,15 +505,7 @@ void main(void)
                   {
                 	  per_day_activity();//run activities that needs to be executed every day
                 	  status.DayChanged = 0;
-                	  //capture daily snapshot
-                	  EnergyLog daily_snapshot;
-                	  daily_snapshot.ActiveEnergy =chan1.active_energy_import;// chan1.consumed_active_energy;
-                	  daily_snapshot.Reactive_Power_R1 = chan1.consumed_reactive_energy_QI;//chan1.readings.reactive_power;
-                	  daily_snapshot.Active_Power = chan1.readings.active_power;
-                	  daily_snapshot.Reactive_Power_R4 = chan1.consumed_reactive_energy_QIV;//chan1.readings.V_rms;
-                	  daily_snapshot.timeStump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-                	  daily_snapshot.CRC = daily_snapshot.ActiveEnergy + daily_snapshot.Reactive_Power_R1 + daily_snapshot.timeStump.TimestampLow+ daily_snapshot.timeStump.TimestampUp;
-                      write_to_eeprom(&daily_snapshot,(uint8_t *)0,log_daily_energy_snapshot);
+                	  capture_daily_snapshot();
                   }
                   
                   //perform other tasks hear
@@ -532,12 +524,12 @@ void main(void)
                   if (status.LoggingTimeIsUp == 1) //Timer
                   {
                       EnergyLog e;
-                      e.ActiveEnergy =chan1.active_energy_import;// chan1.consumed_active_energy;
-                      e.Reactive_Power_R1 = chan1.consumed_reactive_energy_QI;//chan1.readings.reactive_power;
-                      e.Active_Power = chan1.readings.active_power;
-                      e.Reactive_Power_R4 = chan1.consumed_reactive_energy_QIV;//chan1.readings.V_rms;
+                      e.active_energy = chan1.active_energy_import;// chan1.consumed_active_energy;
+                      e.reactive_energy_QI = chan1.consumed_reactive_energy_QI;//chan1.readings.reactive_power;
+                      e.active_power = chan1.readings.active_power;
+                      e.reactive_energy_QIV = chan1.consumed_reactive_energy_QIV;//chan1.readings.V_rms;
                       e.timeStump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-                      e.CRC = e.ActiveEnergy + e.Reactive_Power_R1 + e.timeStump.TimestampLow+ e.timeStump.TimestampUp;
+                      e.CRC = e.active_energy + e.reactive_energy_QI + e.timeStump.TimestampLow+ e.timeStump.TimestampUp;
                       write_to_eeprom(&e,(uint8_t *)0,logEnergy);
                       status.LoggingTimeIsUp =  0;          
                   }
@@ -924,19 +916,17 @@ void restoreBackup()
             EventLog l;
             l.EventCode = PowerOut;
             l.timeStump = getTimeStamp(time.year, time.month, time.day, time.hour, time.minute, time.second);
-            l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow
-                            + l.timeStump.TimestampUp);
+            l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow + l.timeStump.TimestampUp);
             l.value = (uint32_t)td;
-            write_to_eeprom(&l,(uint8_t *)0,logEvent);            
+            write_to_eeprom(&l,(uint8_t *)3,log_events);
             
             
             //log power is back event
             l.EventCode = PowerUp;
             l.timeStump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-            l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow
-                            + l.timeStump.TimestampUp);
+            l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow  + l.timeStump.TimestampUp);
             l.value = 0;
-            write_to_eeprom(&l,(uint8_t *)0,logEvent); 
+            write_to_eeprom(&l,(uint8_t *)3,log_events);
             
             
 //            Current_balance.balance = backup.seg_a.s.CurrentBalance;

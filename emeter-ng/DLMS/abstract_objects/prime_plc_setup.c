@@ -16,7 +16,7 @@ uint16_t plc_vendor_id = 1234;
 
 uint8_t plc_product_id = 234;
 
-uint8_t mac_address[]={0,0xB,0,0,0,0,0x22}; //6 octect string -EUI48
+uint8_t mac_address[]={6,0x0C,0x0B,0x0A,0,0,0x11}; //6 octect string -EUI48
 /*
  * Callback function for PLC frimware version
  */
@@ -41,18 +41,34 @@ void get_set_firmware_version(void *data,int data_direction)
 
 void get_set_mac_address(void *data,int data_direction)
 {
-    uint8_t *datap =  data;
+	uint8_t *datap =  data;
+	if(data_direction == ATTR_WRITE)
+	{
+	  datap++;
+	  setMacAddress(datap,(uint8_t *)0);
+	  //datap++;
+	  memcpy(&mac_address[1],datap,6);
+	}
+	else if(data_direction == ATTR_READ)
+	{
+	   memcpy(datap,mac_address,7);
+//	   uint8_t  *datap2= (mac_address+1);
+//	   memcpy(datap2,EUI,6);
+//	   memcpy(datap,mac_address,7);
+	}
+	/*uint8_t *datap =  data;
     if(data_direction == ATTR_WRITE)
     {
       datap++;
       setMacAddress(datap,(uint8_t *)0);
       //datap++;
-      memcpy(EUI,datap,6);
+      //memcpy(EUI,datap,6);
+      memcpy(mac_address+1,datap,6);
     }
     else if(data_direction == ATTR_READ)
     {
       // uint8_t  *datap2= (mac_address + 1);
      //  memcpy(datap2,EUI,6);
        memcpy(datap,mac_address,7);///TODO
-    }
+    }*/
 }

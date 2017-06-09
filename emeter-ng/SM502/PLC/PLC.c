@@ -395,8 +395,8 @@ void InitPLC()
 {
     validation_arg_t noValidation = validation_arg_t_default;
     read_from_eeprom(device_identifier,(uint8_t *)0,getLogicDeviceName,&noValidation);
-    read_from_eeprom(EUI,(uint8_t *)0,getMacAddress,&noValidation);
- 
+   // read_from_eeprom(EUI,(uint8_t *)0,getMacAddress,&noValidation);
+    read_from_eeprom(&mac_address[1],(uint8_t *)0,getMacAddress,&noValidation);
 #ifdef CUSTOM_LOGGER
        printf("  -> Init PLC UART\n");
 #endif   

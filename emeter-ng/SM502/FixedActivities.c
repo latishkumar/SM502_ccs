@@ -57,6 +57,7 @@ extern Tamper_Count TamperCount;
 uint16_t neutral_tamper_trip_counter;
 uint8_t low_bat_backup_time = 5;
 
+extern uint8_t output_state;
 
 extern void perform_low_battry_backup(); //was __monitor func
 extern uint16_t number_of_long_power_failures;
@@ -240,21 +241,19 @@ void per_second_activity()
         //Disconnect meter due to Active Power Excedded time limitation 
        if(status.ActivePowerExcededLoggedStatus != 1)
        {
-        //log the EVENT 
-           EventLog l;
-	   l.EventCode = ActivePowerExcededError;
-	   l.timeStump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-	   l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow
-			+ l.timeStump.TimestampUp);
-           l.value = phase->readings.active_power;
-           l.EventGroup = 1;
-	   //l.StartAddress = 0;	//last event log address
-//	   logEvent(&l);  
-           write_to_eeprom(&l,(uint8_t *)0,logEvent);
-        //send event through PLC 
-           AddError(ActivePowerExcededError);
-         status.ActivePowerExcededLoggedStatus = 1;
-          return;//Thinkg about this ?????
+    	   //log disconnect event
+    	   disconnect_event_log l;
+    	   l.event_code = ActivePowerExcededError;
+    	   l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
+    	   l.disconnect_control_status = output_state;
+    	   l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
+    	   // l.value = phase->readings.active_power;
+    	   // l.EventGroup = 1;
+    	   write_to_eeprom(&l,(uint8_t *)9,log_events);
+    	   //send event through PLC
+    	   AddError(ActivePowerExcededError);
+    	   status.ActivePowerExcededLoggedStatus = 1;
+    	   return;//Thinkg about this ?????
        }
      }
    }
@@ -275,16 +274,13 @@ void per_second_activity()
         status.OverCurrentTimedOutStatus = 1;
         if(status.OverCurrentLoggedStatus != 1)
         {
-           //log event 
-           EventLog l;
-	   l.EventCode = OverCurrentError;
-	   l.timeStump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-	   l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow
-			+ l.timeStump.TimestampUp);
-	   //l.StartAddress = 0;	//last event log address
-           l.value = phase->readings.I_rms;
-//	   logEvent(&l);
-           write_to_eeprom(&l,(uint8_t *)0,logEvent);
+           //log power quality event
+           event_log l;
+           l.event_code = OverCurrentError;
+           l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
+           l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
+           //l.value = phase->readings.I_rms;
+           write_to_eeprom(&l,(uint8_t *)5,log_events);
            //disconnect meter 
            //plc send     
            AddError(OverCurrentError);
@@ -313,20 +309,17 @@ void per_second_activity()
            //disconnect meter 
          if(status.OverVoltageLoggedStatus != 1)
          {
-           //log event
-           EventLog l;
-	   l.EventCode = HighVoltageError;
-	   l.timeStump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-	   l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow
-			+ l.timeStump.TimestampUp);
-	    //l.StartAddress = 0;	//last event log address
-           l.value = phase->readings.V_rms;
-//	   logEvent(&l);  
-           write_to_eeprom(&l,(uint8_t *)0,logEvent);
-           status.OverVoltageLoggedStatus = 1;
-           AddError(HighVoltageError);
-           //TX event
-           return;//?????
+        	 //log power quality event
+             event_log l;
+             l.event_code = HighVoltageError;
+             l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
+             l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
+             //l.value = phase->readings.V_rms;
+             write_to_eeprom(&l,(uint8_t *)5,log_events);
+             status.OverVoltageLoggedStatus = 1;
+             AddError(HighVoltageError);
+             //TX event
+             return;//?????
          }
          
       }
@@ -346,26 +339,21 @@ void per_second_activity()
      UnderVoltageTimer++;
      if(UnderVoltageTimer >= under_voltage_trip_duration)
      {
-       status.UnderVoltageTimedOutStatus = 1;
-
-         
-           //disconnect meter
+    	 status.UnderVoltageTimedOutStatus = 1;
+         //disconnect meter
          if(status.UnderVoltageLoggedStatus != 1)
          {
-           //log event 
-           EventLog l;
-	   l.EventCode = LowVoltageError;
-	   l.timeStump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-	   l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow
-			+ l.timeStump.TimestampUp);
-	    //l.StartAddress = 0;	//last event log address
-           l.value = phase->readings.V_rms;
-//	   logEvent(&l);
-           write_to_eeprom(&l,(uint8_t *)0,logEvent);
-           AddError(LowVoltageError);
-           //TX event
-           status.UnderVoltageLoggedStatus =1;
-            return;//?????
+        	 // log power quality event
+             event_log l;
+             l.event_code = LowVoltageError;
+             l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
+             l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
+             //l.value = phase->readings.V_rms;
+             write_to_eeprom(&l,(uint8_t *)5,log_events);
+             AddError(LowVoltageError);
+             //TX event
+             status.UnderVoltageLoggedStatus = 1;
+             return;//?????
          }
      }
 
@@ -388,22 +376,17 @@ void per_second_activity()
        status.LongPowerFaileTimedOutStatus = 1;
        if(status.LongPowerFailLoggedStatus != 1)
        {
-           //disconnect meter
-           //log event 
-           EventLog l;
-	   l.EventCode = LongPowerFailer;
-	   l.timeStump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-	   l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow
-			+ l.timeStump.TimestampUp);
-	    //l.StartAddress = 0;	//last event log address
-	   l.value = phase->readings.V_rms;
-//           logEvent(&l);
-           write_to_eeprom(&l,(uint8_t *)0,logEvent);
+    	   // log power quality event
+           event_log l;
+           l.event_code = LongPowerFailer;
+           l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
+           l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
+	       //l.value = phase->readings.V_rms;
+           write_to_eeprom(&l,(uint8_t *)5,log_events);
            status.LongPowerFailLoggedStatus = 1;
-            AddError(LongPowerFailer);
+           AddError(LongPowerFailer);
            number_of_long_power_failures++;
            //logNumberOfLongPowerFailes(&number_of_long_power_failures);TODO. impliment this
-           
            //TX event
             return;//?????
        }
@@ -428,19 +411,16 @@ void per_second_activity()
            status.OverFreqTimedOutStatus=1;
            if(status.OverFreqLoggedStatus != 1)
            {
-           //log event 
-           EventLog l;
-	   l.EventCode = OverFrequencyError;
-	   l.timeStump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-	   l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow
-			+ l.timeStump.TimestampUp);
-	   //l.StartAddress = 0;	//last event log address
-           l.value = phase->readings.frequency;
-//	   logEvent(&l);
-           AddError(OverFrequencyError);
-           write_to_eeprom(&l,(uint8_t *)0,logEvent);
-           status.OverFreqLoggedStatus = 1;
-            return;//?????
+			   //log event
+			   event_log l;
+			   l.event_code = OverFrequencyError;
+			   l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
+			   l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
+			   //l.value = phase->readings.frequency;
+			   AddError(OverFrequencyError);
+			   write_to_eeprom(&l,(uint8_t *)5,log_events);
+			   status.OverFreqLoggedStatus = 1;
+			   return;//?????
            }
      }
    }
@@ -462,20 +442,17 @@ void per_second_activity()
            status.UnderFreqTimedOutStatus = 1;
            if(status.UnderFreqLoggedStatus != 1)
            {
-           //log event 
-           EventLog l;
-	   l.EventCode = UnderFrequencyError;
-	   l.timeStump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-	   l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow
-			+ l.timeStump.TimestampUp);
-	   //l.StartAddress = 0;	//last event log address
-           l.value = phase->readings.frequency;
-//	   logEvent(&l);
-           write_to_eeprom(&l,(uint8_t *)0,logEvent);
-           //TX event
-           AddError(UnderFrequencyError);
-           status.UnderFreqLoggedStatus = 1;
-            return;//?????
+        	   // log power quality event
+        	   event_log l;
+        	   l.event_code = UnderFrequencyError;
+        	   l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
+        	   l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
+        	   //l.value = phase->readings.frequency;
+        	   write_to_eeprom(&l,(uint8_t *)5,log_events);
+        	   //TX event
+        	   AddError(UnderFrequencyError);
+        	   status.UnderFreqLoggedStatus = 1;
+        	   return;//?????
            }
      }
    }
@@ -558,15 +535,15 @@ void per_second_activity()
       
       if(status.write_tamper_status == 1)
       {
-        write_to_eeprom(&status,(uint8_t *)0,logMeterStatus);
-        status.write_tamper_status = 0;
-        EventLog evl;
-        evl.EventCode = TAMPER_EVENT_CLEARED;
-        evl.timeStump = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
-        evl.Checksum  =(getCheckSum(&(evl.timeStump.TimestampLow),4) + evl.timeStump.TimestampUp + evl.EventCode)&0xff;
-        evl.value = 0;
-//        logEvent(&evl);
-        write_to_eeprom(&evl,(uint8_t *)0,logEvent);
+    	  write_to_eeprom(&status,(uint8_t *)0,logMeterStatus);
+    	  status.write_tamper_status = 0;
+    	  // log fraud event
+    	  event_log l;
+    	  l.event_code = TAMPER_EVENT_CLEARED;
+    	  l.time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
+    	  l.checksum  =(getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;
+    	 // l.value = 0;
+    	  write_to_eeprom(&l,(uint8_t *)4,log_events);
       }
 }
 

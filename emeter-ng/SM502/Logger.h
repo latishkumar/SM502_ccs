@@ -17,7 +17,7 @@
 #include "utilities.h"   
 //#include <emeter-toolkit.h>
 #include "I2C2EEPROM.h"   
-#include "../emeter-structs.h"   
+#include "emeter-structs.h"
    
 #include "Status.h"
 #include "errors.h"
@@ -25,7 +25,7 @@
 #define EEPROM_INIT_MAX_RETRAY 5    
 #define Max_DeviceAddress 32
 
-
+extern uint8_t mac_address[];
 extern MeterStatus status;
 /*
  *
@@ -84,7 +84,12 @@ extern unsigned long LastEnergyLogAddress ;
 extern unsigned long LastEventLogAddress  ;
 extern unsigned long LastEnergyBillingCuttOffLogAddress;
 extern unsigned long last_daily_snapshot_log_address;
-
+extern unsigned long last_fraud_event_log_address;
+extern unsigned long last_power_qual_event_log_address;
+extern unsigned long last_common_event_log_address;
+extern unsigned long last_firmware_event_log_address;
+extern unsigned long last_synchronization_event_log_address;
+extern unsigned long last_disconnect_event_log_address;
 #define EventLogSize 12
 /*
  *	EventCode:-  will have 1byte length, 
@@ -103,6 +108,44 @@ typedef struct
    //unsigned long StartAddress;
 }EventLog;
 
+typedef struct
+{
+	uint8_t event_code;   // 1 byte
+	uint8_t checksum;     // 1 byte
+	TimeStump time_stamp; // 5 byte
+}event_log; //for standard, fraud detection, power quality, demand, communication events
+
+typedef struct
+{
+	uint8_t event_code;			  // 1 byte
+    uint8_t checksum;             // 1 byte
+	TimeStump begin_time_stamp;   // 5 byte
+	TimeStump end_time_stamp;	  // 5 byte
+}time_bound_event_log; //finished power quality,synchronization event
+typedef struct
+{
+	uint8_t event_code;			// 1 byte
+	uint8_t checksum;			// 1 byte
+	uint8_t active_firmware[5]; // 5 byte
+	//uint8_t former_firmware[5]; // 5 byte
+	TimeStump time_stamp;		// 5 byte
+}firmware_event_log;
+typedef struct
+{
+	uint8_t event_code;			       // 1 byte
+	uint8_t checksum;			       // 1 byte
+	uint8_t disconnect_control_status; // 1 byte
+	TimeStump time_stamp;			   // 5 byte
+}disconnect_event_log;
+#define EVENT_LOG_TYPE_SIZE 7
+#define TIME_BOUND_EVENT_LOG_TYPE_SIZE 12
+#define FIRMWARE_EVENT_LOG_TYPE_SIZE 12
+#define DISCONNECT_EVENT_LOG_TYPE_SIZE 8
+
+#define init_common_event_logs {0, 0, {0, 0}}
+#define init_time_bounded_event_logs {0, 0, {0, 0}, {0, 0}}
+#define init_firmware_event_log {0, 0, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0}}
+#define init_disconnect_event_log {0, 0, 0, {0, 0}}
 #define init_EventLog {0, 0,0, 0, { 0, 0}}
 
 enum EventGroup_Types{
@@ -129,11 +172,11 @@ enum EventGroup_Types{
  */
 typedef struct
 {  
-    unsigned long ActiveEnergy; //4byte   // consumed active energy import
+    unsigned long active_energy; //4byte   // consumed active energy import
     
-    unsigned long Reactive_Power_R1; //4byte // positive reactive energy ,
-    unsigned long Active_Power;//4 byte
-    unsigned long Reactive_Power_R4; //4 byte [E.E]-was Voltage and changed to support negative reactive energy
+    unsigned long reactive_energy_QI; //4byte // positive reactive energy ,
+    unsigned long active_power;//4 byte
+    unsigned long reactive_energy_QIV; //4 byte [E.E]-was Voltage and changed to support negative reactive energy
     
     TimeStump timeStump; //5byte
                     
@@ -583,9 +626,76 @@ int read_from_eeprom(void *readArgument_1,void *readArgument_2,int8_t(*read)(voi
                                                 /*
                                                     Total Events = (131070  - 12622) / (11) ==> (EEPROM1_END - EVENT_Start) / EVENT_SIZE = 10,770
                                                 */
+#define MAX_STANDARD_EVENT_LOGS 5701ul
 
-#define EventLog_SIZE 10768ul 
-#define EventLog_End EventLogAddress_Start + EventLogSize * 10000ul //131071
+#define EventLog_SIZE 68412 //5701 LOGS * 12 BYTES //10768ul
+#define EventLog_End 							EventLogAddress_Start + EventLog_SIZE - EventLogSize//+ EventLogSize * 10000ul //131071
+
+#define LAST_FRAUD_EVENT_ADDRESS_START 			EventLogAddress_Start + EventLog_SIZE
+#define LAST_FRAUD_EVENT_SIZE 4ul
+
+#define FRAUD_EVENT_OVERLAP_ADDRESS_START  		LAST_FRAUD_EVENT_ADDRESS_START + LAST_FRAUD_EVENT_SIZE
+#define FRAUD_EVENT_OVERLAP_SIZE 1ul
+
+#define FRAUD_EVENT_LOG_ADDRESS_START 			FRAUD_EVENT_OVERLAP_ADDRESS_START + FRAUD_EVENT_OVERLAP_SIZE
+#define MAX_FRAUD_EVENT_LOGS 1000ul
+#define FRAUD_EVENT_LOG_SIZE 7000UL //1000LOGS * 7 bytes
+#define FRAUD_EVENT_LOG_ADDRESS_END 			FRAUD_EVENT_LOG_ADDRESS_START + FRAUD_EVENT_LOG_SIZE - EVENT_LOG_TYPE_SIZE
+
+#define LAST_POWER_QUAL_EVENT_ADDRESS_START  	FRAUD_EVENT_LOG_ADDRESS_START + FRAUD_EVENT_LOG_SIZE
+#define LAST_POWER_QUAL_EVENT_SIZE 4ul
+
+#define POWER_QUAL_EVENT_OVERLAP_ADDRESS_START  LAST_POWER_QUAL_EVENT_ADDRESS_START + LAST_POWER_QUAL_EVENT_SIZE
+#define POWER_QUAL_EVENT_OVERLAP_SIZE 1ul
+
+#define POWER_QUAL_LOG_ADDRESS_START			POWER_QUAL_EVENT_OVERLAP_ADDRESS_START + POWER_QUAL_EVENT_OVERLAP_SIZE
+#define MAX_POWER_QUAL_EVENT_LOGS 1000ul
+#define POWER_QUAL_EVENT_LOG_SIZE 7000UL //1000LOGS * 7 bytes
+#define POWER_QUAL_LOG_ADDRESS_END 				POWER_QUAL_LOG_ADDRESS_START + POWER_QUAL_EVENT_LOG_SIZE - EVENT_LOG_TYPE_SIZE
+
+#define LAST_COMMON_EVENT_ADDRESS_START			POWER_QUAL_LOG_ADDRESS_START + POWER_QUAL_EVENT_LOG_SIZE
+#define LAST_COMMON_EVENT_SIZE 4ul
+
+#define COMMON_EVENT_OVERLAP_ADDRESS_START		LAST_COMMON_EVENT_ADDRESS_START + LAST_COMMON_EVENT_SIZE
+#define COMMON_EVENT_OVERLAP_SIZE 1ul
+
+#define COMMON_LOG_ADDRESS_START				COMMON_EVENT_OVERLAP_ADDRESS_START + COMMON_EVENT_OVERLAP_SIZE
+#define MAX_COMMON_EVENT_LOGS 1000ul
+#define COMMON_EVENT_LOG_SIZE 7000UL //1000LOGS * 7 bytes
+#define COMMON_LOG_ADDRESS_END 					COMMON_LOG_ADDRESS_START + COMMON_EVENT_LOG_SIZE - EVENT_LOG_TYPE_SIZE
+
+#define LAST_FIRMWARE_EVENT_ADDRESS_START 		COMMON_LOG_ADDRESS_START + COMMON_EVENT_LOG_SIZE
+#define LAST_FIRMWARE_EVENT_SIZE 4ul
+
+#define FIRMWARE_EVENT_OVERLAP_ADDRESS_START	LAST_FIRMWARE_EVENT_ADDRESS_START + LAST_FIRMWARE_EVENT_SIZE
+#define FIRMWARE_EVENT_OVERLAP_SIZE 1ul
+
+#define FIRMWARE_LOG_ADDRESS_START				FIRMWARE_EVENT_OVERLAP_ADDRESS_START + FIRMWARE_EVENT_OVERLAP_SIZE
+#define MAX_FIRMWARE_EVENT_LOGS 1000ul
+#define FIRMWARE_EVENT_LOG_SIZE 7000UL //1000LOGS * 7 bytes
+#define FIRMWARE_LOG_ADDRESS_END 				FIRMWARE_LOG_ADDRESS_START + FIRMWARE_EVENT_LOG_SIZE - FIRMWARE_EVENT_LOG_TYPE_SIZE
+
+#define LAST_SYNCHRONIZATION_EVENT_ADDRESS_START 		FIRMWARE_LOG_ADDRESS_START + FIRMWARE_EVENT_LOG_SIZE
+#define LAST_SYNCHRONIZATION_EVENT_SIZE 4ul
+
+#define SYNCHRONIZATION_EVENT_OVERLAP_ADDRESS_START		LAST_SYNCHRONIZATION_EVENT_ADDRESS_START + LAST_SYNCHRONIZATION_EVENT_SIZE
+#define SYNCHRONIZATION_EVENT_OVERLAP_SIZE 1ul
+
+#define SYNCHRONIZATION_LOG_ADDRESS_START				SYNCHRONIZATION_EVENT_OVERLAP_ADDRESS_START + SYNCHRONIZATION_EVENT_OVERLAP_SIZE
+#define MAX_SYNCHRONIZATION_EVENT_LOGS 1000ul
+#define SYNCHRONIZATION_EVENT_LOG_SIZE 7000UL //1000LOGS * 7 bytes
+#define SYNCHRONIZATION_LOG_ADDRESS_END 				SYNCHRONIZATION_LOG_ADDRESS_START + SYNCHRONIZATION_EVENT_LOG_SIZE - TIME_BOUND_EVENT_LOG_TYPE_SIZE
+
+#define LAST_DISCONNECT_EVENT_ADDRESS_START				SYNCHRONIZATION_LOG_ADDRESS_START + SYNCHRONIZATION_EVENT_LOG_SIZE
+#define LAST_DISCONNECT_EVENT_SIZE 4ul
+
+#define DISCONNECT_EVENT_OVERLAP_ADDRESS_START			LAST_DISCONNECT_EVENT_ADDRESS_START + LAST_DISCONNECT_EVENT_SIZE
+#define DISCONNECT_EVENT_OVERLAP_SIZE 1ul
+
+#define DISCONNECT_LOG_ADDRESS_START					DISCONNECT_EVENT_OVERLAP_ADDRESS_START + DISCONNECT_EVENT_OVERLAP_SIZE
+#define MAX_DISCONNECT_EVENT_LOGS 1000ul
+#define DISCONNECT_EVENT_LOG_SIZE 7000UL //1000LOGS * 7 bytes
+#define DISCONNECT_LOG_ADDRESS_END 						DISCONNECT_LOG_ADDRESS_START + DISCONNECT_EVENT_LOG_SIZE - DISCONNECT_EVENT_LOG_TYPE_SIZE
 
 
 
@@ -701,7 +811,7 @@ uint8_t getEnergy(EnergyLog *l,unsigned long StartAddress);
 * @param l(EventLog type) the event to log
 * @param StartAddress: the address to write the event at 
 */
-int8_t logEvent2(void *l,void *StartAddress);
+//int8_t logEvent2(void *l,void *StartAddress);
 /**
 * @see logEvent2
 */
@@ -720,6 +830,7 @@ int8_t logEnergy2(void *l,uint32_t StartAddress);
 int8_t getEnergy2(void *l,uint32_t EntryNumber);
 int8_t log_daily_energy_snapshot(void *l2,void *dummy);
 int8_t get_daily_snapshot_energy_profile(void *lt,uint32_t EntryNumber);
+uint8_t get_daily_snapshot_overlap_flag(uint8_t *flag);
 
 /**
 * Id2: pointer to the array to copy the id to
@@ -919,7 +1030,7 @@ int8_t setEventOverlapFlag(void *val2,void * dummy);
 /**
 * @see setEventOverlapFlag
 */
-uint8_t getEventOverlapFlag(uint8_t *flag);
+uint8_t get_event_overlap_flag(uint8_t *flag, uint8_t *type);
 
 /**
 * sets or clears the billing cutoff log overlap indicator flag
@@ -1266,4 +1377,39 @@ uint8_t readAllFirwmareBlockStatus(uint8_t *blocks,uint8_t dummy);
 * @param statusBlock : the status block
 */
 uint8_t readFirwmareBlockStatus(uint8_t *statusBlock,uint8_t blockNumber);
+/*
+ * Logs different types of events into the eeprom
+ */
+int8_t log_events(void *l2,void *type);
+int8_t compare_fraud_event(void *event0,void *event1);
+uint8_t get_fraud_event_log(event_log *l,unsigned long StartAddres);
+int8_t get_fraud_event(void *lt,uint32_t EntryNumber);
+uint8_t get_power_qual_event_log(event_log *l,unsigned long StartAddres);
+int8_t get_power_qual_event(void *lt,uint32_t EntryNumber);
+uint8_t get_common_event_log(event_log *l,unsigned long StartAddres);
+int8_t get_common_event(void *lt,uint32_t EntryNumber);
+int8_t compare_firmware_event(void *event0,void *event1);
+uint8_t get_firmware_event_log(firmware_event_log *l,unsigned long StartAddres);
+int8_t get_firmware_event(void *lt,uint32_t EntryNumber);
+int8_t compare_synchronization_event(void *event0,void *event1);
+uint8_t get_synchronization_event_log(time_bound_event_log *l,unsigned long StartAddres);
+int8_t get_synchronization_event(void *lt,uint32_t EntryNumber);
+int8_t compare_disconnect_event(void *event0,void *event1);
+uint8_t get_disconnect_event_log(disconnect_event_log *l,unsigned long StartAddres);
+int8_t get_disconnect_event(void *lt,uint32_t EntryNumber);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #endif /* LOGGER_H_ */

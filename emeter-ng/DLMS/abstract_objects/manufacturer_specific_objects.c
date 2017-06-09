@@ -8,7 +8,10 @@
 #include "headers.h"
 #include "manufacturer_specific_objects.h"
 #include "self_diagnosis.h"
-
+int16_t alarm_status;
+/*
+ * Method function for reset alarm object
+ */
 void reset_alarms(uint8_t *data, uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
   uint8_t type = *data++;//type is 18
@@ -35,6 +38,46 @@ void reset_alarms(uint8_t *data, uint16_t data_len,uint8_t *response,uint16_t *r
         break;
   }
   status.write_tamper_status = 0;
+}
+
+/*
+ * Call back function for reset alarm object
+ */
+void reset_persistent_events(void *data, int data_direction)
+{
+	if(data_direction == ATTR_WRITE)
+	{
+		status.write_tamper_status = 1;
+		int16_t nv_2 = 0;
+		uint8_t *ptr2 = data;
+		nv_2 = *(ptr2+1);
+	    nv_2 |= ((*(ptr2))<<8);
+		switch(nv_2)
+		{
+			case 1:
+				status.UpperCoverRemovedTamperStatus = 0;
+				break;
+			case 2:
+				status.LowerCoverRemovedTamperStatus = 0;
+				break;
+			case 3:
+				status.MangneticTamperStatus = 0;
+				break;
+			case 4:
+				status.NeutralTamperStatus = 0;
+				break;
+			default:
+				break;
+		  }
+		  status.write_tamper_status = 0;
+	}
+	else if(data_direction == ATTR_READ)
+	{
+	    uint8_t *datap =  data;
+	    *datap = alarm_status & 0xFF;
+		datap++;
+		*datap = (alarm_status>>8) & 0xFF;
+	}
 }
 
 extern void updateCalibrationFactor(int16_t ErrorPercent,uint8_t type);

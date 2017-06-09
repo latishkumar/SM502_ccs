@@ -8,7 +8,12 @@
 #ifndef DLMS_ABSTRACT_OBJECTS_MANUFACTURER_SPECIFIC_OBJECTS_H_
 #define DLMS_ABSTRACT_OBJECTS_MANUFACTURER_SPECIFIC_OBJECTS_H_
 
+extern int16_t alarm_status;
+
+void reset_persistent_events(void *data, int data_direction);
+
 void reset_alarms(uint8_t *data, uint16_t data_len,uint8_t *response,uint16_t *response_len);
+
 void calibrate_power_scaler(void *data, int data_direction);
 
 void calibrate_current_scaler(void *data, int data_direction);

@@ -283,16 +283,13 @@ void ProcessTamperUC()
 */
 void UCTamperDetected()
 {
-    //AddError(UpperCoverRemovedTamperError);            
-    //ShowTamper(UC_TamperType);
-    EventLog evl;
-    //evl.StartAddress = LastEventLogAddress+1;
-    evl.EventCode = UpperCoverRemovedTamperError;
-    evl.timeStump = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
-    evl.Checksum  =(getCheckSum(&(evl.timeStump.TimestampLow),4) + evl.timeStump.TimestampUp + evl.EventCode)&0xff;
-    evl.value = 0;
-//    logEvent(&evl);
-    write_to_eeprom(&evl,(uint8_t *)0,logEvent);
+	// log upper cover tamper event
+    event_log l;
+    l.event_code = UpperCoverRemovedTamperError;
+    l.time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
+    l.checksum  =(getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;
+    //l.value = 0;
+    write_to_eeprom(&l,(uint8_t *)4,log_events);
     
     TamperCount.UpperCoverRemoved_Count++;
     tamperLoggedStatus |= UCtamperLogged;
@@ -318,22 +315,16 @@ void UCTamperDetected()
 void LCTamperDetected()
 {
      status.LowerCoverRemovedTamperStatus = 1;	
-     //ShowTamper(LC_TamperType);
-     //AddError(LowerCoverRemovedTamperError);
-
-     //log LC tamper
-     EventLog evl;
-     //evl.StartAddress = LastEventLogAddress+1;
-     evl.EventCode = LowerCoverRemovedTamperError;
-     evl.timeStump = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
-     evl.Checksum  =(getCheckSum(&(evl.timeStump.TimestampLow),4) + evl.timeStump.TimestampUp + evl.EventCode)&0xff;
-     evl.value = 0;
-//     logEvent(&evl);
-     write_to_eeprom(&evl,(uint8_t *)0,logEvent);
+     //log lower cover removed tamper
+     event_log l;
+     l.event_code = LowerCoverRemovedTamperError;
+     l.time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
+     l.checksum  =(getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;
+     //l.value = 0;
+     write_to_eeprom(&l,(uint8_t *)4,log_events);
      
      TamperCount.LowerCoverRemoved_Count ++;
      tamperLoggedStatus |= LCtamperLogged; 
-//     setTamperCount(LC_TamperType, TamperCount.LowerCoverRemoved_Count);
      
      uint8_t temp82 = TamperCount.LowerCoverRemoved_Count;
      uint8_t temp8 = LC_TamperType;

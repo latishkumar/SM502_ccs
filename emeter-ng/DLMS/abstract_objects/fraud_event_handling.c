@@ -1,46 +1,30 @@
 /*
- * event_handling.c
+ * fraud_event_handling.c
  *
- *  Created on: May 15, 2017
+ *  Created on: Jun 9, 2017
  *      Author: abi
  */
 
 #include "headers.h"
 #include "event_handling.h"
 #include "hourly_load_profile.h"
+#include "fraud_event_handling.h"
 /*
- * Event Object - Standard Event Log
+ * Event Object - fraud Event Log
  * event number (0 to 255)
  */
-uint8_t standard_event_number;
+uint8_t fraud_event_number;
 
 /*
- * Capture period for events
- * value: 0 asynchronously
- */
-uint32_t events_capture_period=0;
-
-/*
- * Event sort method
- * value:1 /unsorted (FIFO)
- */
-uint8_t events_sort_method = 1;
-
-/*
- * Entries in use for events log
- */
-uint32_t events_entries_in_use;
-
-/*
- * Standard event profile entries
+ * Fraud event profile entries
  * Default: >100
  */
-uint32_t standard_event_profile_entries = 5701;
-const uint16_t standard_event_log_column_szs[] = {16,18};
+uint32_t fraud_event_profile_entries = 1000;
+const uint16_t fraud_event_log_column_szs[] = {16,18};
 /*
  * Template for standard event log profile
  */
-const uint8_t standard_event_log_template[] =
+const uint8_t fraud_event_log_template[] =
 {
    STUFF_DATA | TAG_STRUCTURE, 2,
         STUFF_DATA | TAG_OCTET_STRING, 12,ITEM_TAG_DATETIME_SE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Event Time stump
@@ -48,9 +32,9 @@ const uint8_t standard_event_log_template[] =
 };
 
 /*
- * Capture objects for standard event log profile
+ * Capture objects for fraud event log profile
  */
-const uint8_t standard_event_log_objects[] =
+const uint8_t fraud_event_log_objects[] =
 {
     INJECT16(0x8000 | (2*18+1)),
          2,
@@ -66,7 +50,7 @@ const uint8_t standard_event_log_objects[] =
                 TAG_UINT16, INJECT16(0)
 
 };
-uint8_t find_num_standard_event_log__entries_between(const sSA_Range *startRange,const sSA_Range *endRange,
+uint8_t find_num_fraud_event_log__entries_between(const sSA_Range *startRange,const sSA_Range *endRange,
                                                    uint16_t *startEntryNumber,uint16_t *numOfEntries)
 {
      rtc_t temp_sRange ={startRange->Year,startRange->Month,startRange->Date,startRange->Hr,startRange->Min,0,0};
@@ -80,28 +64,28 @@ uint8_t find_num_standard_event_log__entries_between(const sSA_Range *startRange
      }
 
      uint16_t MAX_Entries = 0;
-     uint32_t add_start = EventLogAddress_Start;
+     uint32_t add_start = FRAUD_EVENT_LOG_ADDRESS_START;
 
     //confirm this with the number of entries we have
-     if(LastEventLogAddress > add_start)//if we have entries
+     if(last_fraud_event_log_address > add_start)//if we have entries
      {
 
-         if(status.standard_event_log_overlapped == 1) // if the cirular buffer is full
+         if(status.fraud_event_log_overlapped == 1) // if the cirular buffer is full
          {
-           MAX_Entries = MAX_STANDARD_EVENT_LOGS;
+           MAX_Entries = MAX_FRAUD_EVENT_LOGS;
          }
          else{
-            MAX_Entries = (LastEventLogAddress - add_start)/EventLogSize;
+            MAX_Entries = (last_fraud_event_log_address - add_start)/EVENT_LOG_TYPE_SIZE;
          }
 
-         EventLog firstEntery,lastEntry;
-         uint8_t z = getEvent2(&firstEntery,1); //get our first entry
+         event_log firstEntery,lastEntry;
+         uint8_t z = get_fraud_event(&firstEntery,1); //get our first entry
          if(z == 0)
          {
             //error abort
          }
 
-         rtc_t time_first = getTime(&firstEntery.timeStump);
+         rtc_t time_first = getTime(&firstEntery.time_stamp);
          temp1 = compare_time(&temp_eRange,&time_first);//if the first entry we have is is after the last entry requested then we don't have the data
          if(temp1 < 0)
          {
@@ -119,15 +103,15 @@ uint8_t find_num_standard_event_log__entries_between(const sSA_Range *startRange
                 search_item.start_entry = 0;//startEntryNumber;
                 search_item.end_entry = MAX_Entries;//search_item.start_entry +  *numOfEntries;
                 //search_item.SingleItemSize = EnergyLogSize;
-                EventLog l;
-                EventLog l2;
-                l2.timeStump = getTimeStamp(temp_sRange.year,temp_sRange.month,temp_sRange.day,temp_sRange.hour,temp_sRange.minute,temp_sRange.second);
+                event_log l;
+                event_log l2;
+                l2.time_stamp = getTimeStamp(temp_sRange.year,temp_sRange.month,temp_sRange.day,temp_sRange.hour,temp_sRange.minute,temp_sRange.second);
       //          rtc_t time;
       //          search_item.current_c_data = &time;
                 search_item.current_data = &l;
                // search_item.StartAddress = EnergyLogAddress_Start;
-                search_item.PeakItem = &getEvent2;
-                search_item.Compare = &compare_event;
+                search_item.PeakItem = &get_fraud_event;
+                search_item.Compare = &compare_fraud_event;
       //          search_item.getComapareItem = &getEnergyComapareItem;
                 search_item.search_data = &l2;//&temp_sRange;
 
@@ -149,15 +133,13 @@ uint8_t find_num_standard_event_log__entries_between(const sSA_Range *startRange
              *startEntryNumber = 1;
           }
 
-
-          z = getEvent2(&lastEntry,MAX_Entries);//get the last entry
+          z = get_fraud_event(&lastEntry,MAX_Entries);//get the last entry
           if(z == 0)
           {
                 //error abort
           }
-          rtc_t time_last = getTime(&lastEntry.timeStump);
+          rtc_t time_last = getTime(&lastEntry.time_stamp);
           int8_t com3 = compare_time(&time_last,&temp_eRange);
-
 
           //Correct for this forward ??????????????????????????????????
           if(com3 >= 0)//temp_eRange comes before  time_last
@@ -185,7 +167,7 @@ uint8_t find_num_standard_event_log__entries_between(const sSA_Range *startRange
       return 1;//success
 }
 
-uint8_t find_num_total_Standard_Event_Log_entries(uint16_t *num_entries,uint16_t *start_entry)
+uint8_t find_num_total_fraud_event_log_entries(uint16_t *num_entries,uint16_t *start_entry)
 {
    //count the total number of entries we have
        /*get the last energy log address
@@ -196,20 +178,20 @@ uint8_t find_num_total_Standard_Event_Log_entries(uint16_t *num_entries,uint16_t
       *start_entry = 1;
       *num_entries = 0;
 
-      if(status.standard_event_log_overlapped == 1)
+      if(status.fraud_event_log_overlapped == 1)
       {
-        *num_entries = MAX_STANDARD_EVENT_LOGS;
+        *num_entries = MAX_FRAUD_EVENT_LOGS;
       }
       else
       {
         int32_t x=0;
-        uint32_t Add_Start = EventLogAddress_Start;
-        if(LastEventLogAddress > Add_Start)
-          x = LastEventLogAddress - Add_Start;
+        uint32_t Add_Start = FRAUD_EVENT_LOG_ADDRESS_START;
+        if(last_fraud_event_log_address > Add_Start)
+          x = last_fraud_event_log_address - Add_Start;
 
         while(x > 0)
         {
-            x -= EventLogSize;
+            x -= EVENT_LOG_TYPE_SIZE;
             *num_entries= *num_entries + 1;
         }
       }
@@ -223,22 +205,22 @@ uint8_t find_num_total_Standard_Event_Log_entries(uint16_t *num_entries,uint16_t
 /*
  * Call back function for standard event lof
  */
-void capture_standard_event_log(void *data, int direction)
+void capture_fraud_event_log(void *data, int direction)
 {
     /* Load Template for Load Profile */
    // interpret_template(data, direction, Load_Profile_Buffer_Template, sizeof(Load_Profile_Buffer_Template));
-   msg_info.template=standard_event_log_template;
-   msg_info.sz_template=sizeof(standard_event_log_template);
+   msg_info.template = fraud_event_log_template;
+   msg_info.sz_template=sizeof(fraud_event_log_template);
     if(access_selector==1)
     {
         if(SA_Range[1].Year>4095 || SA_Range[0].Year>4095 )
            msg_info.num_entries=0x0;
         else
-           find_num_standard_event_log__entries_between(&SA_Range[0],&SA_Range[1],&msg_info.start_entry,&msg_info.num_entries);/*msg_info.num_entries=5*/
+           find_num_fraud_event_log__entries_between(&SA_Range[0],&SA_Range[1],&msg_info.start_entry,&msg_info.num_entries);/*msg_info.num_entries=5*/
     }
     else if(access_selector==2)
     {
-        find_num_total_Standard_Event_Log_entries(&msg_info.num_entries,&msg_info.start_entry);
+        find_num_total_fraud_event_log_entries(&msg_info.num_entries,&msg_info.start_entry);
        if(SA_From_Entry <= SA_To_Entry)
        {
           msg_info.start_entry = msg_info.start_entry > SA_From_Entry? msg_info.start_entry :SA_From_Entry;
@@ -252,15 +234,15 @@ void capture_standard_event_log(void *data, int direction)
     }
     else
     {
-        find_num_total_Standard_Event_Log_entries(&msg_info.num_entries,&msg_info.start_entry);
+        find_num_total_fraud_event_log_entries(&msg_info.num_entries,&msg_info.start_entry);
     }
-      msg_info.column_szs=standard_event_log_column_szs;
+      msg_info.column_szs=fraud_event_log_column_szs;
 }
 
 /*
- * Reset method for standard event log
+ * Reset method for fraud event log
  */
-void obj_event_log_reset(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
+void obj_fraud_event_log_reset(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
       uint32_t tmp32 =EventLogAddress_Start;
       uint8_t temp8=1;
@@ -270,10 +252,14 @@ void obj_event_log_reset(uint8_t *data,uint16_t data_len,uint8_t *response,uint1
 }
 
 /*
- * Capture function for standard event log
+ * Capture function for fraud event log
  */
-void obj_event_log_capture(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
+void obj_fraud_event_log_capture(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
 }
 /**********************************************************************/
+
+
+
+
 

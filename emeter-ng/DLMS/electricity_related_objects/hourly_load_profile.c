@@ -57,7 +57,7 @@ uint8_t find_num_energy_log__entries_between(const sSA_Range *startRange,const s
      if(LastEnergyLogAddress>EnergyLogAddress_Start)//if we have entries
      {
 
-         if(status.energy_log_overlaped == 1) // if the cirular buffer is full
+         if(status.energy_log_overlapped == 1) // if the cirular buffer is full
          {
            MAX_Entries = EnergyLog_SIZE;
          }
@@ -184,7 +184,7 @@ uint8_t find_num_total_energy_log_entries(uint16_t *num_entries,uint16_t *start_
    *num_entries = 0;
    int32_t x=0;
 
-   if(status.event_log_overlaped == 1)
+   if(status.energy_log_overlapped == 1)
    {
      *num_entries = EnergyLog_SIZE; // the buffer is full, so return all Logs
    }

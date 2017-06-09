@@ -30,6 +30,12 @@
 #include "other_electricity_related_objects.h"
 #include "long_power_failures.h"
 #include "power_quality.h"
+#include "fraud_event_handling.h"
+#include "power_qual_event_handling.h"
+#include "common_event_handling.h"
+#include "firmware_event_handling.h"
+#include "synchronization_event_handling.h"
+#include "disconnect_event_handling.h"
 
 
 

@@ -1231,7 +1231,7 @@ const struct object_desc_s object_list[] =
                                      ,2
                                      ,(const struct attribute_desc_s[]) {
 
-                                             {1, ACCESS_PCR__MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[EVENT_START].instance_id, NULL},
+                                             {1, ACCESS_PCR__MRR__USR_, TAG_OCTET_STRING,   (void *) object_list[EVENT_START].instance_id, NULL},
                                              {2, ACCESS_PC___MRR__USRW, TAG_UINT8,          (void *) &standard_event_number, NULL}
 
                                      }
@@ -1269,25 +1269,85 @@ const struct object_desc_s object_list[] =
        * Class id-1,
        * 0-0:96.11.1.255
        */
-       //TODO
+	  {ASSOC_MR_US, CLASS_ID_DATA,        0,{0,0,96,11,1,255}
+                                     ,2
+                                     ,(const struct attribute_desc_s[]) {
+
+                                             {1, ACCESS_PCR__MRR__USR_, TAG_OCTET_STRING,   (void *) object_list[EVENT_START + 2].instance_id, NULL},
+                                             {2, ACCESS_PC___MRR__USRW, TAG_UINT8,          (void *) &fraud_event_number, NULL}
+
+                                     }
+                                     ,0
+                                     ,NULL
+       },
 
       /* Fraud Detection Log ProfileSFraud Detection
        * Class id-7,
        * 0-0:99.98.1.255
        */
-       //TODO
+	  {ASSOC_MR_US, CLASS_ID_PROFILE_GENERIC,        1,{0,0,99,98,1,255}
+                                     ,8
+                                     ,(const struct attribute_desc_s[]) {
+
+                                             {1, ACCESS_PCR__MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[EVENT_START + 3].instance_id, NULL},
+                                             {2, ACCESS_PCR__MRR__USR_, TAG_ARRAY,           (void *) Data_Buffer, capture_fraud_event_log},
+                                             {3, ACCESS_PCR__MRR__USR_, TAG_ARRAY,           (void *) fraud_event_log_objects, NULL},
+                                             {4, ACCESS_PC___MRRW_USRW, TAG_UINT32,          (void *) &events_capture_period, NULL},
+                                             {5, ACCESS_PC___MRR__USR_, TAG_ENUM,            (void *) &events_sort_method, NULL},
+                                             {6, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) NULL, NULL},
+                                             {7, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &events_entries_in_use, NULL},
+                                             {8, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &fraud_event_profile_entries, NULL},
+
+                                     }
+                                     ,2
+                                     ,(const struct method_desc_s[]) {
+
+                                             {1, ACCESS_PC___MR___USR_, obj_fraud_event_log_reset},
+                                             {2, ACCESS_PC___MR___USR_, obj_fraud_event_log_capture}
+                                      }
+       },
 
       /* Event Object - Power Quality Log
        * Class id-1,
        * 0-0:96.11.5.255
        */
-       //TODO
+      {ASSOC_MR_US, CLASS_ID_DATA,        0,{0,0,96,11,5,255}
+                                     ,2
+                                     ,(const struct attribute_desc_s[]) {
+
+                                             {1, ACCESS_PCR__MRR__USR_, TAG_OCTET_STRING,   (void *) object_list[EVENT_START + 4].instance_id, NULL},
+                                             {2, ACCESS_PC___MRR__USRW, TAG_UINT8,          (void *) &power_qual_event_number, NULL}
+
+                                     }
+                                     ,0
+                                     ,NULL
+       },
 
       /* Power Quality Log Profile
        * Class id-7,
        * 0-0:99.98.5.255
        */
-       //TODO
+      {ASSOC_MR_US, CLASS_ID_PROFILE_GENERIC,        1,{0,0,99,98,5,255}
+                                     ,8
+                                     ,(const struct attribute_desc_s[]) {
+
+                                             {1, ACCESS_PCR__MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[EVENT_START + 5].instance_id, NULL},
+                                             {2, ACCESS_PCR__MRR__USR_, TAG_ARRAY,           (void *) Data_Buffer, capture_power_qual_event_log},
+                                             {3, ACCESS_PCR__MRR__USR_, TAG_ARRAY,           (void *) power_qual_event_log_objects, NULL},
+                                             {4, ACCESS_PC___MRRW_USRW, TAG_UINT32,          (void *) &events_capture_period, NULL},
+                                             {5, ACCESS_PC___MRR__USR_, TAG_ENUM,            (void *) &events_sort_method, NULL},
+                                             {6, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) NULL, NULL},
+                                             {7, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &events_entries_in_use, NULL},
+                                             {8, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &power_qual_event_profile_entries, NULL},
+
+                                     }
+                                     ,2
+                                     ,(const struct method_desc_s[]) {
+
+                                             {1, ACCESS_PC___MR___USR_, obj_power_qual_event_log_reset},
+                                             {2, ACCESS_PC___MR___USR_, obj_power_qual_event_log_capture}
+                                      }
+       },
 
       /* Time trigger for voltage sags,
        * for voltage swell or long
@@ -1325,13 +1385,43 @@ const struct object_desc_s object_list[] =
        * Class id-1,
        * 0-0:96.11.7.255
        */
-      //TODO
+      {ASSOC_MR_US, CLASS_ID_DATA,        0,{0,0,96,11,7,255}
+                                     ,2
+                                     ,(const struct attribute_desc_s[]) {
+
+                                             {1, ACCESS_PCR__MRR__USR_, TAG_OCTET_STRING,   (void *) object_list[EVENT_START + 6].instance_id, NULL},
+                                             {2, ACCESS_PC___MRR__USRW, TAG_UINT8,          (void *) &common_event_number, NULL}
+
+                                     }
+                                     ,0
+                                     ,NULL
+       },
 
       /* Common Event Log Profile
        * Class id-7,
        * 0-0:99.98.7.255
        */
-      //TODO
+      {ASSOC_MR_US, CLASS_ID_PROFILE_GENERIC,        1,{0,0,99,98,7,255}
+                                     ,8
+                                     ,(const struct attribute_desc_s[]) {
+
+                                             {1, ACCESS_PCR__MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[EVENT_START + 7].instance_id, NULL},
+                                             {2, ACCESS_PCR__MRR__USR_, TAG_ARRAY,           (void *) Data_Buffer, capture_common_event_log},
+                                             {3, ACCESS_PCR__MRR__USR_, TAG_ARRAY,           (void *) common_event_log_objects, NULL},
+                                             {4, ACCESS_PC___MRRW_USRW, TAG_UINT32,          (void *) &events_capture_period, NULL},
+                                             {5, ACCESS_PC___MRR__USR_, TAG_ENUM,            (void *) &events_sort_method, NULL},
+                                             {6, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) NULL, NULL},
+                                             {7, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &events_entries_in_use, NULL},
+                                             {8, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &common_event_profile_entries, NULL},
+
+                                     }
+                                     ,2
+                                     ,(const struct method_desc_s[]) {
+
+                                             {1, ACCESS_PC___MR___USR_, obj_common_event_log_reset},
+                                             {2, ACCESS_PC___MR___USR_, obj_common_event_log_capture}
+                                      }
+       },
 
       /* Event Object - Import Power Contract Event Log
        * Class id-1,
@@ -1350,25 +1440,85 @@ const struct object_desc_s object_list[] =
        * Class id-1,
        * 0-0:96.11.4.255
        */
-      //TODO
+      {ASSOC_MR_US, CLASS_ID_DATA,        0,{0,0,96,11,4,255}
+                                     ,2
+                                     ,(const struct attribute_desc_s[]) {
+
+                                             {1, ACCESS_PCR__MRR__USR_, TAG_OCTET_STRING,   (void *) object_list[EVENT_START + 8].instance_id, NULL},
+                                             {2, ACCESS_PC___MRR__USRW, TAG_UINT8,          (void *) &firmware_event_number, NULL}
+
+                                     }
+                                     ,0
+                                     ,NULL
+       },
 
       /* Firmware Event Log Profile
        * Class id-7,
        * 0-0:99.98.4.255
        */
-      //TODO
+      {ASSOC_MR_US, CLASS_ID_PROFILE_GENERIC,        1,{0,0,99,98,4,255}
+                                     ,8
+                                     ,(const struct attribute_desc_s[]) {
+
+                                             {1, ACCESS_PCR__MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[EVENT_START + 9].instance_id, NULL},
+                                             {2, ACCESS_PCR__MRR__USR_, TAG_ARRAY,           (void *) Data_Buffer, capture_firmware_event_log},
+                                             {3, ACCESS_PCR__MRR__USR_, TAG_ARRAY,           (void *) firmware_event_log_objects, NULL},
+                                             {4, ACCESS_PC___MRRW_USRW, TAG_UINT32,          (void *) &events_capture_period, NULL},
+                                             {5, ACCESS_PC___MRR__USR_, TAG_ENUM,            (void *) &events_sort_method, NULL},
+                                             {6, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) NULL, NULL},
+                                             {7, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &events_entries_in_use, NULL},
+                                             {8, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &firmware_event_profile_entries, NULL},
+
+                                     }
+                                     ,2
+                                     ,(const struct method_desc_s[]) {
+
+                                             {1, ACCESS_PC___MR___USR_, obj_common_event_log_reset},
+                                             {2, ACCESS_PC___MR___USR_, obj_common_event_log_capture}
+                                      }
+       },
 
       /* Event Object - Synchronization Event Log
        * Class id-1,
        * 0-0:96.11.8.255
        */
-      //TODO
+      {ASSOC_MR_US, CLASS_ID_DATA,        0,{0,0,96,11,8,255}
+                                     ,2
+                                     ,(const struct attribute_desc_s[]) {
+
+                                             {1, ACCESS_PCR__MRR__USR_, TAG_OCTET_STRING,   (void *) object_list[EVENT_START + 10].instance_id, NULL},
+                                             {2, ACCESS_PC___MRR__USRW, TAG_UINT8,          (void *) &synchronization_event_number, NULL}
+
+                                     }
+                                     ,0
+                                     ,NULL
+       },
 
       /* Synchronization Event Log Profile
        * Class id-7,
        * 0-0:99.98.8.255
        */
-      //TODO
+      {ASSOC_MR_US, CLASS_ID_PROFILE_GENERIC,        1,{0,0,99,98,8,255}
+                                     ,8
+                                     ,(const struct attribute_desc_s[]) {
+
+                                             {1, ACCESS_PCR__MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[EVENT_START + 11].instance_id, NULL},
+                                             {2, ACCESS_PCR__MRR__USR_, TAG_ARRAY,           (void *) Data_Buffer, capture_synchronization_event_log},
+                                             {3, ACCESS_PCR__MRR__USR_, TAG_ARRAY,           (void *) synchronization_event_log_objects, NULL},
+                                             {4, ACCESS_PC___MRRW_USRW, TAG_UINT32,          (void *) &events_capture_period, NULL},
+                                             {5, ACCESS_PC___MRR__USR_, TAG_ENUM,            (void *) &events_sort_method, NULL},
+                                             {6, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) NULL, NULL},
+                                             {7, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &events_entries_in_use, NULL},
+                                             {8, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &synchronization_event_profile_entries, NULL},
+
+                                     }
+                                     ,2
+                                     ,(const struct method_desc_s[]) {
+
+                                             {1, ACCESS_PC___MR___USR_, obj_synchronization_event_log_reset},
+                                             {2, ACCESS_PC___MR___USR_, obj_synchronization_event_log_capture}
+                                      }
+       },
 
 
       /* Standard Event Log Filter
@@ -1523,18 +1673,47 @@ const struct object_desc_s object_list[] =
                                      }
        },
 
-
       /* Event Object - Disconnect Control Event Log
        * Class id-1,
        * 0-0:96.11.2.255
        */
-      //TODO
+	   {ASSOC_MR_US, CLASS_ID_DATA,        0,{0,0,96,11,2,255}
+	                                        ,2
+	                                        ,(const struct attribute_desc_s[]) {
+
+	                                                {1, ACCESS_PCR__MRR__USR_, TAG_OCTET_STRING,   (void *) object_list[EVENT_START + 4].instance_id, NULL},
+	                                                {2, ACCESS_PC___MRR__USRW, TAG_UINT8,          (void *) &disconnect_event_number, NULL}
+
+	                                        }
+	                                        ,0
+	                                        ,NULL
+		},
 
       /* Disconnect Control Log Profile
        * Class id-7,
        * 0-0:99.98.2.255
        */
-      //TODO
+      {ASSOC_MR_US, CLASS_ID_PROFILE_GENERIC,        1,{0,0,99,98,2,255}
+										,8
+										,(const struct attribute_desc_s[]) {
+
+												{1, ACCESS_PCR__MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[EVENT_START + 5].instance_id, NULL},
+												{2, ACCESS_PCR__MRR__USR_, TAG_ARRAY,           (void *) Data_Buffer, capture_disconnect_event_log},
+												{3, ACCESS_PCR__MRR__USR_, TAG_ARRAY,           (void *) disconnect_event_log_objects, NULL},
+												{4, ACCESS_PC___MRRW_USRW, TAG_UINT32,          (void *) &events_capture_period, NULL},
+												{5, ACCESS_PC___MRR__USR_, TAG_ENUM,            (void *) &events_sort_method, NULL},
+												{6, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) NULL, NULL},
+												{7, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &events_entries_in_use, NULL},
+												{8, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &disconnect_event_profile_entries, NULL},
+
+										}
+										,2
+										,(const struct method_desc_s[]) {
+
+												{1, ACCESS_PC___MR___USR_, obj_disconnect_event_log_reset},
+												{2, ACCESS_PC___MR___USR_, obj_disconnect_event_log_capture}
+										 }
+		  },
 
       /* Import Active Power over threshold status
        * Class id-1,
@@ -1544,7 +1723,7 @@ const struct object_desc_s object_list[] =
                                             ,2
                                             ,(const struct attribute_desc_s[]) {
 
-                                                    {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[DISCONNECT_START + 4].instance_id, NULL},
+                                                    {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[DISCONNECT_START + 6].instance_id, NULL},
                                                     {2, ACCESS_PC___MRR__USR_, TAG_BOOLEAN,         (void *) &import_active_power_over_thr_status, NULL},
 
                                             }
@@ -1560,7 +1739,7 @@ const struct object_desc_s object_list[] =
                                      ,3
                                      ,(const struct attribute_desc_s[]) {
 
-                                             {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[DISCONNECT_START + 5].instance_id, NULL},
+                                             {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[DISCONNECT_START + 7].instance_id, NULL},
                                              {2, ACCESS_PC___MRR__USRW, TAG_UINT32,          (void *) &current_import_active_power_threshold, NULL},
                                              {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_KW, NULL}
 
@@ -1577,7 +1756,7 @@ const struct object_desc_s object_list[] =
                                      ,2
                                      ,(const struct attribute_desc_s[]) {
 
-                                             {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[DISCONNECT_START + 6].instance_id, NULL},
+                                             {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[DISCONNECT_START + 8].instance_id, NULL},
                                              {2, ACCESS_PC___MRR__USR_, TAG_BOOLEAN,         (void *) &export_active_power_over_thr_status, NULL},
 
                                      }
@@ -1593,7 +1772,7 @@ const struct object_desc_s object_list[] =
                                      ,3
                                      ,(const struct attribute_desc_s[]) {
 
-                                             {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[DISCONNECT_START + 7].instance_id, NULL},
+                                             {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[DISCONNECT_START + 9].instance_id, NULL},
                                              {2, ACCESS_PC___MRR__USRW, TAG_UINT32,          (void *) &current_export_active_power_threshold, NULL},
                                              {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_KW, NULL}
 
@@ -2195,7 +2374,7 @@ const struct object_desc_s object_list[] =
                                               {5, ACCESS_PC___MRR__USR_, TAG_ENUM,            (void *) &instantaneous_energy_sort_method, NULL},
                                               {6, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) NULL, NULL},
                                               {7, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &instantaneous_energy_entries_in_use, NULL},
-                                              {8, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &instantaneous_energy_entries, NULL},
+                                              {8, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &instantaneous_energy_entries, NULL}
 
                                      }
                                      ,0
@@ -2273,7 +2452,7 @@ const struct object_desc_s object_list[] =
                                               {5, ACCESS_PC___MRR__USR_, TAG_ENUM,            (void *) &load_profile_sort_method, NULL},
                                               {6, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) NULL, NULL},
                                               {7, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &load_profile_entries_in_use, NULL},
-                                              {8, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &load_profile_entries, NULL},
+                                              {8, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &load_profile_entries, NULL}
 
                                      }
                                      ,2
@@ -2324,8 +2503,8 @@ const struct object_desc_s object_list[] =
                                      ,2
                                      ,(const struct method_desc_s[]) {
 
-                                             {1, ACCESS_PC___MR___USR_, obj_daily_load_profile_reset},
-                                             {2, ACCESS_PC___MR___USR_, obj_daily_load_profile_capture}
+                                             {1, ACCESS_PC___MRRW_USRW, obj_daily_load_profile_reset},
+                                             {2, ACCESS_PC___MRRW_USRW, obj_daily_load_profile_capture}
 
                                      }
        },
@@ -2860,13 +3039,14 @@ const struct object_desc_s object_list[] =
        * Class id-1,
        * 0-0:140.0.0.255
        */
-       {ASSOC_MR_US, CLASS_ID_DATA,        0,{0,0,140,0,0,255}
-                                     ,2
+       {ASSOC_MR_US, CLASS_ID_REGISTER,        0,{0,0,140,0,0,255}
+                                     ,3
                                      ,(const struct attribute_desc_s[]) {
 
                                               {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[REFERENCE_OBIS_START + 2].instance_id, NULL},
-                                              {2, ACCESS_PC___MRR__USR_, TAG_INT16,           (void *) &phase->readings.power_factor, NULL}
-                                     }
+                                              {2, ACCESS_PC___MRRW_USRW, TAG_INT16,           (void *) &alarm_status, reset_persistent_events},
+                                              {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_power_current_voltage_calib, NULL}
+       	   	   	   	   	   	   	   	 }
                                      ,1
                                      ,(const struct method_desc_s[]) {
 

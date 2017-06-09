@@ -24,6 +24,7 @@ void capture_daily_load_profile_data(void *data, int direction);
 void change_daily_load_profile_capture_period(void *data,int data_direction);
 void obj_daily_load_profile_reset(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len);
 void obj_daily_load_profile_capture(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len);
+void capture_daily_snapshot();
 
 
 

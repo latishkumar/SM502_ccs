@@ -25,7 +25,7 @@ uint8_t RelayTariffAutoConDisconEnabled = 1; //from EERPOM
 uint8_t connect_timeout  = 10;
 volatile uint8_t connect_counter = 0;
 volatile uint8_t start_connect_timeout = 0;
-
+extern uint8_t output_state;
 
 /*
   time to auto reset the rellay ports to off state in second
@@ -209,16 +209,13 @@ void ConnectMeter(uint8_t EventCode) {
     /*
       log connect event 
     */
-   //log disconnect event
-    EventLog l;
-    l.EventCode = EventCode;
-    l.timeStump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-    l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow
-                    + l.timeStump.TimestampUp);
-    l.value = 0;
-    //l.StartAddress = 0;	//last event log address
-//	uint8_t z = logEvent(&l);
-    uint8_t z = write_to_eeprom(&l,(uint8_t *)0,logEvent);
+    //log disconnect event
+    disconnect_event_log l;
+    l.event_code = EventCode;
+    l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
+    l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
+    //l.value = 0;
+    uint8_t z = write_to_eeprom(&l,(uint8_t *)9,log_events);
     if(z==0)
     {
       AddError(EEPROM1_Error);
@@ -228,7 +225,6 @@ void ConnectMeter(uint8_t EventCode) {
     
     if(MeterCommandConnected == EventCode)
     {
-//      setRelayStatus(status.RelayStatus,1);
       uint8_t temp8 = status.RelayStatus;
       uint8_t aconn = 1;
       write_to_eeprom(&temp8,&aconn,setRelayStatus);
@@ -263,25 +259,21 @@ void DisconnectMeter(uint8_t EventCode) {
     reset_counter = 0;
     LastDisconnectReason = EventCode;
     //log disconnect event
-    EventLog l;
-    l.value = desconnect_val;
-    l.EventCode = EventCode;
-    l.timeStump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-    l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow
-                    + l.timeStump.TimestampUp);
-    //l.StartAddress = 0;	//last event log address
-//    uint8_t z = logEvent(&l);
-    uint8_t z = write_to_eeprom(&l,(uint8_t *)0,logEvent);
+    disconnect_event_log l;
+    //l.value = desconnect_val;
+    l.event_code = EventCode;
+    l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
+    l.disconnect_control_status = output_state;
+    l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
+    uint8_t z = write_to_eeprom(&l,(uint8_t *)9,log_events);
     if(z==0)
     {
       AddError(EEPROM1_Error);
-      //eeprom Error 
     }
     status.RelayStatus = 0;//relay is disconnected 
     
     if(MeterCommandDisconnect == EventCode)
     {
-//      setRelayStatus(status.RelayStatus,0);
       uint8_t temp8 = status.RelayStatus;
       uint8_t aconn = 0;
       write_to_eeprom(&temp8,&aconn,setRelayStatus);
