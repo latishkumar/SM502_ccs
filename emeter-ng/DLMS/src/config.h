@@ -263,13 +263,33 @@ enum
     ITEM_TAG_KVA_MAX_DEMAND,
     ITEM_TAG_CURRENT_TIME,
     
-    
+// standard event
     ITEM_TAG_EVENT_CODE_SE,
     ITEM_TAG_DATETIME_SE,
     ITEM_TAG_EVENT_GROUP_SE,
     ITEM_TAG_EVENT_DATA, // the data associated with the event  
-    
-    // Load Profile item Tags
+// fraud event
+    ITEM_TAG_EVENT_CODE_FE,
+    ITEM_TAG_DATETIME_FE,
+// common event
+    ITEM_TAG_EVENT_CODE_CE,
+    ITEM_TAG_DATETIME_CE,
+// power quality event
+    ITEM_TAG_EVENT_CODE_PQE,
+    ITEM_TAG_DATETIME_PQE,
+// firmware event
+    ITEM_TAG_EVENT_CODE_FRME,
+    ITEM_TAG_ACTIVE_FIRMWARE,//TODO. test
+    ITEM_TAG_DATETIME_FRME,
+// synchronization event
+    ITEM_TAG_EVENT_CODE_SYNE,
+    ITEM_TAG_DATETIME_SYNE1,
+    ITEM_TAG_DATETIME_SYNE2,//TODO.
+// disconnect control event
+    ITEM_TAG_EVENT_CODE_DE,
+    ITEM_TAG_STATUS_DE,
+    ITEM_TAG_DATETIME_DE,
+// Load Profile item Tags
     ITEM_TAG_DATETIME_LP, 
     ITEM_TAG_VR_LP, 
     ITEM_TAG_ACTIVE_POWER_LP,

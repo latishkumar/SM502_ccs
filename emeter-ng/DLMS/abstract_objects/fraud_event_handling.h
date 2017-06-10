@@ -8,9 +8,9 @@
 #ifndef DLMS_ABSTRACT_OBJECTS_FRAUD_EVENT_HANDLING_H_
 #define DLMS_ABSTRACT_OBJECTS_FRAUD_EVENT_HANDLING_H_
 
-extern uint8_t fraud_event_number;
+ extern uint8_t fraud_event_number;
 
-extern uint32_t fraud_event_profile_entries;
+extern const uint32_t fraud_event_profile_entries;
 
 extern const uint8_t fraud_event_log_objects[];
 

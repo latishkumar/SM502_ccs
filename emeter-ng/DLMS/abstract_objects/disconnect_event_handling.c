@@ -19,16 +19,17 @@ uint8_t disconnect_event_number;
  * disconnect event profile entries
  * Default: >100
  */
-uint32_t disconnect_event_profile_entries = 1000;
-const uint16_t disconnect_event_log_column_szs[] = {16,18};
+const uint32_t disconnect_event_profile_entries = 1000;
+const uint16_t disconnect_event_log_column_szs[] = {16,18,20};
 /*
  * Template for disconnect event log profile
  */
 const uint8_t disconnect_event_log_template[] =
 {
-   STUFF_DATA | TAG_STRUCTURE, 2,
-        STUFF_DATA | TAG_OCTET_STRING, 12,ITEM_TAG_DATETIME_SE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Event Time stump
-        STUFF_DATA | TAG_UINT8, INJECT8(ITEM_TAG_EVENT_CODE_SE)                                  // Event code
+   STUFF_DATA | TAG_STRUCTURE, 3,
+   STUFF_DATA | TAG_OCTET_STRING, 12,ITEM_TAG_DATETIME_DE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Event Time stump
+   STUFF_DATA | TAG_UINT8, INJECT8(ITEM_TAG_EVENT_CODE_DE),                                  // Event code
+   STUFF_DATA | TAG_UINT8, INJECT8(ITEM_TAG_STATUS_DE)
 };
 
 /*
@@ -36,19 +37,23 @@ const uint8_t disconnect_event_log_template[] =
  */
 const uint8_t disconnect_event_log_objects[] =
 {
-    INJECT16(0x8000 | (2*18+1)),
-         2,
+    INJECT16(0x8000 | (3*18+1)),
+         3,
             TAG_STRUCTURE, 4,
                 TAG_UINT16, INJECT16(CLASS_ID_CLOCK),
                 TAG_OCTET_STRING, 6, OBIS_GROUP_A_ABSTRACT_OBJECTS, 0, 1, 0, 0, 255, // Date & Time
                 TAG_INT8, 2,
                 TAG_UINT16, INJECT16(0),
             TAG_STRUCTURE, 4,
-                TAG_UINT16, INJECT16(CLASS_ID_DATA),
-                TAG_OCTET_STRING, 6, 0, 0, 96, 11, 0, 255,
+                TAG_UINT16, INJECT16(CLASS_ID_DATA), // event code
+                TAG_OCTET_STRING, 6, 0, 0, 96, 11, 2, 255,
                 TAG_INT8, 2,
+                TAG_UINT16, INJECT16(0),
+            TAG_STRUCTURE, 4,
+                TAG_UINT16, INJECT16(CLASS_ID_DISCONNECT_CONTROL), // control status
+                TAG_OCTET_STRING, 6, 0, 0, 96, 3, 10, 255,
+                TAG_INT8, 3,
                 TAG_UINT16, INJECT16(0)
-
 };
 uint8_t find_num_disconnect_event_log__entries_between(const sSA_Range *startRange,const sSA_Range *endRange,
                                                    uint16_t *startEntryNumber,uint16_t *numOfEntries)
@@ -62,14 +67,11 @@ uint8_t find_num_disconnect_event_log__entries_between(const sSA_Range *startRan
        *numOfEntries = 0;
        return 1;
      }
-
      uint16_t MAX_Entries = 0;
-     uint32_t add_start = DISCONNECT_LOG_ADDRESS_START;
-
+     const uint32_t add_start = DISCONNECT_LOG_ADDRESS_START;
     //confirm this with the number of entries we have
      if(last_disconnect_event_log_address > add_start)//if we have entries
      {
-
          if(status.disconnect_event_log_overlapped == 1) // if the cirular buffer is full
          {
            MAX_Entries = MAX_DISCONNECT_EVENT_LOGS;
@@ -77,14 +79,12 @@ uint8_t find_num_disconnect_event_log__entries_between(const sSA_Range *startRan
          else{
             MAX_Entries = (last_disconnect_event_log_address - add_start)/DISCONNECT_EVENT_LOG_TYPE_SIZE;
          }
-
          disconnect_event_log firstEntery,lastEntry;
          uint8_t z = get_disconnect_event(&firstEntery,1); //get our first entry
          if(z == 0)
          {
             //error abort
          }
-
          rtc_t time_first = getTime(&firstEntery.time_stamp);
          temp1 = compare_time(&temp_eRange,&time_first);//if the first entry we have is is after the last entry requested then we don't have the data
          if(temp1 < 0)
@@ -93,16 +93,13 @@ uint8_t find_num_disconnect_event_log__entries_between(const sSA_Range *startRan
              *numOfEntries = 0;
              return 1;
           }
-
           int8_t com2 = compare_time(&time_first,&temp_sRange);
           if(com2 < 0)//if time_first comes before temp_sRange
           {
-            //search for the entry number for temp_sRange;
-
+                //search for the entry number for temp_sRange;
                 //Search_t search_item;
-                search_item.start_entry = 0;//startEntryNumber;
-                search_item.end_entry = MAX_Entries;//search_item.start_entry +  *numOfEntries;
-                //search_item.SingleItemSize = EnergyLogSize;
+                search_item.start_entry = 0;
+                search_item.end_entry = MAX_Entries;
                 disconnect_event_log l;
                 disconnect_event_log l2;
                 l2.time_stamp = getTimeStamp(temp_sRange.year,temp_sRange.month,temp_sRange.day,temp_sRange.hour,temp_sRange.minute,temp_sRange.second);
@@ -111,9 +108,8 @@ uint8_t find_num_disconnect_event_log__entries_between(const sSA_Range *startRan
                 search_item.Compare = &compare_disconnect_event;
                 search_item.search_data = &l2;//&temp_sRange;
                 uint32_t sa =  search_nearest_log(&search_item);
-      //          find the actual last entry
-      //          check if this entry is with in the start and end range
-
+                // find the actual last entry
+                // check if this entry is with in the start and end range
                 if(sa ==0)
                 {
                 *startEntryNumber = search_item.last_entry_no;
@@ -127,7 +123,6 @@ uint8_t find_num_disconnect_event_log__entries_between(const sSA_Range *startRan
           {
              *startEntryNumber = 1;
           }
-
           z = get_disconnect_event(&lastEntry,MAX_Entries);//get the last entry
           if(z == 0)
           {
@@ -135,8 +130,6 @@ uint8_t find_num_disconnect_event_log__entries_between(const sSA_Range *startRan
           }
           rtc_t time_last = getTime(&lastEntry.time_stamp);
           int8_t com3 = compare_time(&time_last,&temp_eRange);
-
-
           //Correct for this forward ??????????????????????????????????
           if(com3 >= 0)//temp_eRange comes before  time_last
           {
@@ -164,33 +157,29 @@ uint8_t find_num_disconnect_event_log__entries_between(const sSA_Range *startRan
 
 uint8_t find_num_total_disconnect_event_log_entries(uint16_t *num_entries,uint16_t *start_entry)
 {
-   //count the total number of entries we have
+      //count the total number of entries we have
        /*get the last energy log address
          divide it by the size of energy log struct
           return this number
        */
-
       *start_entry = 1;
       *num_entries = 0;
-
       if(status.disconnect_event_log_overlapped == 1)
       {
-        *num_entries = MAX_DISCONNECT_EVENT_LOGS;
+            *num_entries = MAX_DISCONNECT_EVENT_LOGS;
       }
       else
       {
         int32_t x=0;
-        uint32_t Add_Start = DISCONNECT_LOG_ADDRESS_START;
+        const uint32_t Add_Start = DISCONNECT_LOG_ADDRESS_START;
         if(last_disconnect_event_log_address > Add_Start)
           x = last_disconnect_event_log_address - Add_Start;
-
         while(x > 0)
         {
             x -= DISCONNECT_EVENT_LOG_TYPE_SIZE;
             *num_entries= *num_entries + 1;
         }
       }
-
       if(*num_entries>0)
         *start_entry = 1;
   return 1;//success
@@ -222,7 +211,6 @@ void capture_disconnect_event_log(void *data, int direction)
        }
        else
        {
-
        }
     }
     else
@@ -233,15 +221,16 @@ void capture_disconnect_event_log(void *data, int direction)
 }
 
 /*
- * Reset method for standard event log
+ * Reset method for disconnect control event log
  */
 void obj_disconnect_event_log_reset(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
-      uint32_t tmp32 =EventLogAddress_Start;
-      uint8_t temp8=1;
-      LastEventLogAddress = EventLogAddress_Start;
+      uint32_t tmp32 = DISCONNECT_LOG_ADDRESS_START;
+      uint8_t temp8 = 9;
+      last_disconnect_event_log_address = tmp32;
       write_to_eeprom(&tmp32,&temp8,setLastLogAddress);
-      write_to_eeprom(&temp8,(uint8_t *)0,setEventOverlapFlag);
+      temp8 = 9;
+      write_to_eeprom(&temp8,(uint8_t *)9,setEventOverlapFlag);
 }
 
 /*

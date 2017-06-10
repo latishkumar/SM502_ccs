@@ -10,7 +10,7 @@
 
 extern uint8_t power_qual_event_number;
 
-extern uint32_t power_qual_event_profile_entries;
+extern const uint32_t power_qual_event_profile_entries;
 
 extern const uint8_t power_qual_event_log_objects[];
 

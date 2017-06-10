@@ -114,9 +114,27 @@ typedef struct
 {
   EventLog l;
   uint16_t logEntryNo;
-  
 }currentEventToTX;
-
+typedef struct
+{
+  event_log l;
+  uint16_t logEntryNo;
+}current_event_to_tx;
+typedef struct
+{
+  time_bound_event_log l;
+  uint16_t logEntryNo;
+}current_time_bound_event_to_tx;
+typedef struct
+{
+  firmware_event_log l;
+  uint16_t logEntryNo;
+}current_firmware_event_to_tx;
+typedef struct
+{
+  disconnect_event_log l;
+  uint16_t logEntryNo;
+}current_disconnect_event_to_tx;
 
 typedef struct{
   Public_Holiday_t Holiday;
@@ -137,7 +155,10 @@ uint8_t currentEnergyLogEntryData[12];
 
 currentEventToTX currentEventLogEntry = {init_EventLog,0};
 uint8_t currentEventLogEntryData[12];
-
+current_event_to_tx current_event_log = {init_common_event_logs,0};
+current_time_bound_event_to_tx current_time_bound_event_log = {init_time_bounded_event_logs,0};
+current_firmware_event_to_tx current_firmware_event_log = {init_time_bounded_event_logs, 0};
+current_disconnect_event_to_tx current_disconnect_event_log = {init_disconnect_event_log,0}; ;
 PublicHolidayEntry currentHoliday = {Init_public_Holiday,0,3};
 uint8_t currentHoliday_date[5];
 
@@ -149,13 +170,11 @@ uint8_t dayProfileTime4[4];
 
 //extern void adjust_rtc(rtc_t *time);
 extern rtc_t required_last_entry_time;
-EnergyLog LastTxEnergyCopy;//variable used for incrimental energy tx
+EnergyLog LastTxEnergyCopy;//variable used for incremental energy tx
 void loadEnergyToRam(unsigned int entry_no)
 {
 	   getEnergy2(&currentEnergyLogEntry.l,entry_no);
 	   currentEnergyLogEntry.logEntryNo = entry_no;
-
-
 	   if(access_selector == 1) //if this is selective access by range
 	   {
 		 rtc_t time_last = getTime(&currentEnergyLogEntry.l.timeStump);
@@ -170,13 +189,11 @@ void loadEnergyToRam(unsigned int entry_no)
 			 msg_info.entries_remaining = 1;
 		  }
 	   }
-
 	  //formate the timestump and copy it to the buffer
 	  rtc_t time = getTime(&currentEnergyLogEntry.l.timeStump);
 	  uint8_t currentEnergyLogEntryData2[] = {
 		INJECT16(time.year), time.month, time.day, ((time.day - 1) > 0)?(time.day - 1):0,time.hour, time.minute,time.second, 0xFF, INJECT16(120), 0x00,
 	  };
-
 	  uint32_t x = currentEnergyLogEntry.l.active_energy;
 	  //calculate for incrimental data
 	  if(currentEnergyLogEntry.l.active_energy>=LastTxEnergyCopy.active_energy)
@@ -188,7 +205,6 @@ void loadEnergyToRam(unsigned int entry_no)
 	  }
 	  LastTxEnergyCopy.active_energy = x;
 	  //end of update for incrimental energy log
-
 	  x = currentEnergyLogEntry.l.reactive_energy_QI;
 	  //calculate for incrimental data for R_QI
 	  if(currentEnergyLogEntry.l.reactive_energy_QI>=LastTxEnergyCopy.reactive_energy_QI){
@@ -231,7 +247,6 @@ void load_daily_energy_to_ram(unsigned int entry_no)
 		   msg_info.entries_remaining = 1;
 		}
 	}
-
 	//formate the timestump and copy it to the buffer
 	rtc_t time = getTime(&currentEnergyLogEntry.l.timeStump);
 	uint8_t currentEnergyLogEntryData2[] = {
@@ -242,10 +257,8 @@ void load_daily_energy_to_ram(unsigned int entry_no)
 }
 void loadEventToRam(unsigned int entry_no)
 {
-//           uint32_t address = EventLogSize * (entry_no-1);
-//           address +=EventLogAddress_Start;
-           getEvent2(&currentEventLogEntry.l,entry_no);
-           currentEventLogEntry.logEntryNo = entry_no;
+          getEvent2(&currentEventLogEntry.l,entry_no);
+          currentEventLogEntry.logEntryNo = entry_no;
            
            if(access_selector == 1) //if this is selective access by range
            {
@@ -261,18 +274,163 @@ void loadEventToRam(unsigned int entry_no)
                    msg_info.entries_remaining = 1;
               }
            }
-           
-           
-           
           //formate the timestump and copy it to the buffer
           rtc_t time = getTime(&currentEventLogEntry.l.timeStump);
           uint8_t currentEventLogEntryData2[] = {
-            INJECT16(time.year), time.month, time.day, ((time.day - 1) > 0)?(time.day - 1):0,time.hour, time.minute,time.second, 0xFF, INJECT16(120), 0x00, 
+            INJECT16(time.year), time.month, time.day, ((time.day - 1) > 0)?(time.day - 1):0,time.hour, time.minute,time.second, 0xFF, INJECT16(120), 0x00,
           };
           memcpy(currentEventLogEntryData,currentEventLogEntryData2,12);
-//          memcpy(buf, currentEnergyLogEntryData, len);
 }
-
+void load_fraud_event_to_ram(unsigned int entry_no)
+{
+    get_fraud_event(&current_event_log.l,entry_no);
+    current_event_log.logEntryNo = entry_no;
+    if(access_selector == 1) //if this is selective access by range
+    {
+         rtc_t time_last = getTime(&current_event_log.l.time_stamp);
+         if(time_last.isValid==0)
+         {
+               msg_info.entries_remaining = 1;
+               return;
+         }
+         int8_t com3 = compare_time(&required_last_entry_time,&time_last);
+         if(com3<0)//time_last comes after required_last_entry_time
+         {
+               msg_info.entries_remaining = 1;
+         }
+    }
+    //format the time stamp and copy it to the buffer
+    rtc_t time = getTime(&current_event_log.l.time_stamp);
+    uint8_t currentEventLogEntryData2[] = {
+            INJECT16(time.year), time.month, time.day, ((time.day - 1) > 0)?(time.day - 1):0,time.hour, time.minute,time.second, 0xFF, INJECT16(120), 0x00,
+          };
+    memcpy(currentEventLogEntryData,currentEventLogEntryData2,12);
+}
+void load_common_event_to_ram(unsigned int entry_no)
+{
+    get_common_event(&current_event_log.l,entry_no);
+    current_event_log.logEntryNo = entry_no;
+    if(access_selector == 1) //if this is selective access by range
+    {
+         rtc_t time_last = getTime(&current_event_log.l.time_stamp);
+         if(time_last.isValid==0)
+         {
+               msg_info.entries_remaining = 1;
+               return;
+         }
+         int8_t com3 = compare_time(&required_last_entry_time,&time_last);
+         if(com3<0)//time_last comes after required_last_entry_time
+         {
+               msg_info.entries_remaining = 1;
+         }
+    }
+    //format the time stamp and copy it to the buffer
+    rtc_t time = getTime(&current_event_log.l.time_stamp);
+    uint8_t currentEventLogEntryData2[] = {
+            INJECT16(time.year), time.month, time.day, ((time.day - 1) > 0)?(time.day - 1):0,time.hour, time.minute,time.second, 0xFF, INJECT16(120), 0x00,
+          };
+    memcpy(currentEventLogEntryData,currentEventLogEntryData2,12);
+}
+void load_power_qual_event_to_ram(unsigned int entry_no)
+{
+    get_power_qual_event(&current_event_log.l,entry_no);
+    current_event_log.logEntryNo = entry_no;
+    if(access_selector == 1) //if this is selective access by range
+    {
+         rtc_t time_last = getTime(&current_event_log.l.time_stamp);
+         if(time_last.isValid==0)
+         {
+               msg_info.entries_remaining = 1;
+               return;
+         }
+         int8_t com3 = compare_time(&required_last_entry_time,&time_last);
+         if(com3<0)//time_last comes after required_last_entry_time
+         {
+               msg_info.entries_remaining = 1;
+         }
+    }
+    //format the time stamp and copy it to the buffer
+    rtc_t time = getTime(&current_event_log.l.time_stamp);
+    uint8_t currentEventLogEntryData2[] = {
+            INJECT16(time.year), time.month, time.day, ((time.day - 1) > 0)?(time.day - 1):0,time.hour, time.minute,time.second, 0xFF, INJECT16(120), 0x00,
+          };
+    memcpy(currentEventLogEntryData,currentEventLogEntryData2,12);
+}
+void load_firmware_event_to_ram(unsigned int entry_no)
+{
+    get_firmware_event(&current_firmware_event_log.l,entry_no);
+    current_firmware_event_log.logEntryNo = entry_no;
+    if(access_selector == 1) //if this is selective access by range
+    {
+         rtc_t time_last = getTime(&current_firmware_event_log.l.time_stamp);
+         if(time_last.isValid==0)
+         {
+               msg_info.entries_remaining = 1;
+               return;
+         }
+         int8_t com3 = compare_time(&required_last_entry_time,&time_last);
+         if(com3<0)//time_last comes after required_last_entry_time
+         {
+               msg_info.entries_remaining = 1;
+         }
+    }
+    //format the time stamp and copy it to the buffer
+    rtc_t time = getTime(&current_firmware_event_log.l.time_stamp);
+    uint8_t currentEventLogEntryData2[] = {
+            INJECT16(time.year), time.month, time.day, ((time.day - 1) > 0)?(time.day - 1):0,time.hour, time.minute,time.second, 0xFF, INJECT16(120), 0x00,
+          };
+    memcpy(currentEventLogEntryData,currentEventLogEntryData2,12);
+}
+void load_synchronization_event_to_ram(unsigned int entry_no)
+{
+    get_synchronization_event(&current_time_bound_event_log.l,entry_no);
+    current_time_bound_event_log.logEntryNo = entry_no;
+    if(access_selector == 1) //if this is selective access by range
+    {
+         rtc_t time_last = getTime(&current_time_bound_event_log.l.end_time_stamp);
+         if(time_last.isValid==0)
+         {
+               msg_info.entries_remaining = 1;
+               return;
+         }
+         int8_t com3 = compare_time(&required_last_entry_time,&time_last);
+         if(com3<0)//time_last comes after required_last_entry_time
+         {
+               msg_info.entries_remaining = 1;
+         }
+    }
+    //format the time stamp and copy it to the buffer
+    rtc_t time = getTime(&current_time_bound_event_log.l.end_time_stamp);
+    uint8_t currentEventLogEntryData2[] = {
+            INJECT16(time.year), time.month, time.day, ((time.day - 1) > 0)?(time.day - 1):0,time.hour, time.minute,time.second, 0xFF, INJECT16(120), 0x00,
+          };
+    memcpy(currentEventLogEntryData,currentEventLogEntryData2,12);
+}
+void load_disconnect_event_to_ram(unsigned int entry_no)
+{
+    get_disconnect_event(&current_disconnect_event_log.l,entry_no);
+    current_disconnect_event_log.logEntryNo = entry_no;
+    if(access_selector == 1) //if this is selective access by range
+    {
+         rtc_t time_last = getTime(&current_disconnect_event_log.l.time_stamp);
+         if(time_last.isValid==0)
+         {
+               msg_info.entries_remaining = 1;
+               return;
+         }
+         int8_t com3 = compare_time(&required_last_entry_time,&time_last);
+         if(com3<0)//time_last comes after required_last_entry_time
+         {
+               msg_info.entries_remaining = 1;
+         }
+    }
+    //format the time stamp and copy it to the buffer
+    rtc_t time = getTime(&current_disconnect_event_log.l.time_stamp);
+    uint8_t currentEventLogEntryData2[] = {
+            INJECT16(time.year), time.month, time.day, ((time.day - 1) > 0)?(time.day - 1):0,time.hour, time.minute,time.second, 0xFF, INJECT16(120), 0x00, 
+          };
+    memcpy(currentEventLogEntryData,currentEventLogEntryData2,12);
+}
 void loadCurrentHoliday(uint8_t entry_no)
 {
      uint8_t z = getPublicHoliday(entry_no,&currentHoliday.Holiday);
@@ -530,6 +688,83 @@ int64_t get_numeric_item(int item)
           }
           val = currentEventLogEntry.l.EventCode;
     break;
+    case ITEM_TAG_EVENT_CODE_FE: // fraud event
+        entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+        if(current_event_log.logEntryNo == entry_no)
+        {
+        }
+        else
+        {
+            load_fraud_event_to_ram(entry_no);
+        }
+        val = current_event_log.l.event_code;
+       break;
+    case ITEM_TAG_EVENT_CODE_CE: // common event
+        entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+        if(current_event_log.logEntryNo == entry_no)
+        {
+        }
+        else
+        {
+            load_common_event_to_ram(entry_no);
+        }
+        val = current_event_log.l.event_code;
+        break;
+    case ITEM_TAG_EVENT_CODE_PQE: // power quality event
+            entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+            if(current_event_log.logEntryNo == entry_no)
+            {
+            }
+            else
+            {
+                load_power_qual_event_to_ram(entry_no);
+            }
+            val = current_event_log.l.event_code;
+            break;
+    case ITEM_TAG_EVENT_CODE_FRME: // firmware event
+               entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+               if(current_firmware_event_log.logEntryNo == entry_no)
+               {
+               }
+               else
+               {
+                   load_firmware_event_to_ram(entry_no);
+               }
+               val = current_firmware_event_log.l.event_code;
+               break;
+    case ITEM_TAG_EVENT_CODE_SYNE: // synchronization event
+           entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+           if(current_time_bound_event_log.logEntryNo == entry_no)
+           {
+           }
+           else
+           {
+               load_synchronization_event_to_ram(entry_no);
+           }
+           val = current_time_bound_event_log.l.event_code;
+           break;
+    case ITEM_TAG_EVENT_CODE_DE: // disconnect control event
+           entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+           if(current_disconnect_event_log.logEntryNo == entry_no)
+           {
+           }
+           else
+           {
+               load_disconnect_event_to_ram(entry_no);
+           }
+           val = current_disconnect_event_log.l.event_code;
+           break;
+     case ITEM_TAG_STATUS_DE: // disconnect control event
+           entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+           if(current_disconnect_event_log.logEntryNo == entry_no)
+           {
+           }
+           else
+           {
+               load_disconnect_event_to_ram(entry_no);
+           }
+           val = current_disconnect_event_log.l.disconnect_control_status;
+           break;
     case ITEM_TAG_ACTIVE_POWER_LP:  //done test
           entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
           if(currentEnergyLogEntry.logEntryNo == entry_no)
@@ -829,9 +1064,7 @@ int get_string_item(uint8_t *buf, int len, int item)
       memcpy(buf, image_signature, len);       
       break;
       
-      
     case ITEM_TAG_NEW_CALENDER_ACTIVATION_TIME_CONTRACT1:
-      
       break;
 //    case ITEM_TAG_CURRENT_TIME: 
 //      memcpy(buf, xxx, len); 
@@ -843,7 +1076,6 @@ int get_string_item(uint8_t *buf, int len, int item)
 
 // Load Profile Data-period 1(hourly load profile
     case ITEM_TAG_DATETIME_LP: // done, test 
-      /**/
       entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
       if(currentEnergyLogEntry.logEntryNo == entry_no)
       {
@@ -853,23 +1085,97 @@ int get_string_item(uint8_t *buf, int len, int item)
       {
           loadEnergyToRam(entry_no);
       }
-          memcpy(buf, currentEnergyLogEntryData, len);//currentEnergyLogEntryData
-      
-    return len;  
+      memcpy(buf, currentEnergyLogEntryData, len);//currentEnergyLogEntryData
+      return len;
 
-    case ITEM_TAG_DATETIME_SE: //
+    case ITEM_TAG_DATETIME_SE: // standard event
       entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
       if(currentEventLogEntry.logEntryNo == entry_no)
       {
-          //memcpy(buf, currentEnergyLogEntryData, len);//currentEnergyLogEntryData
       }
       else
       {
           loadEventToRam(entry_no);
       }
-          memcpy(buf, currentEventLogEntryData, len);//currentEnergyLogEntryData
-    return len;
-
+      memcpy(buf, currentEventLogEntryData, len);
+      return len;
+    case ITEM_TAG_DATETIME_FE: // fraud event
+          entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+          if(current_event_log.logEntryNo == entry_no)
+          {
+          }
+          else
+          {
+              load_fraud_event_to_ram(entry_no);
+          }
+          memcpy(buf, currentEventLogEntryData, len);
+          return len;
+    case ITEM_TAG_DATETIME_CE: // common event
+          entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+          if(current_event_log.logEntryNo == entry_no)
+          {
+          }
+          else
+          {
+              load_common_event_to_ram(entry_no);
+          }
+          memcpy(buf, currentEventLogEntryData, len);
+          return len;
+    case ITEM_TAG_DATETIME_PQE: // power quality event
+          entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+          if(current_event_log.logEntryNo == entry_no)
+          {
+          }
+          else
+          {
+              load_power_qual_event_to_ram(entry_no);
+          }
+          memcpy(buf, currentEventLogEntryData, len);
+          return len;
+    case ITEM_TAG_DATETIME_FRME: // firmware event
+          entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+          if(current_firmware_event_log.logEntryNo == entry_no)
+          {
+          }
+          else
+          {
+              load_firmware_event_to_ram(entry_no);
+          }
+          memcpy(buf, currentEventLogEntryData, len);
+          return len;
+      case ITEM_TAG_ACTIVE_FIRMWARE: // firmware event
+          entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+          if(current_firmware_event_log.logEntryNo == entry_no)
+          {
+          }
+          else
+          {
+              load_firmware_event_to_ram(entry_no);
+          }
+          memcpy(buf, current_firmware_event_log.l.active_firmware, len);
+          return len;
+     case ITEM_TAG_DATETIME_SYNE1: // synchronization event
+          entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+          if(current_time_bound_event_log.logEntryNo == entry_no)
+          {
+          }
+          else
+          {
+              load_synchronization_event_to_ram(entry_no);
+          }
+          memcpy(buf, currentEventLogEntryData, len);
+          return len;
+     case ITEM_TAG_DATETIME_DE: // disconnect control event
+          entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+          if(current_disconnect_event_log.logEntryNo == entry_no)
+          {
+          }
+          else
+          {
+              load_disconnect_event_to_ram(entry_no);
+          }
+          memcpy(buf, currentEventLogEntryData, len);
+          return len;
 // Billing Data
     case ITEM_TAG_BILLING_DATETIME_MAX_CURR:
       entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);

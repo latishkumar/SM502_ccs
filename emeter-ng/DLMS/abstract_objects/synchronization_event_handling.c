@@ -62,14 +62,11 @@ uint8_t find_num_synchronization_event_log__entries_between(const sSA_Range *sta
        *numOfEntries = 0;
        return 1;
      }
-
      uint16_t MAX_Entries = 0;
-     uint32_t add_start = SYNCHRONIZATION_LOG_ADDRESS_START;
-
-    //confirm this with the number of entries we have
+     const uint32_t add_start = SYNCHRONIZATION_LOG_ADDRESS_START;
+     //confirm this with the number of entries we have
      if(last_synchronization_event_log_address > add_start)//if we have entries
      {
-
          if(status.synchronization_event_log_overlapped == 1) // if the cirular buffer is full
          {
            MAX_Entries = MAX_FIRMWARE_EVENT_LOGS;
@@ -77,14 +74,12 @@ uint8_t find_num_synchronization_event_log__entries_between(const sSA_Range *sta
          else{
             MAX_Entries = (last_synchronization_event_log_address - add_start)/TIME_BOUND_EVENT_LOG_TYPE_SIZE;
          }
-
          time_bound_event_log firstEntery,lastEntry;
          uint8_t z = get_synchronization_event(&firstEntery,1); //get our first entry
          if(z == 0)
          {
             //error abort
          }
-
          rtc_t time_first = getTime(&firstEntery.end_time_stamp);
          temp1 = compare_time(&temp_eRange,&time_first);//if the first entry we have is is after the last entry requested then we don't have the data
          if(temp1 < 0)
@@ -93,41 +88,36 @@ uint8_t find_num_synchronization_event_log__entries_between(const sSA_Range *sta
              *numOfEntries = 0;
              return 1;
           }
-
           int8_t com2 = compare_time(&time_first,&temp_sRange);
           if(com2 < 0)//if time_first comes before temp_sRange
           {
-            //search for the entry number for temp_sRange;
-
+                //search for the entry number for temp_sRange;
                 //Search_t search_item;
-                search_item.start_entry = 0;//startEntryNumber;
-                search_item.end_entry = MAX_Entries;//search_item.start_entry +  *numOfEntries;
-                //search_item.SingleItemSize = EnergyLogSize;
+                search_item.start_entry = 0;
+                search_item.end_entry = MAX_Entries;
                 time_bound_event_log l;
                 time_bound_event_log l2;
                 l2.end_time_stamp = getTimeStamp(temp_sRange.year,temp_sRange.month,temp_sRange.day,temp_sRange.hour,temp_sRange.minute,temp_sRange.second);
                 search_item.current_data = &l;
                 search_item.PeakItem = &get_synchronization_event;
                 search_item.Compare = &compare_synchronization_event;
-                search_item.search_data = &l2;//&temp_sRange;
+                search_item.search_data = &l2;
                 uint32_t sa =  search_nearest_log(&search_item);
-      //          find the actual last entry
-      //          check if this entry is with in the start and end range
-
+                // find the actual last entry
+                // check if this entry is with in the start and end range
                 if(sa ==0)
                 {
-                *startEntryNumber = search_item.last_entry_no;
+                    *startEntryNumber = search_item.last_entry_no;
                 }
                 else
                 {
-                  *startEntryNumber = sa;
+                    *startEntryNumber = sa;
                 }
           }
           else
           {
              *startEntryNumber = 1;
           }
-
           z = get_synchronization_event(&lastEntry,MAX_Entries);//get the last entry
           if(z == 0)
           {
@@ -135,8 +125,6 @@ uint8_t find_num_synchronization_event_log__entries_between(const sSA_Range *sta
           }
           rtc_t time_last = getTime(&lastEntry.end_time_stamp);
           int8_t com3 = compare_time(&time_last,&temp_eRange);
-
-
           //Correct for this forward ??????????????????????????????????
           if(com3 >= 0)//temp_eRange comes before  time_last
           {
@@ -144,7 +132,6 @@ uint8_t find_num_synchronization_event_log__entries_between(const sSA_Range *sta
             void *t1 = &required_last_entry_time;
             void *t2 = &temp_eRange;
             memcpy(t1,t2,sizeof(required_last_entry_time));
-
           }
           else
           {
@@ -165,15 +152,13 @@ uint8_t find_num_synchronization_event_log__entries_between(const sSA_Range *sta
 
 uint8_t find_num_total_synchronization_event_log_entries(uint16_t *num_entries,uint16_t *start_entry)
 {
-   //count the total number of entries we have
+      //count the total number of entries we have
        /*get the last energy log address
          divide it by the size of energy log struct
           return this number
        */
-
       *start_entry = 1;
       *num_entries = 0;
-
       if(status.synchronization_event_log_overlapped == 1)
       {
         *num_entries = MAX_FIRMWARE_EVENT_LOGS;
@@ -181,17 +166,15 @@ uint8_t find_num_total_synchronization_event_log_entries(uint16_t *num_entries,u
       else
       {
         int32_t x=0;
-        uint32_t Add_Start = SYNCHRONIZATION_LOG_ADDRESS_START;
+       const uint32_t Add_Start = SYNCHRONIZATION_LOG_ADDRESS_START;
         if(last_synchronization_event_log_address > Add_Start)
           x = last_synchronization_event_log_address - Add_Start;
-
         while(x > 0)
         {
             x -= TIME_BOUND_EVENT_LOG_TYPE_SIZE;
             *num_entries= *num_entries + 1;
         }
       }
-
       if(*num_entries>0)
         *start_entry = 1;
   return 1;//success
@@ -223,14 +206,13 @@ void capture_synchronization_event_log(void *data, int direction)
        }
        else
        {
-
        }
     }
     else
     {
         find_num_total_synchronization_event_log_entries(&msg_info.num_entries,&msg_info.start_entry);
     }
-      msg_info.column_szs=synchronization_event_log_column_szs;
+      msg_info.column_szs = synchronization_event_log_column_szs;
 }
 
 /*
@@ -238,11 +220,12 @@ void capture_synchronization_event_log(void *data, int direction)
  */
 void obj_synchronization_event_log_reset(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
-      uint32_t tmp32 =EventLogAddress_Start;
-      uint8_t temp8=1;
-      LastEventLogAddress = EventLogAddress_Start;
+      uint32_t tmp32 = SYNCHRONIZATION_LOG_ADDRESS_START;
+      uint8_t temp8 = 8;
+      last_synchronization_event_log_address = tmp32;
       write_to_eeprom(&tmp32,&temp8,setLastLogAddress);
-      write_to_eeprom(&temp8,(uint8_t *)0,setEventOverlapFlag);
+      temp8 = 0;
+      write_to_eeprom(&temp8,(uint8_t *)8,setEventOverlapFlag);
 }
 
 /*

@@ -10,13 +10,13 @@
 
 extern uint8_t standard_event_number;
 
-extern uint32_t events_capture_period;
+extern const uint32_t events_capture_period;
 
-extern uint8_t events_sort_method;
+extern const uint8_t events_sort_method;
 
 extern uint32_t events_entries_in_use;
 
-extern uint32_t standard_event_profile_entries;
+extern const uint32_t standard_event_profile_entries;
 
 extern const uint8_t standard_event_log_objects[];
 

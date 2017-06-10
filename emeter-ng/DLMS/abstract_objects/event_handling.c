@@ -18,13 +18,13 @@ uint8_t standard_event_number;
  * Capture period for events
  * value: 0 asynchronously
  */
-uint32_t events_capture_period=0;
+const uint32_t events_capture_period = 0;
 
 /*
  * Event sort method
  * value:1 /unsorted (FIFO)
  */
-uint8_t events_sort_method = 1;
+const uint8_t events_sort_method = 1;
 
 /*
  * Entries in use for events log
@@ -35,7 +35,7 @@ uint32_t events_entries_in_use;
  * Standard event profile entries
  * Default: >100
  */
-uint32_t standard_event_profile_entries = 5701;
+const uint32_t standard_event_profile_entries = 5701;
 const uint16_t standard_event_log_column_szs[] = {16,18};
 /*
  * Template for standard event log profile
@@ -80,7 +80,7 @@ uint8_t find_num_standard_event_log__entries_between(const sSA_Range *startRange
      }
 
      uint16_t MAX_Entries = 0;
-     uint32_t add_start = EventLogAddress_Start;
+     const uint32_t add_start = EventLogAddress_Start;
 
     //confirm this with the number of entries we have
      if(LastEventLogAddress > add_start)//if we have entries
@@ -203,7 +203,7 @@ uint8_t find_num_total_Standard_Event_Log_entries(uint16_t *num_entries,uint16_t
       else
       {
         int32_t x=0;
-        uint32_t Add_Start = EventLogAddress_Start;
+        const uint32_t Add_Start = EventLogAddress_Start;
         if(LastEventLogAddress > Add_Start)
           x = LastEventLogAddress - Add_Start;
 
@@ -262,11 +262,12 @@ void capture_standard_event_log(void *data, int direction)
  */
 void obj_event_log_reset(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
-      uint32_t tmp32 =EventLogAddress_Start;
-      uint8_t temp8=1;
-      LastEventLogAddress = EventLogAddress_Start;
+      uint32_t tmp32 = EventLogAddress_Start;
+      uint8_t temp8 = 3;
+      LastEventLogAddress = tmp32;
       write_to_eeprom(&tmp32,&temp8,setLastLogAddress);
-      write_to_eeprom(&temp8,(uint8_t *)0,setEventOverlapFlag);
+      temp8 = 0;
+      write_to_eeprom(&temp8,(uint8_t *)3,setEventOverlapFlag);
 }
 
 /*

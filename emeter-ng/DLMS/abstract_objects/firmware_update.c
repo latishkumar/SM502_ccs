@@ -25,7 +25,7 @@ uint8_t image_transferred_blocks_status;
  * Image transfer
  * mage_first_not_transferred_block_number
  */
-uint32_t image_first_not_transferred_block_number=124;
+uint32_t image_first_not_transferred_block_number = 124;
 
 /*
  * Image transfer
