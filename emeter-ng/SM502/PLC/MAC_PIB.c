@@ -13,7 +13,7 @@
 GET_MAC_PID_Replay MAC_PIB_replay;
 
 
-uint8_t device_identifier[13] = {'D','V','E','0','0','0','0','0','0','0','0','3','4'}; //Meter one 
+uint8_t device_identifier[13] = {'D','V','E','0','0','0','0','0','0','0','0','0','0'}; //Meter one
 
                               
                               

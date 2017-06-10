@@ -223,10 +223,11 @@ void obj_common_event_log_reset(uint8_t *data,uint16_t data_len,uint8_t *respons
 {
       uint32_t tmp32 = COMMON_LOG_ADDRESS_START;
       uint8_t temp8 = 6;
+      uint8_t tmp1 = 6;
       last_common_event_log_address = tmp32;
       write_to_eeprom(&tmp32,&temp8,setLastLogAddress);
       temp8 = 0;
-      write_to_eeprom(&temp8,(uint8_t *)6,setEventOverlapFlag);
+      write_to_eeprom(&temp8,&tmp1,setEventOverlapFlag);
 }
 
 /*
@@ -234,6 +235,21 @@ void obj_common_event_log_reset(uint8_t *data,uint16_t data_len,uint8_t *respons
  */
 void obj_common_event_log_capture(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
+	uint8_t tmp = 6 ;
+	event_log l;
+	l.event_code = 10;
+	l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
+	l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
+	write_to_eeprom(&l,&tmp,log_events);
+	l.event_code = 20;
+	l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
+	l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
+	write_to_eeprom(&l,&tmp,log_events);
+	l.event_code = 30;
+	l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
+	l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
+	write_to_eeprom(&l,&tmp,log_events);
+	*response_len= 0;
 }
 /**********************************************************************/
 

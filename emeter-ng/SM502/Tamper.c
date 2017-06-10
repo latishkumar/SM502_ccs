@@ -289,7 +289,8 @@ void UCTamperDetected()
     l.time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
     l.checksum  =(getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;
     //l.value = 0;
-    write_to_eeprom(&l,(uint8_t *)4,log_events);
+    uint8_t tmp = 4;
+    write_to_eeprom(&l,&tmp,log_events);
     
     TamperCount.UpperCoverRemoved_Count++;
     tamperLoggedStatus |= UCtamperLogged;
@@ -321,7 +322,8 @@ void LCTamperDetected()
      l.time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
      l.checksum  =(getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;
      //l.value = 0;
-     write_to_eeprom(&l,(uint8_t *)4,log_events);
+     uint8_t tmp = 4;
+     write_to_eeprom(&l,&tmp,log_events);
      
      TamperCount.LowerCoverRemoved_Count ++;
      tamperLoggedStatus |= LCtamperLogged; 

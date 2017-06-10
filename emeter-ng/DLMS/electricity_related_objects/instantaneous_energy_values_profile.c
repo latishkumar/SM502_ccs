@@ -43,8 +43,8 @@ void capture_instantaneous_energy_profile_data(void *data,int direction)
  */
 const uint8_t instantaneous_energy_capture_objects[] =
 {
-    INJECT16(0x8000 | (7*18 + 1)),
-         7,
+    INJECT16(0x8000 | (8*18 + 1)),
+         8,
             TAG_STRUCTURE, 4,
                 TAG_UINT16, INJECT16(CLASS_ID_CLOCK),
                 TAG_OCTET_STRING, 6, OBIS_GROUP_A_ABSTRACT_OBJECTS, 0, 1, 0, 0, 255, // Date & Time
@@ -78,6 +78,11 @@ const uint8_t instantaneous_energy_capture_objects[] =
             TAG_STRUCTURE, 4,
                 TAG_UINT16, INJECT16(CLASS_ID_REGISTER),
                 TAG_OCTET_STRING, 6, 1, 0, 8, 8, 0, 255,    // Instantaneous Energy Rc-
+                TAG_INT8, 2,
+                TAG_UINT16, INJECT16(0),
+			TAG_STRUCTURE, 4,
+                TAG_UINT16, INJECT16(CLASS_ID_DATA), 	// added only to resolve emulator error when the number of objects are 7
+                TAG_OCTET_STRING, 6, 0, 0, 0, 0, 0, 255,    //
                 TAG_INT8, 2,
                 TAG_UINT16, INJECT16(0)
 };

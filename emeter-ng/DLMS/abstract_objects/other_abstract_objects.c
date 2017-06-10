@@ -22,7 +22,7 @@ const uint16_t inter_octet_timeout = 3000;  // 150 ms
 const uint16_t inactivity_time_out = 1000;  // 180 s
 uint16_t device_address = 0x10;
 
-uint8_t active_firmware_version[]={5,'V','0','0','0','3'}; //Active Firmware identifier
+uint8_t active_firmware_version[]={5,'V','0','1','0','1'}; //Active Firmware identifier-V1.1
 
 extern uint32_t scroll_display_time;
 extern uint32_t AutoDisplayTime;

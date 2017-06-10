@@ -8,7 +8,9 @@
 #ifndef DLMS_ELECTRICITY_RELATED_OBJECTS_DAILY_LOAD_PROFILE_H_
 #define DLMS_ELECTRICITY_RELATED_OBJECTS_DAILY_LOAD_PROFILE_H_
 
-extern uint8_t daily_amr_profile_status;;
+extern uint8_t daily_amr_profile_status;
+
+extern uint16_t daily_load_profile_capture_period_min;
 
 extern uint32_t daily_load_profile_entries_in_use;
 

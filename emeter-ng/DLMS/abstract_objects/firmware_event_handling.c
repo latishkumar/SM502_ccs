@@ -26,10 +26,10 @@ const uint16_t firmware_event_log_column_szs[] = {16,18,25,32};
 const uint8_t firmware_event_log_template[] =
 {
    STUFF_DATA | TAG_STRUCTURE, 4,
-        STUFF_DATA | TAG_OCTET_STRING, 12,ITEM_TAG_EVENT_CODE_FRME, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Event Time stump
-        STUFF_DATA | TAG_UINT8, INJECT8(ITEM_TAG_DATETIME_FRME),                                    // Event code
-        STUFF_DATA | TAG_OCTET_STRING, 5,ITEM_TAG_ACTIVE_FIRMWARE, 0, 0, 0, 0,
-                     TAG_OCTET_STRING, 5,ITEM_TAG_ACTIVE_FIRMWARE, 0, 0, 0, 0
+   STUFF_DATA | TAG_OCTET_STRING, 12,ITEM_TAG_DATETIME_FRME, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // Event Time stump
+   STUFF_DATA | TAG_UINT8, INJECT8(ITEM_TAG_EVENT_CODE_FRME),                                   // Event code
+   STUFF_DATA | TAG_OCTET_STRING, 5,ITEM_TAG_ACTIVE_FIRMWARE, 0, 0, 0, 0,						// Firmware version
+   STUFF_DATA | TAG_OCTET_STRING, 5,ITEM_TAG_FORMER_FIRMWARE, 0, 0, 0, 0	   	   	            // Former firmware version
 };
 
 /*
@@ -51,12 +51,12 @@ const uint8_t firmware_event_log_objects[] =
                 TAG_UINT16, INJECT16(0),
             TAG_STRUCTURE, 4,
                 TAG_UINT16, INJECT16(CLASS_ID_DATA), // active firmware
-                TAG_OCTET_STRING, 6, 0, 0, 96, 11, 4, 255,
+                TAG_OCTET_STRING, 6, 1, 0, 0, 2, 0, 255,
                 TAG_INT8, 2,
                 TAG_UINT16, INJECT16(0),
             TAG_STRUCTURE, 4,
                 TAG_UINT16, INJECT16(CLASS_ID_DATA), // former firmware
-                TAG_OCTET_STRING, 6, 0, 0, 96, 11, 4, 255,
+                TAG_OCTET_STRING, 6, 0, 0, 96, 1, 6, 255,
                 TAG_INT8, 2,
                 TAG_UINT16, INJECT16(0)
 };
@@ -232,17 +232,39 @@ void obj_firmware_event_log_reset(uint8_t *data,uint16_t data_len,uint8_t *respo
 {
       uint32_t tmp32 = FIRMWARE_LOG_ADDRESS_START;
       uint8_t temp8 = 7;
+      uint8_t tmp1 = 7;
       last_firmware_event_log_address = tmp32;
       write_to_eeprom(&tmp32,&temp8,setLastLogAddress);
       temp8 = 0;
-      write_to_eeprom(&temp8,(uint8_t *)7,setEventOverlapFlag);
+      write_to_eeprom(&temp8,&tmp1,setEventOverlapFlag);
+      *response_len= 0;
+
 }
 
 /*
  * Capture function for firmware event log
  */
+extern uint8_t active_firmware_version[];
 void obj_firmware_event_log_capture(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
+	uint8_t tmp = 7;
+	firmware_event_log l;
+	l.event_code = 8;
+	memcpy((uint8_t *)l.active_firmware,(uint8_t *)&active_firmware_version[1],5);
+	l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
+	l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
+	write_to_eeprom(&l,&tmp,log_events);
+	l.event_code = 9;
+	memcpy((uint8_t *)l.active_firmware,(uint8_t *)&active_firmware_version[1],5);
+	l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
+	l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
+	write_to_eeprom(&l,&tmp,log_events);
+	l.event_code = 10;
+	memcpy((uint8_t *)l.active_firmware,(uint8_t *)&active_firmware_version[1],5);
+	l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
+	l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
+	write_to_eeprom(&l,&tmp,log_events);
+	*response_len= 0;
 }
 
 

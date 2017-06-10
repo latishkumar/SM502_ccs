@@ -112,11 +112,11 @@ uint8_t find_num_disconnect_event_log__entries_between(const sSA_Range *startRan
                 // check if this entry is with in the start and end range
                 if(sa ==0)
                 {
-                *startEntryNumber = search_item.last_entry_no;
+                	*startEntryNumber = search_item.last_entry_no;
                 }
                 else
                 {
-                  *startEntryNumber = sa;
+                    *startEntryNumber = sa;
                 }
           }
           else
@@ -227,10 +227,12 @@ void obj_disconnect_event_log_reset(uint8_t *data,uint16_t data_len,uint8_t *res
 {
       uint32_t tmp32 = DISCONNECT_LOG_ADDRESS_START;
       uint8_t temp8 = 9;
+      uint8_t tmp1 = 9;
       last_disconnect_event_log_address = tmp32;
       write_to_eeprom(&tmp32,&temp8,setLastLogAddress);
-      temp8 = 9;
-      write_to_eeprom(&temp8,(uint8_t *)9,setEventOverlapFlag);
+      temp8 = 0;
+      write_to_eeprom(&temp8,&tmp1,setEventOverlapFlag);
+      *response_len= 0;
 }
 
 /*
@@ -238,6 +240,24 @@ void obj_disconnect_event_log_reset(uint8_t *data,uint16_t data_len,uint8_t *res
  */
 void obj_disconnect_event_log_capture(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
+	uint8_t tmp = 9 ;
+	disconnect_event_log l;
+	l.event_code = 8;
+	l.disconnect_control_status = 4;
+	l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
+	l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
+	write_to_eeprom(&l,&tmp,log_events);
+	l.event_code = 3;
+	l.disconnect_control_status = 0;
+	l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
+	l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
+	write_to_eeprom(&l,&tmp,log_events);
+	l.event_code = 5;
+	l.disconnect_control_status = 1;
+	l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
+	l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
+	write_to_eeprom(&l,&tmp,log_events);
+	*response_len= 0;
 }
 
 

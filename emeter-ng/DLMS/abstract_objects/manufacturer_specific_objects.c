@@ -37,7 +37,6 @@ void reset_alarms(uint8_t *data, uint16_t data_len,uint8_t *response,uint16_t *r
     default:
         break;
   }
-  status.write_tamper_status = 0;
 }
 
 /*
@@ -69,7 +68,6 @@ void reset_persistent_events(void *data, int data_direction)
 			default:
 				break;
 		  }
-		  status.write_tamper_status = 0;
 	}
 	else if(data_direction == ATTR_READ)
 	{

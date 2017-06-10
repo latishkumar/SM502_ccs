@@ -12,29 +12,10 @@
 
 //extern MeterAddress Meter_serialNumber;
 uint8_t EUI[]                  =  {0xB,0,0,0,0,0x11};//Meter One
-//{0x00,0x00,0x00,0x00,0x00,0x04}; //Meter Five
-//{00,128,225,00,16,43}; //Meter Three
-
-
-                                    
-//{00,128,225,00,16,44}; //Meter Two
-//{0x00,0x80,0xE1,0x02,0x86,0xb9};//Meter Six                                  
-
-//{00,128,225,00,16,42};  //Meter Four
-                                   
-                                  
-                                  
 uint8_t LLC_SOURCE_LSAP[]      = {0,0};
 uint8_t LLC_DEF_DEST_LSAP[]    = {0,1};
 uint8_t LLC_DEF_Node_Address[] = {0,5};
 extern uint8_t Meter_Sr_No[];
-//	case G3_configuration_config:
-//		Payload[0] = G3_configuration_config;
-//		Payload[1] = 16;
-//
-//		header.Payload_Length = 16;
-//
-//		break;
 
 void Load_System_Config_Request(int Config_Type,char port)
 {
@@ -66,30 +47,20 @@ void Load_System_Config_Request(int Config_Type,char port)
 	case System_Configuration_config:
 
 		Payload[0] = System_Configuration_config;
-                Payload[1] = 0;
+		Payload[1] = 0;
                 
 		Payload[2] = 0x1A; //configration length
 		Payload[3] = 0x00;
 
-                Payload[4] = 0x0A; //serial number length 
-                Payload[5] = 0x00;
+		Payload[4] = 0x0A; //serial number length
+		Payload[5] = 0x00;
                 
-                z = 6;
-                temp=1;
-                for(;z<16;z++,temp++)
-                {
-                  Payload[z]= Meter_Sr_No[temp];
-                }
-
-//                temp = Meter_serialNumber.Address;
-//		Payload[6] =temp;
-//                temp>>=8;
-//		Payload[7] =temp;
-//                temp>>=8;
-//		Payload[8] =temp;
-//                temp>>=8;
-//		Payload[9] =temp;
-
+		z = 6;
+		temp=1;
+		for(;z<16;z++,temp++)
+		{
+		  Payload[z]= Meter_Sr_No[temp];
+		}
                 
 		for(;z<=21;z++)
 		Payload[z] = 0;
@@ -97,7 +68,7 @@ void Load_System_Config_Request(int Config_Type,char port)
                 temp = 1;
 		for(;z<=27;z++,temp++)
 			Payload[z] = mac_address[temp];//EUI???????????????????????????????????????????????????????????????????????
-                //Payload[z] = EUI[temp];//EUI???????????????????????????????????????????????????????????????????????
+			//Payload[z] = EUI[temp];//EUI???????????????????????????????????????????????????????????????????????
 
 		Payload[28] = 0;//0 normal mode 3 device mode p2p
 		Payload[29] = 0;// 0 No Atuo Mode //0x20 Auto mode enabled, device connects automatically to the network
@@ -138,24 +109,23 @@ void Load_System_Config_Request(int Config_Type,char port)
                 
 		Payload[2] = 0x6; //configration length
 		Payload[3] = 0x0;
-                         
-                  
-                Payload[4]= LLC_SOURCE_LSAP[0];
-                Payload[5]= LLC_SOURCE_LSAP[1];
-          
-                Payload[6]= LLC_DEF_DEST_LSAP[0];
-                Payload[7] =LLC_DEF_DEST_LSAP[1];
-          
-                Payload[8]= LLC_DEF_Node_Address[0];
-                Payload[9] = LLC_DEF_Node_Address[1];
-          
-                header.Payload_Length = 10;          
+
+		Payload[4]= LLC_SOURCE_LSAP[0];
+		Payload[5]= LLC_SOURCE_LSAP[1];
+
+		Payload[6]= LLC_DEF_DEST_LSAP[0];
+		Payload[7] =LLC_DEF_DEST_LSAP[1];
+
+		Payload[8]= LLC_DEF_Node_Address[0];
+		Payload[9] = LLC_DEF_Node_Address[1];
+
+		header.Payload_Length = 10;
         break;
         
 	}
     
 	message.header  = header;
-        message.Payload = Payload;
+	message.Payload = Payload;
 
 	SendMessage(&message); // calculate the payload and header CRC on this method 
 }

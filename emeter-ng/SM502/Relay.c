@@ -193,7 +193,7 @@ uint8_t CheckConnectionIsEnabled(uint8_t *EventCode)
 */
 void ConnectMeter(uint8_t EventCode) {
 
-    
+    uint8_t tmp;
     relayState = 1;
     reset_relay_required = 1; 
     
@@ -215,7 +215,8 @@ void ConnectMeter(uint8_t EventCode) {
     l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
     l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
     //l.value = 0;
-    uint8_t z = write_to_eeprom(&l,(uint8_t *)9,log_events);
+    tmp = 9;
+    uint8_t z = write_to_eeprom(&l,&tmp,log_events);
     if(z==0)
     {
       AddError(EEPROM1_Error);
@@ -234,19 +235,8 @@ void ConnectMeter(uint8_t EventCode) {
 /** Opens the remote switch and logs disconnect event with the reason of disconnection
 *   @param EventCode: the reason why the meter is disconnected 
 */
-void DisconnectMeter(uint8_t EventCode) {
-    
-#ifdef LOG_
-//  printf("\nR:-%d",EventCode);
-  IEC_AddtoTXBuffer('\n');
-  IEC_AddtoTXBuffer('R');
-  IEC_AddtoTXBuffer(':');
-  IEC_AddtoTXBuffer('-');
-  IEC_AddtoTXBuffer(EventCode);
-  IEC_Start_SendBuffer();            
-#endif
-  
-  
+void DisconnectMeter(uint8_t EventCode)
+{
     relayState = 0;
     reset_relay_required = 1;
 //    WriteChar('D',20,2,font5x8);  
@@ -255,7 +245,7 @@ void DisconnectMeter(uint8_t EventCode) {
     RelayOnPort &= ~RelayOnBIT;
     RelayOffPort |= RelayOffBIT;
 #endif  
-    
+    uint8_t tmp = 9;
     reset_counter = 0;
     LastDisconnectReason = EventCode;
     //log disconnect event
@@ -265,7 +255,7 @@ void DisconnectMeter(uint8_t EventCode) {
     l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
     l.disconnect_control_status = output_state;
     l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
-    uint8_t z = write_to_eeprom(&l,(uint8_t *)9,log_events);
+    uint8_t z = write_to_eeprom(&l,tmp,log_events);
     if(z==0)
     {
       AddError(EEPROM1_Error);

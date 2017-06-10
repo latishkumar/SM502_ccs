@@ -1260,8 +1260,8 @@ const struct object_desc_s object_list[] =
                                      ,2
                                      ,(const struct method_desc_s[]) {
 
-                                             {1, ACCESS_PC___MR___USR_, obj_event_log_reset},
-                                             {2, ACCESS_PC___MR___USR_, obj_event_log_capture}
+                                             {1, ACCESS_PC___MRRW_USRW, obj_event_log_reset},
+                                             {2, ACCESS_PC___MRRW_USRW, obj_event_log_capture}
                                       }
        },
 
@@ -1302,8 +1302,8 @@ const struct object_desc_s object_list[] =
                                      ,2
                                      ,(const struct method_desc_s[]) {
 
-                                             {1, ACCESS_PC___MR___USR_, obj_fraud_event_log_reset},
-                                             {2, ACCESS_PC___MR___USR_, obj_fraud_event_log_capture}
+                                             {1, ACCESS_PC___MRRW_USRW, obj_fraud_event_log_reset},
+                                             {2, ACCESS_PC___MRRW_USRW, obj_fraud_event_log_capture}
                                       }
        },
 
@@ -1344,8 +1344,8 @@ const struct object_desc_s object_list[] =
                                      ,2
                                      ,(const struct method_desc_s[]) {
 
-                                             {1, ACCESS_PC___MR___USR_, obj_power_qual_event_log_reset},
-                                             {2, ACCESS_PC___MR___USR_, obj_power_qual_event_log_capture}
+                                             {1, ACCESS_PC___MRRW_USRW, obj_power_qual_event_log_reset},
+                                             {2, ACCESS_PC___MRRW_USRW, obj_power_qual_event_log_capture}
                                       }
        },
 
@@ -1418,8 +1418,8 @@ const struct object_desc_s object_list[] =
                                      ,2
                                      ,(const struct method_desc_s[]) {
 
-                                             {1, ACCESS_PC___MR___USR_, obj_common_event_log_reset},
-                                             {2, ACCESS_PC___MR___USR_, obj_common_event_log_capture}
+                                             {1, ACCESS_PC___MRRW_USRW, obj_common_event_log_reset},
+                                             {2, ACCESS_PC___MRRW_USRW, obj_common_event_log_capture}
                                       }
        },
 
@@ -1473,8 +1473,8 @@ const struct object_desc_s object_list[] =
                                      ,2
                                      ,(const struct method_desc_s[]) {
 
-                                             {1, ACCESS_PC___MR___USR_, obj_common_event_log_reset},
-                                             {2, ACCESS_PC___MR___USR_, obj_common_event_log_capture}
+                                             {1, ACCESS_PC___MRRW_USRW, obj_firmware_event_log_reset},
+                                             {2, ACCESS_PC___MRRW_USRW, obj_firmware_event_log_capture}
                                       }
        },
 
@@ -1515,8 +1515,8 @@ const struct object_desc_s object_list[] =
                                      ,2
                                      ,(const struct method_desc_s[]) {
 
-                                             {1, ACCESS_PC___MR___USR_, obj_synchronization_event_log_reset},
-                                             {2, ACCESS_PC___MR___USR_, obj_synchronization_event_log_capture}
+                                             {1, ACCESS_PC___MRRW_USRW, obj_synchronization_event_log_reset},
+                                             {2, ACCESS_PC___MRRW_USRW, obj_synchronization_event_log_capture}
                                       }
        },
 
@@ -1710,8 +1710,8 @@ const struct object_desc_s object_list[] =
 										,2
 										,(const struct method_desc_s[]) {
 
-												{1, ACCESS_PC___MR___USR_, obj_disconnect_event_log_reset},
-												{2, ACCESS_PC___MR___USR_, obj_disconnect_event_log_capture}
+												{1, ACCESS_PC___MRRW_USRW, obj_disconnect_event_log_reset},
+												{2, ACCESS_PC___MRRW_USRW, obj_disconnect_event_log_capture}
 										 }
 		  },
 
@@ -2485,7 +2485,6 @@ const struct object_desc_s object_list[] =
        * Class id-7,
        * 1-0:99.2.0.255
        */
-
       {ASSOC_MR_US, CLASS_ID_PROFILE_GENERIC,        1,{1,0,99,2,0,255}
                                      ,8
                                      ,(const struct attribute_desc_s[]) {
@@ -2612,6 +2611,23 @@ const struct object_desc_s object_list[] =
                                      ,0
                                      ,NULL
        },
+
+	  /* IInstantaneous current (sum over all phases)
+       * Class id-3,
+       * 1-0:90.7.0.255
+       */
+       {ASSOC_MR_US, CLASS_ID_REGISTER,        0,{1,0,90,7,0,255}
+                                     ,3
+                                     ,(const struct attribute_desc_s[]) {
+
+                                             {1, ACCESS_PCR__MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[INST_VALUES_START + 6].instance_id, NULL},
+                                             {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &phase->readings.I_rms, NULL},
+                                             {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_I, NULL}
+
+                                     }
+                                     ,0
+                                     ,NULL
+       },
       /* Instantaneous active power +(P)
        * Class id-3,
        * 1-0:1.7.0.255
@@ -2620,7 +2636,7 @@ const struct object_desc_s object_list[] =
                                      ,3
                                      ,(const struct attribute_desc_s[]) {
 
-                                              {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[INST_VALUES_START + 6].instance_id, NULL},
+                                              {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[INST_VALUES_START + 7].instance_id, NULL},
                                               {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &P_Active_Plus, NULL}, //check this
                                               {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_active_power, NULL}
 
@@ -2637,7 +2653,7 @@ const struct object_desc_s object_list[] =
                                      ,3
                                      ,(const struct attribute_desc_s[]) {
 
-                                             {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[INST_VALUES_START + 7].instance_id, NULL},
+                                             {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[INST_VALUES_START + 8].instance_id, NULL},
                                              {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &P_Active_Negative, NULL},
                                              {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_active_power, NULL}
 
@@ -2654,7 +2670,7 @@ const struct object_desc_s object_list[] =
                                      ,3
                                      ,(const struct attribute_desc_s[]) {
 
-                                             {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[INST_VALUES_START + 8].instance_id, NULL},
+                                             {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[INST_VALUES_START + 9].instance_id, NULL},
                                              {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &P_Reactive_positive, NULL},
                                              {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_active_power, NULL}
 
@@ -2671,7 +2687,7 @@ const struct object_desc_s object_list[] =
                                      ,3
                                      ,(const struct attribute_desc_s[]) {
 
-                                             {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[INST_VALUES_START + 9].instance_id, NULL},
+                                             {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[INST_VALUES_START + 10].instance_id, NULL},
                                              {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &P_Reactive_negative, NULL},
                                              {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_active_power, NULL}
 
@@ -2688,7 +2704,7 @@ const struct object_desc_s object_list[] =
                                      ,3
                                      ,(const struct attribute_desc_s[]) {
 
-                                             {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[INST_VALUES_START + 10].instance_id, NULL},
+                                             {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[INST_VALUES_START + 11].instance_id, NULL},
                                              {2, ACCESS_PC___MRR__USR_, TAG_INT16,           (void *) &phase->readings.power_factor, NULL},
                                              {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_PF, NULL}
 
@@ -2705,7 +2721,7 @@ const struct object_desc_s object_list[] =
                                      ,8
                                      ,(const struct attribute_desc_s[]) {
 
-                                              {1, ACCESS_PCR__MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[INST_VALUES_START + 11].instance_id, NULL},
+                                              {1, ACCESS_PCR__MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[INST_VALUES_START + 12].instance_id, NULL},
                                               {2, ACCESS_PCR__MRR__USR_, TAG_ARRAY,           (void *) Data_Buffer, capture_instantaneous_profile_data},
                                               {3, ACCESS_PCR__MRR__USR_, TAG_ARRAY,           (void *) instantaneous_values_capture_objects, NULL},
                                               {4, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &instantaneous_values_capture_period, NULL},

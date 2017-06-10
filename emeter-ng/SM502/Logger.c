@@ -491,21 +491,29 @@ void InitLogg()
           write_to_eeprom(&Current_balance,(uint8_t *)0,setCurrentBalance);
                         
           //clear event and energy log overlap flag
+          temp8  = 0;
+          temp82 = 3;//type
+          write_to_eeprom(&temp8,&temp82,setEventOverlapFlag);
+          temp82 = 4;//type
+          write_to_eeprom(&temp8,&temp82,setEventOverlapFlag);
+          temp82 = 5;//type
+          write_to_eeprom(&temp8,&temp82,setEventOverlapFlag);
+          temp82 = 6;//type
+          write_to_eeprom(&temp8,&temp82,setEventOverlapFlag);
+          temp82 = 7;//type
+          write_to_eeprom(&temp8,&temp82,setEventOverlapFlag);
+          temp82 = 8;//type
+          write_to_eeprom(&temp8,&temp82,setEventOverlapFlag);
+          temp82 = 9;//type
+          write_to_eeprom(&temp8,&temp82,setEventOverlapFlag);
+          temp82 = 0;//type
+          write_to_eeprom(&temp8,&temp82,setEnergyOverlapFlag);
+
+          write_to_eeprom(&temp8,&temp82,setBillingCutOffLogOverlapFlag);
+
           temp8=0;
-          write_to_eeprom(&temp8,(uint8_t *)3,setEventOverlapFlag);
-          write_to_eeprom(&temp8,(uint8_t *)4,setEventOverlapFlag);
-          write_to_eeprom(&temp8,(uint8_t *)5,setEventOverlapFlag);
-          write_to_eeprom(&temp8,(uint8_t *)6,setEventOverlapFlag);
-          write_to_eeprom(&temp8,(uint8_t *)7,setEventOverlapFlag);
-          write_to_eeprom(&temp8,(uint8_t *)8,setEventOverlapFlag);
-          write_to_eeprom(&temp8,(uint8_t *)9,setEventOverlapFlag);
-
-          write_to_eeprom(&temp8,(uint8_t *)0,setEnergyOverlapFlag);
-
-          write_to_eeprom(&temp8,(uint8_t *)0,setBillingCutOffLogOverlapFlag);
-
-          temp8=0;
-          write_to_eeprom(&temp8,(uint8_t *)1,setEnergyOverlapFlag);
+          temp82 = 1;//type
+          write_to_eeprom(&temp8,&temp82,setEnergyOverlapFlag);
 
                         
          #if defined(USE_WATCHDOG)
@@ -612,7 +620,8 @@ void InitLogg()
             l.timeStump = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
             l.Checksum  =(getCheckSum(&(l.timeStump.TimestampLow),4) + l.timeStump.TimestampUp + l.EventCode)&0xff;
             l.value = 0;
-            write_to_eeprom(&l,(uint8_t *)3,log_events);
+            temp8 = 3;
+            write_to_eeprom(&l,&temp8,log_events);
                         
          #if defined(USE_WATCHDOG)
             kick_watchdog();
@@ -634,32 +643,32 @@ void LoadConfigurations()
         validation_arg.validate_by_reading_back = 0;
         validation_arg_t noValidation = validation_arg_t_default;
         uint8_t temp_did=0;
-
+        uint8_t tmp2 = 0;
         getEnergyOverlapFlag(&temp_did);
         status.energy_log_overlapped = temp_did;
         
         get_daily_snapshot_overlap_flag(&temp_did);
         status.daily_snapshot_energy_overlapped = temp_did;
-
-        get_event_overlap_flag(&temp_did, (uint8_t *)3); // standard event log
+        tmp2 = 3;
+        get_event_overlap_flag(&temp_did, &tmp2); // standard event log
         status.standard_event_log_overlapped = temp_did;
-
-        get_event_overlap_flag(&temp_did, (uint8_t *)4); // fraud event log
+        tmp2 = 4;
+        get_event_overlap_flag(&temp_did, &tmp2); // fraud event log
 		status.fraud_event_log_overlapped = temp_did;
-
-		get_event_overlap_flag(&temp_did, (uint8_t *)5); // power quality event log
+		tmp2 = 5;
+		get_event_overlap_flag(&temp_did, &tmp2); // power quality event log
 		status.power_qual_event_log_overlapped = temp_did;
-
-		get_event_overlap_flag(&temp_did, (uint8_t *)6); // common  event log
+		tmp2 = 6;
+		get_event_overlap_flag(&temp_did, &tmp2); // common  event log
 		status.common_event_log_overlapped = temp_did;
-        
-		get_event_overlap_flag(&temp_did, (uint8_t *)7); // firmware event log
+		tmp2 = 7;
+		get_event_overlap_flag(&temp_did, &tmp2); // firmware event log
 		status.firmware_event_log_overlapped = temp_did;
-
-		get_event_overlap_flag(&temp_did, (uint8_t *)8); // synchronization event log
+		tmp2 = 8;
+		get_event_overlap_flag(&temp_did, &tmp2); // synchronization event log
 		status.synchronization_event_log_overlapped = temp_did;
-
-		get_event_overlap_flag(&temp_did, (uint8_t *)9); // disconnect control event log
+		tmp2 = 9;
+		get_event_overlap_flag(&temp_did, &tmp2); // disconnect control event log
 		status.disconnect_event_log_overlapped = temp_did;
 
         validation_arg.min = OperatingModeMin;
@@ -1198,7 +1207,7 @@ uint8_t updateNextLogAddress(uint8_t type)
     }
 	else if(type == 9) // disconnect control event log
     {
-		last_disconnect_event_log_address +=DISCONNECT_EVENT_LOG_TYPE_SIZE;
+		last_disconnect_event_log_address += DISCONNECT_EVENT_LOG_TYPE_SIZE;
 
         if(last_disconnect_event_log_address >  DISCONNECT_LOG_ADDRESS_END)
         {
@@ -1286,7 +1295,7 @@ int8_t log_events(void *l2,void *type)
     	if(last_fraud_event_log_address < FRAUD_EVENT_LOG_ADDRESS_START || last_fraud_event_log_address > FRAUD_EVENT_LOG_ADDRESS_END)
            last_fraud_event_log_address = FRAUD_EVENT_LOG_ADDRESS_START;
 
-        x = EEPROM2_WriteInt8(l->event_code,LastEventLogAddress,0);
+        x = EEPROM2_WriteInt8(l->event_code,last_fraud_event_log_address,0);
         x = EEPROM2_WriteNextLong(l->time_stamp.TimestampLow,0);
         x = EEPROM2_WriteNextInt8(l->time_stamp.TimestampUp,0);
         x = EEPROM2_WriteNextInt8(l->checksum,1);
@@ -1299,7 +1308,7 @@ int8_t log_events(void *l2,void *type)
     	if(last_power_qual_event_log_address < POWER_QUAL_LOG_ADDRESS_START || last_power_qual_event_log_address > POWER_QUAL_LOG_ADDRESS_END)
     		last_power_qual_event_log_address = POWER_QUAL_LOG_ADDRESS_START;
 
-        x = EEPROM2_WriteInt8(l->event_code,LastEventLogAddress,0);
+        x = EEPROM2_WriteInt8(l->event_code,last_power_qual_event_log_address,0);
         x = EEPROM2_WriteNextLong(l->time_stamp.TimestampLow,0);
         x = EEPROM2_WriteNextInt8(l->time_stamp.TimestampUp,0);
         x = EEPROM2_WriteNextInt8(l->checksum,1);
@@ -1312,7 +1321,7 @@ int8_t log_events(void *l2,void *type)
     	if(last_common_event_log_address < COMMON_LOG_ADDRESS_START || last_common_event_log_address > COMMON_LOG_ADDRESS_END)
     		last_common_event_log_address = COMMON_LOG_ADDRESS_START;
 
-        x = EEPROM2_WriteInt8(l->event_code,LastEventLogAddress,0);
+        x = EEPROM2_WriteInt8(l->event_code,last_common_event_log_address,0);
         x = EEPROM2_WriteNextLong(l->time_stamp.TimestampLow,0);
         x = EEPROM2_WriteNextInt8(l->time_stamp.TimestampUp,0);
         x = EEPROM2_WriteNextInt8(l->checksum,1);
@@ -1325,7 +1334,7 @@ int8_t log_events(void *l2,void *type)
     	if(last_firmware_event_log_address < FIRMWARE_LOG_ADDRESS_START || last_firmware_event_log_address > FIRMWARE_LOG_ADDRESS_END)
     		last_firmware_event_log_address = FIRMWARE_LOG_ADDRESS_START;
 
-        x = EEPROM2_WriteInt8(l->event_code,LastEventLogAddress,0);
+        x = EEPROM2_WriteInt8(l->event_code,last_firmware_event_log_address,0);
         x = EEPROM2_WriteNextInt8(l->active_firmware[0],0);
         x = EEPROM2_WriteNextInt8(l->active_firmware[1],0);
         x = EEPROM2_WriteNextInt8(l->active_firmware[2],0);
@@ -1343,7 +1352,7 @@ int8_t log_events(void *l2,void *type)
     	if(last_synchronization_event_log_address < SYNCHRONIZATION_LOG_ADDRESS_START || last_synchronization_event_log_address > SYNCHRONIZATION_LOG_ADDRESS_END)
     		last_synchronization_event_log_address = SYNCHRONIZATION_LOG_ADDRESS_START;
 
-        x = EEPROM2_WriteInt8(l->event_code,LastEventLogAddress,0);
+        x = EEPROM2_WriteInt8(l->event_code,last_synchronization_event_log_address,0);
         x = EEPROM2_WriteNextLong(l->begin_time_stamp.TimestampLow,0);
 	    x = EEPROM2_WriteNextInt8(l->begin_time_stamp.TimestampUp,0);
 	    x = EEPROM2_WriteNextLong(l->end_time_stamp.TimestampLow,0);
@@ -1358,7 +1367,7 @@ int8_t log_events(void *l2,void *type)
 		if(last_disconnect_event_log_address < DISCONNECT_LOG_ADDRESS_START || last_disconnect_event_log_address > DISCONNECT_LOG_ADDRESS_END)
 			last_disconnect_event_log_address = DISCONNECT_LOG_ADDRESS_START;
 
-		x = EEPROM2_WriteInt8(l->event_code,LastEventLogAddress,0);
+		x = EEPROM2_WriteInt8(l->event_code,last_disconnect_event_log_address,0);
 		x = EEPROM2_WriteNextInt8(l->disconnect_control_status,0);
 		x = EEPROM2_WriteNextLong(l->time_stamp.TimestampLow,0);
 		x = EEPROM2_WriteNextInt8(l->time_stamp.TimestampUp,0);
@@ -1367,7 +1376,7 @@ int8_t log_events(void *l2,void *type)
 			return 0;
 	}
 
-    updateNextLogAddress(val); //4  for fraud event log
+    updateNextLogAddress(val);
     return 1;
 }
 //uint8_t logEnergy(EnergyLog *l)
@@ -1678,9 +1687,7 @@ int8_t get_daily_snapshot_energy_profile(void *lt,uint32_t EntryNumber)
        {
            EntryNumber = 0;
        }
-
        EnergyLog *l = (EnergyLog*)lt;
-
        uint32_t StartAddress;
        if(status.daily_snapshot_energy_overlapped == 1)//handle cirular buffer
        {
@@ -1696,13 +1703,9 @@ int8_t get_daily_snapshot_energy_profile(void *lt,uint32_t EntryNumber)
        }
        else
           StartAddress = DAILY_SNAPSHOT_LOG_ADDRESS_START + (DAILY_SNAPSHOT_LOG_SIZE * EntryNumber);
-
-
        if( get_daily_snapshot_energy(l,StartAddress) == 0 )
          return 0;
-
-
-        return 1;
+       return 1;
 }
 int8_t getEvent2(void *lt,uint32_t EntryNumber)
 {
@@ -4848,59 +4851,48 @@ int8_t getLogicDeviceName(void *deviceIdentifier,void *dumy)
 //uint8_t setLogicDeviceName(const uint8_t *deviceIdentifier)
 int8_t setLogicDeviceName(void *deviceIdentifier2,void *dummy)
 {    
-        uint8_t *deviceIdentifier = (uint8_t *)deviceIdentifier2;
+	uint8_t *deviceIdentifier = (uint8_t *)deviceIdentifier2;
   	uint8_t z,r=0;//i=0,
-        const uint8_t *did = deviceIdentifier;
-        uint8_t length=DeviceIdentifier_SIZE;
-        uint8_t crc=0;
+	const uint8_t *did = deviceIdentifier;
+	uint8_t length=DeviceIdentifier_SIZE;
+	uint8_t crc=0;
 
-	  z= EEPROM2_WriteInt8(*did,DeviceIdentifierStart,0);
-          crc+=*did;
+	z= EEPROM2_WriteInt8(*did,DeviceIdentifierStart,0);
+    crc+=*did;
 
-            did++;
-            length-=2;    
-            for(r=0;r<length;r++)
-            {
-         
+	did++;
+	length-=2;
+	for(r=0;r<length;r++)
+	{
+		z = EEPROM2_WriteNextInt8(*did,0); //double check
+	    crc+=*did;
+	    did++;
+	}
 
-              z= EEPROM2_WriteNextInt8(*did,0); //double check 
-              crc+=*did;
+	z= EEPROM2_WriteNextInt8(crc,1);
+	if(z==0 )//&& r!=12
+		return FALSE;
 
-              did++;
-            }
-            
-          
-          z= EEPROM2_WriteNextInt8(crc,1);
-	  if(z==0 )//&& r!=12
-              return FALSE;
-
-        
 	return TRUE;
 }
 
- 
-int8_t getMacAddress(void *macAddress,void *dumy){
-
-    	uint8_t z,r=0;//i=0,
-        uint8_t *did = macAddress;
-            z = EEPROM2_ReadInt8(MACAddressStart,0,did);
-
-              did++;
-              
-            for(r=0;r<4;r++)
-            {
-         
-
-              z= EEPROM2_ReadNextInt8(0,did);  
-              did++;
-            }
+int8_t getMacAddress(void *macAddress,void *dumy)
+{
+	uint8_t z,r=0;//i=0,
+	uint8_t *did = macAddress;
+	z = EEPROM2_ReadInt8(MACAddressStart,0,did);
+	did++;
+	for(r=0;r<4;r++)
+	{
+		z = EEPROM2_ReadNextInt8(0,did);
+        did++;
+	}
+	if(r != 4)
+		return FALSE;
             
-            if(r!=4)
-              return FALSE;
-            
-            z= EEPROM2_ReadNextInt8(1,did);  
-            if(z==0)
-              return FALSE;
+	z = EEPROM2_ReadNextInt8(1,did);
+	if(z==0)
+		return FALSE;
 
 	return TRUE;
 }
@@ -4940,7 +4932,6 @@ int8_t setMacAddress(void *macAddress2,void *dummy)
         
 	return 1;
 }
-
 
 //uint8_t setOperatingMode(const uint8_t *mode)
 int8_t setOperatingMode(void *mode2,void *dmummy)

@@ -59,16 +59,16 @@ void get_date_time_string(void *data, int direction)
 
      hardware_status.RTCResetToDefaultStatus = 0;// && rtc is not reset to default
      hardware_status.RTC_Status = 1; // rtc is now ok
-
-      adjust_rtc(&temp,1);
-
-      EventLog evl;
-      evl.EventCode = CLOCK_PROGRAMMED;
-      evl.timeStump = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
-      evl.Checksum  =(getCheckSum(&(evl.timeStump.TimestampLow),4) + evl.timeStump.TimestampUp + evl.EventCode)&0xff;
-      evl.value = 0;
-      write_to_eeprom(&evl,(uint8_t *)0,logEvent);
-
+     // log synchronization event
+     time_bound_event_log l;
+     l.event_code = CLOCK_PROGRAMMED;
+     l.begin_time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second); //former clock
+     adjust_rtc(&temp,1);
+     l.end_time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second); //after synchronization
+     l.checksum  =(getCheckSum(&(l.end_time_stamp.TimestampLow),4) + l.end_time_stamp.TimestampUp + l.event_code)&0xff;
+     //l.value = 0;
+     uint8_t tmp = 8;
+     write_to_eeprom(&l,&tmp,log_events);
   }
 
 }

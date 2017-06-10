@@ -81,7 +81,7 @@
 #include "Logger.h"
 #include "utilities.h"
 #include "emeter-rtc.h"
-
+#include "identification_numbers.h"
 
 
 
@@ -349,7 +349,7 @@ void load_power_qual_event_to_ram(unsigned int entry_no)
                msg_info.entries_remaining = 1;
          }
     }
-    //format the time stamp and copy it to the buffer
+    // format the time stamp and copy it to the buffer
     rtc_t time = getTime(&current_event_log.l.time_stamp);
     uint8_t currentEventLogEntryData2[] = {
             INJECT16(time.year), time.month, time.day, ((time.day - 1) > 0)?(time.day - 1):0,time.hour, time.minute,time.second, 0xFF, INJECT16(120), 0x00,
@@ -381,13 +381,25 @@ void load_firmware_event_to_ram(unsigned int entry_no)
           };
     memcpy(currentEventLogEntryData,currentEventLogEntryData2,12);
 }
-void load_synchronization_event_to_ram(unsigned int entry_no)
+/*
+ * @param type: 0 - former clock/before synchronization
+ * 				1 - after synchronization
+ */
+void load_synchronization_event_to_ram(unsigned int entry_no,uint8_t type)
 {
     get_synchronization_event(&current_time_bound_event_log.l,entry_no);
     current_time_bound_event_log.logEntryNo = entry_no;
     if(access_selector == 1) //if this is selective access by range
     {
-         rtc_t time_last = getTime(&current_time_bound_event_log.l.end_time_stamp);
+    	rtc_t time_last;
+    	if(type == 0)
+    	{
+    		 time_last = getTime(&current_time_bound_event_log.l.begin_time_stamp);
+    	}
+    	else if( type == 1)
+    	{
+    		 time_last = getTime(&current_time_bound_event_log.l.end_time_stamp);
+    	}
          if(time_last.isValid==0)
          {
                msg_info.entries_remaining = 1;
@@ -400,7 +412,15 @@ void load_synchronization_event_to_ram(unsigned int entry_no)
          }
     }
     //format the time stamp and copy it to the buffer
-    rtc_t time = getTime(&current_time_bound_event_log.l.end_time_stamp);
+    rtc_t time;
+    if(type == 0)
+	{
+		 time = getTime(&current_time_bound_event_log.l.begin_time_stamp);
+	}
+	else if( type == 1)
+	{
+		 time = getTime(&current_time_bound_event_log.l.end_time_stamp);
+	}
     uint8_t currentEventLogEntryData2[] = {
             INJECT16(time.year), time.month, time.day, ((time.day - 1) > 0)?(time.day - 1):0,time.hour, time.minute,time.second, 0xFF, INJECT16(120), 0x00,
           };
@@ -739,7 +759,7 @@ int64_t get_numeric_item(int item)
            }
            else
            {
-               load_synchronization_event_to_ram(entry_no);
+               load_synchronization_event_to_ram(entry_no,0);
            }
            val = current_time_bound_event_log.l.event_code;
            break;
@@ -1101,81 +1121,108 @@ int get_string_item(uint8_t *buf, int len, int item)
       return len;
     case ITEM_TAG_DATETIME_FE: // fraud event
           entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
-          if(current_event_log.logEntryNo == entry_no)
-          {
-          }
-          else
-          {
-              load_fraud_event_to_ram(entry_no);
-          }
-          memcpy(buf, currentEventLogEntryData, len);
-          return len;
+	  if(current_event_log.logEntryNo == entry_no)
+	  {
+	  }
+	  else
+	  {
+		  load_fraud_event_to_ram(entry_no);
+	  }
+	  memcpy(buf, currentEventLogEntryData, len);
+	  return len;
     case ITEM_TAG_DATETIME_CE: // common event
-          entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
-          if(current_event_log.logEntryNo == entry_no)
-          {
-          }
-          else
-          {
-              load_common_event_to_ram(entry_no);
-          }
-          memcpy(buf, currentEventLogEntryData, len);
-          return len;
+	  entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+	  if(current_event_log.logEntryNo == entry_no)
+	  {
+	  }
+	  else
+	  {
+		  load_common_event_to_ram(entry_no);
+	  }
+	  memcpy(buf, currentEventLogEntryData, len);
+	  return len;
     case ITEM_TAG_DATETIME_PQE: // power quality event
-          entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
-          if(current_event_log.logEntryNo == entry_no)
-          {
-          }
-          else
-          {
-              load_power_qual_event_to_ram(entry_no);
-          }
-          memcpy(buf, currentEventLogEntryData, len);
-          return len;
+	  entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+	  if(current_event_log.logEntryNo == entry_no)
+	  {
+	  }
+	  else
+	  {
+		  load_power_qual_event_to_ram(entry_no);
+	  }
+	  memcpy(buf, currentEventLogEntryData, len);
+	  return len;
     case ITEM_TAG_DATETIME_FRME: // firmware event
-          entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
-          if(current_firmware_event_log.logEntryNo == entry_no)
-          {
-          }
-          else
-          {
-              load_firmware_event_to_ram(entry_no);
-          }
-          memcpy(buf, currentEventLogEntryData, len);
-          return len;
-      case ITEM_TAG_ACTIVE_FIRMWARE: // firmware event
-          entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
-          if(current_firmware_event_log.logEntryNo == entry_no)
-          {
-          }
-          else
-          {
-              load_firmware_event_to_ram(entry_no);
-          }
-          memcpy(buf, current_firmware_event_log.l.active_firmware, len);
-          return len;
-     case ITEM_TAG_DATETIME_SYNE1: // synchronization event
-          entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
-          if(current_time_bound_event_log.logEntryNo == entry_no)
-          {
-          }
-          else
-          {
-              load_synchronization_event_to_ram(entry_no);
-          }
-          memcpy(buf, currentEventLogEntryData, len);
-          return len;
-     case ITEM_TAG_DATETIME_DE: // disconnect control event
-          entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
-          if(current_disconnect_event_log.logEntryNo == entry_no)
-          {
-          }
-          else
-          {
-              load_disconnect_event_to_ram(entry_no);
-          }
-          memcpy(buf, currentEventLogEntryData, len);
-          return len;
+	  entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+	  if(current_firmware_event_log.logEntryNo == entry_no)
+	  {
+	  }
+	  else
+	  {
+		  load_firmware_event_to_ram(entry_no);
+	  }
+	  memcpy(buf, currentEventLogEntryData, len);
+	  return len;
+
+	case ITEM_TAG_FORMER_FIRMWARE: // firmware event-former firmware version
+	  entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+	  if(current_firmware_event_log.logEntryNo == entry_no)
+	  {
+	  }
+	  else
+	  {
+		  load_firmware_event_to_ram(entry_no);
+	  }
+	  memcpy(buf, &Device_ID_7[1], len);
+	  return len;
+
+    case ITEM_TAG_ACTIVE_FIRMWARE: // firmware event-active firmware version
+	  entry_no = msg_info.start_entry + (msg_info.num_entries-msg_info.entries_remaining);
+	  if(current_firmware_event_log.logEntryNo == entry_no)
+	  {
+	  }
+	  else
+	  {
+		  load_firmware_event_to_ram(entry_no);
+	  }
+	  memcpy(buf, current_firmware_event_log.l.active_firmware, len);
+	  return len;
+
+    case ITEM_TAG_DATETIME_SYNE1: // synchronization event-former clock
+	  entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+	  if(current_time_bound_event_log.logEntryNo == entry_no)
+	  {
+	  }
+	  else
+	  {
+		  load_synchronization_event_to_ram(entry_no,0);
+	  }
+	  memcpy(buf, currentEventLogEntryData, len);
+	  return len;
+
+	case ITEM_TAG_DATETIME_SYNE2: // synchronization event -clock after synchronization
+	  entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+	  if(current_time_bound_event_log.logEntryNo == entry_no)
+	  {
+	  }
+	  else
+	  {
+		  load_synchronization_event_to_ram(entry_no,1);
+	  }
+	  memcpy(buf, currentEventLogEntryData, len);
+	  return len;
+
+    case ITEM_TAG_DATETIME_DE: // disconnect control event
+	  entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+	  if(current_disconnect_event_log.logEntryNo == entry_no)
+	  {
+	  }
+	  else
+	  {
+		  load_disconnect_event_to_ram(entry_no);
+	  }
+	  memcpy(buf, currentEventLogEntryData, len);
+	  return len;
 // Billing Data
     case ITEM_TAG_BILLING_DATETIME_MAX_CURR:
       entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);

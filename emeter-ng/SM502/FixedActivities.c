@@ -157,7 +157,7 @@ extern uint8_t OperatingMode;
 */
 void per_second_activity()
 {
-          
+   uint8_t tmp;
    secondCounter++;
    
   
@@ -195,8 +195,8 @@ void per_second_activity()
           evl.EventCode = ReverseCurrentError;
           evl.timeStump = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
           evl.Checksum  =(getCheckSum(&(evl.timeStump.TimestampLow),4) + evl.timeStump.TimestampUp + evl.EventCode)&0xff;
-//                                logEvent(&evl);
-          write_to_eeprom(&evl,(uint8_t *)0,logEvent);
+          tmp = 3;
+		  write_to_eeprom(&evl,&tmp,logEvent);
           status.energy_reverse_flow_logged_status = 1;
           
           AddError(ReverseCurrentError);
@@ -249,7 +249,8 @@ void per_second_activity()
     	   l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
     	   // l.value = phase->readings.active_power;
     	   // l.EventGroup = 1;
-    	   write_to_eeprom(&l,(uint8_t *)9,log_events);
+    	   tmp = 9;
+    	   write_to_eeprom(&l,&tmp,log_events);
     	   //send event through PLC
     	   AddError(ActivePowerExcededError);
     	   status.ActivePowerExcededLoggedStatus = 1;
@@ -280,7 +281,8 @@ void per_second_activity()
            l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
            l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
            //l.value = phase->readings.I_rms;
-           write_to_eeprom(&l,(uint8_t *)5,log_events);
+           tmp = 5;
+           write_to_eeprom(&l,&tmp,log_events);
            //disconnect meter 
            //plc send     
            AddError(OverCurrentError);
@@ -315,7 +317,8 @@ void per_second_activity()
              l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
              l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
              //l.value = phase->readings.V_rms;
-             write_to_eeprom(&l,(uint8_t *)5,log_events);
+             tmp = 5;
+             write_to_eeprom(&l,&tmp,log_events);
              status.OverVoltageLoggedStatus = 1;
              AddError(HighVoltageError);
              //TX event
@@ -349,7 +352,8 @@ void per_second_activity()
              l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
              l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
              //l.value = phase->readings.V_rms;
-             write_to_eeprom(&l,(uint8_t *)5,log_events);
+             tmp = 5;
+             write_to_eeprom(&l,&tmp,log_events);
              AddError(LowVoltageError);
              //TX event
              status.UnderVoltageLoggedStatus = 1;
@@ -382,7 +386,8 @@ void per_second_activity()
            l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
            l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
 	       //l.value = phase->readings.V_rms;
-           write_to_eeprom(&l,(uint8_t *)5,log_events);
+           tmp = 5;
+           write_to_eeprom(&l,&tmp,log_events);
            status.LongPowerFailLoggedStatus = 1;
            AddError(LongPowerFailer);
            number_of_long_power_failures++;
@@ -418,7 +423,8 @@ void per_second_activity()
 			   l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
 			   //l.value = phase->readings.frequency;
 			   AddError(OverFrequencyError);
-			   write_to_eeprom(&l,(uint8_t *)5,log_events);
+			   tmp = 5;
+			   write_to_eeprom(&l,&tmp,log_events);
 			   status.OverFreqLoggedStatus = 1;
 			   return;//?????
            }
@@ -448,7 +454,8 @@ void per_second_activity()
         	   l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
         	   l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
         	   //l.value = phase->readings.frequency;
-        	   write_to_eeprom(&l,(uint8_t *)5,log_events);
+        	   tmp = 5;
+        	   write_to_eeprom(&l,&tmp,log_events);
         	   //TX event
         	   AddError(UnderFrequencyError);
         	   status.UnderFreqLoggedStatus = 1;
@@ -463,9 +470,6 @@ void per_second_activity()
      status.UnderFreqLoggedStatus = 0;
      UnderFrequencyTimer=0;
    }   
-   
-   
-   
 
    /* CHECK RTC status and add them to Error List */
    if(hardware_status.RTCResetToDefaultStatus == 1)//&& status.RTCResetToDefaultStatusAddedToErrorList!=1
@@ -493,9 +497,7 @@ void per_second_activity()
       test_current_balance(phase->readings.I_rms,neutral_c.readings.I_rms,Current_Thrushold);
 #endif 
    
-
       UpdateTamperIndicators();
-      
       
       if(start_connect_timeout == 1)
       {
@@ -542,8 +544,9 @@ void per_second_activity()
     	  l.event_code = TAMPER_EVENT_CLEARED;
     	  l.time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
     	  l.checksum  =(getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;
-    	 // l.value = 0;
-    	  write_to_eeprom(&l,(uint8_t *)4,log_events);
+    	  // l.value = 0;
+    	  tmp = 4;
+    	  write_to_eeprom(&l,&tmp,log_events);
       }
 }
 
