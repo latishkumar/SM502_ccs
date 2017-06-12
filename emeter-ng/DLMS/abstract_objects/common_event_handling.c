@@ -228,6 +228,7 @@ void obj_common_event_log_reset(uint8_t *data,uint16_t data_len,uint8_t *respons
       write_to_eeprom(&tmp32,&temp8,setLastLogAddress);
       temp8 = 0;
       write_to_eeprom(&temp8,&tmp1,setEventOverlapFlag);
+      *response_len= 0;
 }
 
 /*

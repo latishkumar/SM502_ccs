@@ -508,9 +508,6 @@ void loadDailyProfilePassive_dlms(uint8_t day_id)
    currentDayProfile.day_id = day_id;   
 }
 
-
-
-
 typedef struct
 {
     unsigned char Load_Date[12];  
@@ -525,7 +522,6 @@ typedef struct
     uint32_t E_Reactive_Lead; 
     uint32_t E_Apparent; 
 } sLoad_Profile;
-
 
 union{
 sBilling_Profile Billing_Profile;
@@ -559,18 +555,16 @@ int64_t get_numeric_item(int item)
     case ITEM_TAG_IMAGE_SIZE:
       val = image_size;
       break;
-    case ITEM_TAG_IR:   //instantanious profile , done test              
+    case ITEM_TAG_IR:   //instantaneous profile , done test
       val = phase->readings.I_rms;      
     break;
     case ITEM_TAG_IY:        
-  
     break;
 
     case ITEM_TAG_VR:                     
       val = phase->readings.V_rms;        
     break;
 
-   
     case ITEM_TAG_PFR:     //instantanious profile , done test                                    
       val = phase->readings.power_factor;        
     break;
@@ -1068,10 +1062,8 @@ int get_string_item(uint8_t *buf, int len, int item)
     unsigned int entry_no;
     uint8_t xxx[] = {12, 30, 45, 255};
     
-
     uint8_t currentTime[]= {INJECT16(rtcc.year), (rtcc.month),rtcc.day,rtcc.day-1, rtcc.hour, rtcc.minute, rtcc.second, 0xFF, INJECT16(120), 0x00};
 
- 
     uint8_t zzz[] = {INJECT16(2010), MARCH, 20, TUESDAY, 15, 30, 45, 0xFF, INJECT16(120), 0x00};
 
     switch (item)
