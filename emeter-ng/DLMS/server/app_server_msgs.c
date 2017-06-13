@@ -194,6 +194,9 @@ void loadEnergyToRam(unsigned int entry_no)
 	  uint8_t currentEnergyLogEntryData2[] = {
 		INJECT16(time.year), time.month, time.day, ((time.day - 1) > 0)?(time.day - 1):0,time.hour, time.minute,time.second, 0xFF, INJECT16(120), 0x00,
 	  };
+
+	  memcpy(currentEnergyLogEntryData,currentEnergyLogEntryData2,12);
+
 	  uint32_t x = currentEnergyLogEntry.l.active_energy;
 	  //calculate for incrimental data
 	  if(currentEnergyLogEntry.l.active_energy>=LastTxEnergyCopy.active_energy)
@@ -225,7 +228,6 @@ void loadEnergyToRam(unsigned int entry_no)
 	  }
 	  LastTxEnergyCopy.reactive_energy_QIV = x;
 
-	  memcpy(currentEnergyLogEntryData,currentEnergyLogEntryData2,12);
 }
 
 void load_daily_energy_to_ram(unsigned int entry_no)
@@ -690,11 +692,11 @@ int64_t get_numeric_item(int item)
           val = currentEventLogEntry.l.value;      
       break;
     
-    case ITEM_TAG_EVENT_CODE_SE:
+    case ITEM_TAG_EVENT_CODE_SE://standard event
           entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
           if(currentEventLogEntry.logEntryNo == entry_no)
           {
-            
+            val = 0;
           }
           else
           {
@@ -725,72 +727,72 @@ int64_t get_numeric_item(int item)
         val = current_event_log.l.event_code;
         break;
     case ITEM_TAG_EVENT_CODE_PQE: // power quality event
-            entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
-            if(current_event_log.logEntryNo == entry_no)
-            {
-            }
-            else
-            {
-                load_power_qual_event_to_ram(entry_no);
-            }
-            val = current_event_log.l.event_code;
-            break;
+		entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+		if(current_event_log.logEntryNo == entry_no)
+		{
+		}
+		else
+		{
+			load_power_qual_event_to_ram(entry_no);
+		}
+		val = current_event_log.l.event_code;
+		break;
     case ITEM_TAG_EVENT_CODE_FRME: // firmware event
                entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
-               if(current_firmware_event_log.logEntryNo == entry_no)
-               {
-               }
-               else
-               {
-                   load_firmware_event_to_ram(entry_no);
-               }
-               val = current_firmware_event_log.l.event_code;
-               break;
+	   if(current_firmware_event_log.logEntryNo == entry_no)
+	   {
+	   }
+	   else
+	   {
+		   load_firmware_event_to_ram(entry_no);
+	   }
+	   val = current_firmware_event_log.l.event_code;
+	   break;
     case ITEM_TAG_EVENT_CODE_SYNE: // synchronization event
-           entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
-           if(current_time_bound_event_log.logEntryNo == entry_no)
-           {
-           }
-           else
-           {
-               load_synchronization_event_to_ram(entry_no,0);
-           }
-           val = current_time_bound_event_log.l.event_code;
-           break;
+	   entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+	   if(current_time_bound_event_log.logEntryNo == entry_no)
+	   {
+	   }
+	   else
+	   {
+		   load_synchronization_event_to_ram(entry_no,0);
+	   }
+	   val = current_time_bound_event_log.l.event_code;
+	   break;
     case ITEM_TAG_EVENT_CODE_DE: // disconnect control event
            entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
-           if(current_disconnect_event_log.logEntryNo == entry_no)
-           {
-           }
-           else
-           {
-               load_disconnect_event_to_ram(entry_no);
-           }
-           val = current_disconnect_event_log.l.event_code;
-           break;
+	   if(current_disconnect_event_log.logEntryNo == entry_no)
+	   {
+	   }
+	   else
+	   {
+		   load_disconnect_event_to_ram(entry_no);
+	   }
+	   val = current_disconnect_event_log.l.event_code;
+	   break;
      case ITEM_TAG_STATUS_DE: // disconnect control event
-           entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
-           if(current_disconnect_event_log.logEntryNo == entry_no)
-           {
-           }
-           else
-           {
-               load_disconnect_event_to_ram(entry_no);
-           }
-           val = current_disconnect_event_log.l.disconnect_control_status;
-           break;
+	   entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+	   if(current_disconnect_event_log.logEntryNo == entry_no)
+	   {
+	   }
+	   else
+	   {
+		   load_disconnect_event_to_ram(entry_no);
+	   }
+	   val = current_disconnect_event_log.l.disconnect_control_status;
+	   break;
     case ITEM_TAG_ACTIVE_POWER_LP:  //done test
-          entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
-          if(currentEnergyLogEntry.logEntryNo == entry_no)
-          {
-            
-          }
-          else
-          {
-              loadEnergyToRam(entry_no);
-          }
-          val = currentEnergyLogEntry.l.active_power;
-    break; //update this correctly 
+	  entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+	  if(currentEnergyLogEntry.logEntryNo == entry_no)
+	  {
+
+	  }
+	  else
+	  {
+		  loadEnergyToRam(entry_no);
+	  }
+	  val = currentEnergyLogEntry.l.active_power;
+	  break; //update this correctly
     case ITEM_TAG_REACTIVE_POWER_LP:  //done test
       
           entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);

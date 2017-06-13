@@ -8,7 +8,7 @@
 #include "LCD_C_Graphics.h"
 #include <stdio.h>
 #include "self_diagnosis.h"
-
+#include "disconnect_control_and_log.h"
 //under voltage and current ranges 
 //extern uint8_t MIN_IRMS ;
 extern uint8_t MIN_VRMS ;
@@ -188,15 +188,15 @@ void per_second_activity()
    {
      if(status.energy_reverse_flow_logged_status == 0)//system initialized
       {
-          //Log the Event to the EEPROM
-          EventLog evl;
-          evl.value = phase->readings.active_power;
-          evl.EventGroup = 1;
-          evl.EventCode = ReverseCurrentError;
-          evl.timeStump = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
-          evl.Checksum  =(getCheckSum(&(evl.timeStump.TimestampLow),4) + evl.timeStump.TimestampUp + evl.EventCode)&0xff;
-          tmp = 3;
-		  write_to_eeprom(&evl,&tmp,logEvent);
+          //Log fraud event to the EEPROM
+          event_log l;
+          //l.value = phase->readings.active_power;
+          //l.EventGroup = 1;
+          l.event_code = ReverseCurrentError;
+          l.time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
+          l.checksum  =(getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;
+          tmp = 4;
+		  write_to_eeprom(&l,&tmp,log_events);
           status.energy_reverse_flow_logged_status = 1;
           
           AddError(ReverseCurrentError);
@@ -245,7 +245,7 @@ void per_second_activity()
     	   disconnect_event_log l;
     	   l.event_code = ActivePowerExcededError;
     	   l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-    	   l.disconnect_control_status = output_state;
+    	   l.disconnect_control_status = control_state;
     	   l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
     	   // l.value = phase->readings.active_power;
     	   // l.EventGroup = 1;

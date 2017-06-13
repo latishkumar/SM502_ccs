@@ -10,6 +10,8 @@
 
 extern int16_t alarm_status;
 
+extern int usb_comm_speed;
+
 void reset_persistent_events(void *data, int data_direction);
 
 void reset_alarms(uint8_t *data, uint16_t data_len,uint8_t *response,uint16_t *response_len);
@@ -30,14 +32,9 @@ void increment_balance(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_
 
 void decrement_balance(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len);
 
+void bor_reset(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len);
 
-
-
-
-
-
-
-
+void configure_usb_baudrate(void *data, int data_direction);
 
 
 #endif /* DLMS_ABSTRACT_OBJECTS_MANUFACTURER_SPECIFIC_OBJECTS_H_ */

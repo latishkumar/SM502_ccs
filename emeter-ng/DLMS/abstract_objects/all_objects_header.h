@@ -36,7 +36,7 @@
 #include "firmware_event_handling.h"
 #include "synchronization_event_handling.h"
 #include "disconnect_event_handling.h"
-
+#include "non_implemented_events.h"
 
 
 

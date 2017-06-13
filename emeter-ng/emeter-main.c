@@ -907,27 +907,25 @@ void restoreBackup()
                    }
                 } 
             }
-            
-            uint8_t temp_did = 1;
+
+            uint8_t temp_did = 3;
             validation_arg_t noValidation = validation_arg_t_default;
             read_from_eeprom(&LastEventLogAddress,&temp_did,getLastLogAddress,&noValidation);  
-            uint8_t tmp = 3;
+            temp_did = 3;
             //log power is out event
             EventLog l;
             l.EventCode = PowerOut;
             l.timeStump = getTimeStamp(time.year, time.month, time.day, time.hour, time.minute, time.second);
             l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow + l.timeStump.TimestampUp);
             l.value = (uint32_t)td;
-            write_to_eeprom(&l,&tmp,log_events);
-            
-            
+            write_to_eeprom(&l,&temp_did,log_events);
+            temp_did = 3;
             //log power is back event
             l.EventCode = PowerUp;
             l.timeStump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
             l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow  + l.timeStump.TimestampUp);
             l.value = 0;
-
-            write_to_eeprom(&l,&tmp,log_events);
+            write_to_eeprom(&l,&temp_did,log_events);
             
             
 //            Current_balance.balance = backup.seg_a.s.CurrentBalance;

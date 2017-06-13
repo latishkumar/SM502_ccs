@@ -234,3 +234,33 @@ void decrement_balance(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_
     CheckTariff(power_brakes,&ConsumptionSinceLastBilling);
     *response_len = 0;
 }
+
+/*
+ * Method for BOR reset
+ */
+void Reset_System();
+void bor_reset(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
+{
+	Reset_System();
+	*response_len = 0;
+}
+
+int usb_comm_speed = 7;
+/*
+ * Callback function for usb communication baudrate configuration
+ */
+void configure_usb_baudrate(void *data, int data_direction)
+{
+    uint8_t *datap =  data;
+    if(data_direction == ATTR_WRITE)
+    {
+      int8_t nv_2 = 0;
+      uint8_t *ptr2 = data;
+      nv_2 = *ptr2;
+      usb_comm_speed = nv_2;
+    }
+    else if(data_direction == ATTR_READ)
+    {
+        *datap = usb_comm_speed & 0xFF;
+    }
+}

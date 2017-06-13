@@ -264,6 +264,7 @@ void finalise_and_send_frame(iec62056_46_link_t *link, async_hdlc_tx_t *tx);
 int iec62056_46_link_timeout(iec62056_46_link_t *link);
 
 int analyze_pdu(const uint8_t msg[], int len);
+void release_plc_communication(int port);
 
 #if defined(__cplusplus)
 }

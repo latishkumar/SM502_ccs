@@ -831,9 +831,9 @@ void LoadConfigurations()
          //load last energy billing cuttoff log adddress
          temp_did = 2;
          read_from_eeprom(&LastEnergyBillingCuttOffLogAddress,&temp_did,getLastLogAddress,&noValidation);
-         //load last standard event log address
+         // load last standard event log address
          temp_did = 3;
-         read_from_eeprom(&LastEventLogAddress,&temp_did,getLastLogAddress,&noValidation);
+		 read_from_eeprom(&LastEventLogAddress,&temp_did,getLastLogAddress,&noValidation);
          //load last fraud event log address
          temp_did = 4;
          read_from_eeprom(&last_fraud_event_log_address,&temp_did,getLastLogAddress,&noValidation);
@@ -1259,7 +1259,7 @@ int8_t logEvent(void *l2,void *dummy)
           if(x==0)
             return 0;
 
-          updateNextLogAddress(1);//1 for event log
+          updateNextLogAddress(3);//1 for event log
 //        }else
 //          return 0;
         

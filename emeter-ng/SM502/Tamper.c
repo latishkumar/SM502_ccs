@@ -86,21 +86,27 @@ void initTampperSwitchs()
 */
 void CheckMagneticTamper()
 {
-       //check Magnetic Tamper
-      //TODO. log magnetic error to EEPROM
-        uint8_t z = Magnetic_TamperPIN;
-        
+    //check Magnetic Tamper
+	uint8_t z = Magnetic_TamperPIN;
+    uint8_t tmp;
 	if(((z & Magnetic_TamperBIT) != Magnetic_TamperBIT)&&(status.MagneticTamperLoggedSatus!=1))
 	{
 		status.MangneticTamperStatus = 1;
-                status.MagneticTamperLoggedSatus = 1;
-                TamperCount.Magnetic_Count++;
+		status.MagneticTamperLoggedSatus = 1;
+		TamperCount.Magnetic_Count++;
+
+		uint8_t temp82 = TamperCount.Magnetic_Count;
+		uint8_t temp8 = MagneticTamperType;
+		write_to_eeprom(&temp82,&temp8,setTamperCount);
+
+		// log fraud event to eeprom
+		event_log l;
+		l.event_code = MagneticTamperType;
+		l.time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
+		l.checksum  =(getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;
+		tmp = 4;
+		write_to_eeprom(&l,&tmp,log_events);
                 
-                uint8_t temp82 = TamperCount.Magnetic_Count;
-                uint8_t temp8 = MagneticTamperType;
-                write_to_eeprom(&temp82,&temp8,setTamperCount); 
-                
-//                setTamperCount( MagneticTamperType, TamperCount.Magnetic_Count );
 	}
         else
         {

@@ -26,9 +26,10 @@ const uint16_t disconnect_event_log_column_szs[] = {16,18,20};
  */
 const uint8_t disconnect_event_log_template[] =
 {
-   STUFF_DATA | TAG_STRUCTURE, 3,
-   STUFF_DATA | TAG_OCTET_STRING, 12,ITEM_TAG_DATETIME_DE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Event Time stump
+   STUFF_DATA | TAG_STRUCTURE, 4,
+   STUFF_DATA | TAG_OCTET_STRING, 12,ITEM_TAG_DATETIME_DE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // Event Time stump
    STUFF_DATA | TAG_UINT8, INJECT8(ITEM_TAG_EVENT_CODE_DE),                                  // Event code
+   STUFF_DATA | TAG_UINT8, INJECT8(ITEM_TAG_STATUS_DE),
    STUFF_DATA | TAG_UINT8, INJECT8(ITEM_TAG_STATUS_DE)
 };
 
@@ -37,8 +38,8 @@ const uint8_t disconnect_event_log_template[] =
  */
 const uint8_t disconnect_event_log_objects[] =
 {
-    INJECT16(0x8000 | (3*18+1)),
-         3,
+    INJECT16(0x8000 | (4*18+1)),
+         4,
             TAG_STRUCTURE, 4,
                 TAG_UINT16, INJECT16(CLASS_ID_CLOCK),
                 TAG_OCTET_STRING, 6, OBIS_GROUP_A_ABSTRACT_OBJECTS, 0, 1, 0, 0, 255, // Date & Time
@@ -53,7 +54,13 @@ const uint8_t disconnect_event_log_objects[] =
                 TAG_UINT16, INJECT16(CLASS_ID_DISCONNECT_CONTROL), // control status
                 TAG_OCTET_STRING, 6, 0, 0, 96, 3, 10, 255,
                 TAG_INT8, 3,
+                TAG_UINT16, INJECT16(0),
+			TAG_STRUCTURE, 4,
+                TAG_UINT16, INJECT16(CLASS_ID_DISCONNECT_CONTROL), // previous control status
+                TAG_OCTET_STRING, 6, 0, 1, 94, 34, 20, 255,
+                TAG_INT8, 3,
                 TAG_UINT16, INJECT16(0)
+
 };
 uint8_t find_num_disconnect_event_log__entries_between(const sSA_Range *startRange,const sSA_Range *endRange,
                                                    uint16_t *startEntryNumber,uint16_t *numOfEntries)
@@ -243,17 +250,7 @@ void obj_disconnect_event_log_capture(uint8_t *data,uint16_t data_len,uint8_t *r
 	uint8_t tmp = 9 ;
 	disconnect_event_log l;
 	l.event_code = 8;
-	l.disconnect_control_status = 4;
-	l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-	l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
-	write_to_eeprom(&l,&tmp,log_events);
-	l.event_code = 3;
 	l.disconnect_control_status = 0;
-	l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-	l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
-	write_to_eeprom(&l,&tmp,log_events);
-	l.event_code = 5;
-	l.disconnect_control_status = 1;
 	l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
 	l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
 	write_to_eeprom(&l,&tmp,log_events);

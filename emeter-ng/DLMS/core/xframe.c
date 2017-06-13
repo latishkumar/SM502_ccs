@@ -71,7 +71,9 @@
 #include "obis.h"
 #include "iec62056_46_link.h"
 #include "iec62056_46_user.h"
-
+#include "Logger.h"
+#include "EventTypes.h"
+#include "DLMS.h"
 #define FALSE 0
 #define TRUE (!FALSE)
 
@@ -257,7 +259,20 @@ void process_disc_frame(iec62056_46_link_t *link, const uint8_t msg[], int len)
     if (link->disconnected)
         send_dm(link);
     else
-        send_ua(link);
+    {
+    	send_ua(link);
+		if(link->port == IEC_PORT )
+		{
+			uint8_t tmp;
+			event_log l;
+			l.event_code = END_COMMUNICATION_OPTICAL_PORT;
+			l.time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
+			l.checksum  =(getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;
+			tmp = 6;
+			write_to_eeprom(&l,&tmp,log_events);
+		}
+    }
+
     link->disconnected = TRUE;
     link->configured = FALSE;
     link->far_msap = 0;

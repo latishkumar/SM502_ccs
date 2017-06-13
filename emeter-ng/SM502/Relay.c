@@ -7,6 +7,7 @@
 #include "Logger.h"
 #include <stdio.h>
 #include "iec62056_uart.h"
+#include "disconnect_control_and_log.h"
 //#include "graphics.h"
 
 
@@ -212,6 +213,7 @@ void ConnectMeter(uint8_t EventCode) {
     //log disconnect event
     disconnect_event_log l;
     l.event_code = EventCode;
+    l.disconnect_control_status = control_state;
     l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
     l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
     //l.value = 0;
@@ -253,9 +255,10 @@ void DisconnectMeter(uint8_t EventCode)
     //l.value = desconnect_val;
     l.event_code = EventCode;
     l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-    l.disconnect_control_status = output_state;
+    l.disconnect_control_status = control_state;
     l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
-    uint8_t z = write_to_eeprom(&l,tmp,log_events);
+    uint8_t z;
+    z = write_to_eeprom(&l,&tmp,log_events);
     if(z==0)
     {
       AddError(EEPROM1_Error);

@@ -115,13 +115,13 @@ uint8_t find_num_daily_energy_log_entries_between(const sSA_Range *startRange,co
           }
           rtc_t time_last = getTime(&lastEntry.timeStump);
           int8_t com3 = compare_time(&time_last,&temp_eRange);
-          if(com3 > 0)//temp_eRange comes before  time_last
+          if(com3 >= 0)//temp_eRange comes before  time_last
           {
 			    //search for temp_eRange
 				void *t1 = &required_last_entry_time;
 				void *t2 = &temp_eRange;
 				memcpy(t1,t2,sizeof(required_last_entry_time));
-				if(com2<0)
+				if(com2 <= 0)
 				  *numOfEntries = (uint32_t)(getTimeDifferenceInMinutes(&temp_eRange,&temp_sRange)/daily_load_profile_capture_period_min);
 				else
 				*numOfEntries = (uint32_t)(getTimeDifferenceInMinutes(&temp_eRange,&time_first)/daily_load_profile_capture_period_min);
@@ -132,12 +132,16 @@ uint8_t find_num_daily_energy_log_entries_between(const sSA_Range *startRange,co
 				void *t1 = &required_last_entry_time;
 				void *t2 = &time_last;
 				memcpy(t1,t2,sizeof(time_last));
-				if(com2 < 0)
-				  *numOfEntries = (uint32_t)(getTimeDifferenceInMinutes(&time_last,&temp_sRange)/daily_load_profile_capture_period_min);
+				if(com2 <= 0)
+				{
+					*numOfEntries = (uint32_t)(getTimeDifferenceInMinutes(&time_last,&time_first)/daily_load_profile_capture_period_min);
+				}
 				else
-				  *numOfEntries = (uint32_t)(getTimeDifferenceInMinutes(&time_last,&time_first)/daily_load_profile_capture_period_min);
+				{
+					*numOfEntries = (uint32_t)(getTimeDifferenceInMinutes(&time_last,&temp_sRange)/daily_load_profile_capture_period_min);
+				}
           }
-          if((*startEntryNumber * DAILY_SNAPSHOT_MAX_LOGS) + DAILY_SNAPSHOT_LOG_ADDRESS_START  > last_daily_snapshot_log_address)
+          if((*startEntryNumber * DAILY_SNAPSHOT_LOG_SIZE) + DAILY_SNAPSHOT_LOG_ADDRESS_START  > last_daily_snapshot_log_address)
              *numOfEntries = 0;
           else
           {
@@ -297,7 +301,7 @@ void change_daily_load_profile_capture_period(void *data,int data_direction)
 void obj_daily_load_profile_reset(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
       uint32_t tmp32 = DAILY_SNAPSHOT_LOG_ADDRESS_START;
-      uint8_t temp8=3;
+      uint8_t temp8 = 1;
       last_daily_snapshot_log_address = DAILY_SNAPSHOT_LOG_ADDRESS_START;
       write_to_eeprom(&tmp32,&temp8,setLastLogAddress);
       write_to_eeprom(&temp8,(uint8_t *)0,setEnergyOverlapFlag);

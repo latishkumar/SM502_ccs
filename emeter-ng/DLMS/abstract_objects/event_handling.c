@@ -279,17 +279,7 @@ void obj_event_log_capture(uint8_t *data,uint16_t data_len,uint8_t *response,uin
 {
 	uint8_t tmp = 3 ;
 	EventLog l;
-	l.EventCode = 85;
-	l.timeStump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-	l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow + l.timeStump.TimestampUp);
-	l.value = (uint32_t)10;
-	write_to_eeprom(&l,&tmp,log_events);
-	l.EventCode = 89;
-	l.timeStump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-	l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow + l.timeStump.TimestampUp);
-	l.value = (uint32_t)10;
-	write_to_eeprom(&l,&tmp,log_events);
-	l.EventCode = 9;
+	l.EventCode = 0;
 	l.timeStump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
 	l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow + l.timeStump.TimestampUp);
 	l.value = (uint32_t)10;

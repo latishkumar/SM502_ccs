@@ -71,6 +71,8 @@
 #include "iec62056_46_link.h"
 #include "iec62056_46_user.h"
 #include "uart_comms.h"
+#include "EventTypes.h"
+#include "Logger.h"
 extern async_hdlc_tx_t tx[];
 
 #ifndef IEC_PORT
@@ -215,7 +217,20 @@ static void send_rr(iec62056_46_link_t *link)
     finalise_and_send_frame(link, &tx[link->port]);
 }
 /*- End of function --------------------------------------------------------*/
-
+void release_plc_communication(int port)
+{
+	//log communication event
+	if(port == PLC_PORT)
+	{
+		uint8_t tmp;
+		event_log l;
+		l.event_code = END_COMMUNICATION_PLC_PORT;
+		l.time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
+		l.checksum  =(getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;
+		tmp = 6;
+		write_to_eeprom(&l,&tmp,log_events);
+	}
+}
 #if 0
 static void send_rnr(iec62056_46_link_t *link)
 {
@@ -673,22 +688,45 @@ static void hdlc_async_rx_end_in_hdr(async_hdlc_rx_t *rx, uint8_t byte)
 #endif
 }
 /*- End of function --------------------------------------------------------*/
-
+extern TimeStump plc_start_time;
 void iec62056_46_link_idle_timeout(iec62056_46_link_t *link)
 {
     dl_disconnect_indication(link, DL_DISCONNECT_INDICATION_LOCAL_DL);
     link->disconnected = TRUE;
     link->configured = FALSE;
     link->far_msap=0;
+    //connection released due to timeout
+	//log communication ecent - timeout
+	if(link->port == IEC_PORT )
+	{
+		uint8_t tmp;
+		event_log l;
+		//log start time
+		l.event_code = BEGIN_COMMUNICATION_PLC_PORT;
+		l.time_stamp = plc_start_time;
+	    l.checksum  =(getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;
+	    tmp = 6;
+	    write_to_eeprom(&l,&tmp,log_events);
+
+		//log end time
+		l.event_code = END_COMMUNICATION_OPTICAL_PORT;
+		l.time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
+		l.checksum  =(getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;
+		tmp = 6;
+		write_to_eeprom(&l,&tmp,log_events);
+	}
+
 }
 /*- End of function --------------------------------------------------------*/
 
 void iec62056_46_rx_timeout(iec62056_46_link_t *link, async_hdlc_rx_t *rx)
 {
     rx->state = ASYNC_RX_STATE_IDLE;
+/*
 #if defined(__MSP430__)
     P1OUT ^= BIT1;
 #endif
+*/
 }
 /*- End of function --------------------------------------------------------*/
 

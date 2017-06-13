@@ -27,6 +27,7 @@ void change_uart_a1_to_8n1_x_bd(int x);
 void change_boud_rate(uint8_t x);
 int switch_ready =0;
 extern int local_comm_exchange_mode_flag;
+extern int usb_comm_speed;
 void configure_uart_port(int port, int mode)
 {
   switch(mode)
@@ -48,7 +49,7 @@ void configure_uart_port(int port, int mode)
    change_uart_a1_to_8n1_x_bd(5);
    break;
   case 3://8N1@19200
-    change_uart_a1_to_8n1_x_bd(7);//57600
+    change_uart_a1_to_8n1_x_bd(usb_comm_speed);//57600
     UCA1IE &= ~UCTXIE;//|UCRXIE;
     break;
   default:

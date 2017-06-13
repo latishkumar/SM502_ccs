@@ -74,7 +74,9 @@
 #include "packing.h"
 #include "config.h"
 #include "server_msgs.h"
-
+#include "EventTypes.h"
+#include "DLMS.h"
+#include "Logger.h"
 #define FALSE 0
 #define TRUE (!FALSE)
 
@@ -1215,7 +1217,7 @@ void send_aare(iec62056_46_link_t *link, const uint8_t context[], const uint8_t 
 }
 /*- End of function --------------------------------------------------------*/
 
-
+TimeStump plc_start_time;
 void process_aarq(iec62056_46_link_t *link, const uint8_t msg[], int len)
 {
     int type;
@@ -1478,7 +1480,26 @@ void process_aarq(iec62056_46_link_t *link, const uint8_t msg[], int len)
 #endif
     send_aare(link, context, conformance, status);
     link->configured = (status == 0);
+    if(link->configured) //connection established
+    {
+    	uint8_t tmp;
+        //log communication event
+        event_log l;
+        if(link->port == PLC_PORT)
+        {
+        	plc_start_time = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
+        }
+        else if(link->port == IEC_PORT )
+        {
+        	l.event_code = BEGIN_COMMUNICATION_OPTICAL_PORT;
+        	l.time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
+        	l.checksum  =(getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;
+        	tmp = 6;
+        	write_to_eeprom(&l,&tmp,log_events);
+        }
+    }
 }
+
 /*- End of function --------------------------------------------------------*/
 
 void send_confirmed_service_error(iec62056_46_link_t *link, int a, int b, int c)
@@ -2826,6 +2847,10 @@ void process_i_body(iec62056_46_link_t *link, const uint8_t msg[], int len)
         return;
     case PDU_DED_ACTION_REQUEST:
         return;
+    case PDU_RLRQ:
+    	//end of plc communication
+    	release_plc_communication(link->port);
+    	break;
 
     default:
      __asm__ __volatile__ (" NOP");

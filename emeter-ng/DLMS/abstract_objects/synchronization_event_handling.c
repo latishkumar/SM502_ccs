@@ -247,16 +247,6 @@ void obj_synchronization_event_log_capture(uint8_t *data,uint16_t data_len,uint8
 	l.end_time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
 	l.checksum = (int) (l.event_code + l.end_time_stamp.TimestampLow + l.end_time_stamp.TimestampUp);
 	write_to_eeprom(&l,&tmp,log_events);
-	l.event_code = 9;
-	l.begin_time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute-2, rtcc.second);
-	l.end_time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-	l.checksum = (int) (l.event_code + l.end_time_stamp.TimestampLow + l.end_time_stamp.TimestampUp);
-	write_to_eeprom(&l,&tmp,log_events);
-	l.event_code = 10;
-	l.begin_time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute-3, rtcc.second);
-	l.end_time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-	l.checksum = (int) (l.event_code + l.end_time_stamp.TimestampLow + l.end_time_stamp.TimestampUp);
-	write_to_eeprom(&l,&tmp,log_events);
 	*response_len = 0;
 }
 

@@ -135,6 +135,7 @@ void disconnect_script_execute(uint8_t *data,uint16_t data_len,uint8_t *response
      {
         status.ConnectCommandRecived = 1;
      }
+     *response_len = 0;
 }
 
 /*
@@ -145,6 +146,7 @@ void remote_disconnect(uint8_t *data, uint16_t data_len,uint8_t *response,uint16
 {
    status.DisconnectCommandRecived = 1;
    status.ConnectCommandRecived = 0;
+   *response_len = 0;
 }
 
 /*
@@ -155,4 +157,5 @@ void remote_reconnect(uint8_t *data, uint16_t data_len,uint8_t *response,uint16_
 {
     status.ConnectCommandRecived = 1;
     status.DisconnectCommandRecived = 0;
+    *response_len = 0;
 }
