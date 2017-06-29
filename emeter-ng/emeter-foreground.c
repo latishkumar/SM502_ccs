@@ -109,18 +109,14 @@ static __inline__ long labs(long __x)
 }
 
 
-  void set_phase_correction(struct phase_correction_s *s, int correction)
-  {
-      correction += 128;
-  ////#if defined(__HAS_SD_ADC__)
-  ////    s->step = (correction >> 8) + I_HISTORY_STEPS*2 + 1;
-  ////#else
-      s->step = I_HISTORY_STEPS + (correction >> 8);
-  ////#endif
-      correction = 127 - ((correction & 0xFF) >> 1);
-      s->fir_beta = fir_coeffs[correction][0];
-      s->fir_gain = fir_coeffs[correction][1];
-  }
+void set_phase_correction(struct phase_correction_s *s, int correction)
+{
+	correction += 128;
+	s->step = I_HISTORY_STEPS + (correction >> 8);
+	correction = 127 - ((correction & 0xFF) >> 1);
+	s->fir_beta = fir_coeffs[correction][0];
+	s->fir_gain = fir_coeffs[correction][1];
+}
 
 #if defined(DYNAMIC_PHASE_CORRECTION_SUPPORT)
 static void set_phase_gain_correction(struct phase_correction_s *s, int correction, int gain)
@@ -133,25 +129,12 @@ static void set_phase_gain_correction(struct phase_correction_s *s, int correcti
 }
 #endif
 
-#if defined(__HAS_SD_ADC__)
 void set_sd16_phase_correction(struct phase_correction_sd16_s *s, int ph, int correction)
 {
-  #if defined(__MSP430_HAS_SD24_B__)
     static unsigned short volatile * const sd16_locations[NUM_CURRENT_CHANNELS] =
-  #else
-    static unsigned char volatile * const sd16_locations[NUM_CURRENT_CHANNELS] =
-  #endif      
     {
-    #if defined(SINGLE_PHASE)
-       (unsigned short *) &SD16PRE_LIVE,
-    #else
-        &SD16PRE_CURRENT_1,
-        &SD16PRE_CURRENT_2,
-        &SD16PRE_CURRENT_3,
-    #endif
-    #if defined(NEUTRAL_MONITOR_SUPPORT)
+    	(unsigned short *) &SD16PRE_LIVE,
 		(unsigned short *) &SD16PRE_NEUTRAL
-    #endif
     };
     uint8_t bump;
 
@@ -160,7 +143,7 @@ void set_sd16_phase_correction(struct phase_correction_sd16_s *s, int ph, int co
     {
       // [HOTFIX RO] Take the larger size of the preload register into account
       //  if ((bump = s->sd16_preloaded_offset - (correction & 0xFF)))
-            if ((bump = s->sd16_preloaded_offset - (correction & 0xFF)))
+           if ((bump = s->sd16_preloaded_offset - (correction & 0xFF)))
       // [END HOTFIX RO]        
             *sd16_locations[ph] = bump;
     }
@@ -169,7 +152,6 @@ void set_sd16_phase_correction(struct phase_correction_sd16_s *s, int ph, int co
 ////    s->step = (correction >> 8) - I_HISTORY_STEPS + 1;
     s->sd16_preloaded_offset = correction;
 }
-#endif
 
 #if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)  &&  defined(POWER_BALANCE_DETECTION_SUPPORT)
 static int32_t test_phase_balance(int32_t live_signal, int32_t neutral_signal, int threshold)
@@ -259,11 +241,7 @@ static int32_t test_phase_balance(int32_t live_signal, int32_t neutral_signal, i
 #endif
 
 #if defined(MAINS_FREQUENCY_SUPPORT)
-#if defined(SINGLE_PHASE)
 int16_t frequency(void)
-#else
-int16_t frequency(struct phase_parms_s *phase, struct phase_nv_parms_s const *phase_nv)
-#endif
 {
     int32_t x;
     //int step;
@@ -332,12 +310,7 @@ int16_t frequency(struct phase_parms_s *phase, struct phase_nv_parms_s const *ph
 }
 #endif
 
-#if defined(VRMS_SUPPORT)
-    #if defined(SINGLE_PHASE)
 int32_t voltage(void)
-    #else
-int32_t voltage(struct phase_parms_s *phase, struct phase_nv_parms_s const *phase_nv)
-    #endif
 {
     int16_t i;
     int32_t x;
@@ -347,18 +320,13 @@ int32_t voltage(struct phase_parms_s *phase, struct phase_nv_parms_s const *phas
     if ((phase->status & V_OVERRANGE))
         return -1;
     x = div_sh48(phase->metrology.dot_prod_logged.V_sq, 26 - 2*ADC_BITS, phase->metrology.dot_prod_logged.sample_count);
-    #if defined(LIMP_MODE_SUPPORT)
-    if (operating_mode == OPERATING_MODE_LIMP)
-        i = phase_nv->V_rms_limp_scale_factor;
-    else
-    #endif
-        i = phase_nv->V_rms_scale_factor;
+	i = phase_nv->V_rms_scale_factor;
     x = isqrt32(x);
     x = (x >> 12)*i;
     x >>= 14;
     return x;
 }
-#endif
+
 
 rms_current_t current(void)
 {
@@ -387,13 +355,6 @@ rms_current_t current(void)
         else
         {
 			y = isqrt64(tmp-neutral_nv->ac_offset) >> 26;
-
-			#if defined(LIMP_MODE_SUPPORT)
-				if (operating_mode == OPERATING_MODE_LIMP)
-					i = phase_nv->neutral.I_rms_limp_scale_factor;
-				else
-			#endif
-
 			i = neutral_nv->I_rms_scale_factor;
 			y = mul48u_32_16(y, i);
         }
@@ -402,10 +363,10 @@ rms_current_t current(void)
 
 
         #if defined(PER_SENSOR_PRECALCULATED_PARAMETER_SUPPORT)
-    phase->metrology.neutral.readings.I_rms = y;
+    	phase->metrology.neutral.readings.I_rms = y;
         #endif
         #if defined(DYNAMIC_PHASE_CORRECTION_SUPPORT)
-    dynamic_phase_correction_neutral(phase, phase_nv, ch);
+    	dynamic_phase_correction_neutral(phase, phase_nv, ch);
         #endif
 
     if ((phase->status & I_OVERRANGE))
@@ -422,28 +383,21 @@ rms_current_t current(void)
         else
         {
             tmp -= phase_nv->current.ac_offset;
-            #if defined(TWENTYFOUR_BIT)
-                    
-               x =  isqrt64(tmp) >> 26;
-            #else
-                    x = isqrt32(tmp) >> 2;
-            #endif
-            #if defined(LIMP_MODE_SUPPORT)
-                    if (operating_mode == OPERATING_MODE_LIMP)
-                        i = phase_nv->current.I_rms_limp_scale_factor;
-                    else
-            #endif
-                i = phase_nv->current.I_rms_scale_factor;
+		    x =  isqrt64(tmp) >> 26;
+			i = phase_nv->current.I_rms_scale_factor;
             //Changed so can be consistent with F6736's display of parameters
             x = mul48u_32_16(x, i) >> 10;
         }
     }
-        #if defined(PRECALCULATED_PARAMETER_SUPPORT)
-            phase->metrology.current.I_rms = x;
-        #endif
-    #if defined(DYNAMIC_PHASE_CORRECTION_SUPPORT)
-    dynamic_phase_correction(phase, phase_nv, ch);
-    #endif
+
+	#if defined(PRECALCULATED_PARAMETER_SUPPORT)
+		phase->metrology.current.I_rms = x;
+	#endif
+
+	#if defined(DYNAMIC_PHASE_CORRECTION_SUPPORT)
+	dynamic_phase_correction(phase, phase_nv, ch);
+	#endif
+
     #if defined(LIMP_MODE_SUPPORT)
     if (operating_mode == OPERATING_MODE_LIMP)
     {

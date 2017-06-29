@@ -257,7 +257,7 @@ ISR(SD24B, adc_interrupt)
     /* Pick up any current samples which may have occurred a little before the
        voltage sample, but not those which may have occurred just after the
        voltage sample. */
-     // NEUTRAL_MONITOR_SUPPORT
+    // NEUTRAL_MONITOR_SUPPORT
     if (phase->metrology.neutral.in_phase_correction[0].sd16_preloaded_offset < 128  &&  (TST_SD16IFG_NEUTRAL))
     {
         adc_i_buffer[1] = SD16MEM_NEUTRAL;
@@ -379,42 +379,15 @@ ISR(SD24B, adc_interrupt)
                    the pulsing rate, so it is important the pulses are clear,
                    distinct, and exactly at the rate of one per
                    1/ENERGY_PULSES_PER_KW_HOUR kW/h. */
-    #if !defined(SINGLE_PHASE)
-                switch (j)
-                {
-                case 0:
-                    phase_1_active_energy_pulse_start();
-                    break;
-                case 1:
-                    phase_2_active_energy_pulse_start();
-                    break;
-                case 2:
-                    phase_3_active_energy_pulse_start();
-                    break;
-                }
-    #else
+
                 phase_active_energy_pulse_start();
-    #endif
                 phase->active_energy_pulse_remaining_time = ENERGY_PULSE_DURATION;
             }
             if (phase->active_energy_pulse_remaining_time  &&  --phase->active_energy_pulse_remaining_time == 0)
             {
-    #if !defined(SINGLE_PHASE)
-                switch (j)
-                {
-                case 0:
-                    phase_1_active_energy_pulse_end();
-                    break;
-                case 1:
-                    phase_2_active_energy_pulse_end();
-                    break;
-                case 2:
-                    phase_3_active_energy_pulse_end();
-                    break;
-                }
-    #else
+
                 phase_active_energy_pulse_end();
-    #endif
+
             }
     #if defined(LIMP_MODE_SUPPORT)
         }

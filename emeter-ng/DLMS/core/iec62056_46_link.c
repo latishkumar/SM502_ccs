@@ -217,6 +217,7 @@ static void send_rr(iec62056_46_link_t *link)
     finalise_and_send_frame(link, &tx[link->port]);
 }
 /*- End of function --------------------------------------------------------*/
+extern TimeStump plc_start_time;
 void release_plc_communication(int port)
 {
 	//log communication event
@@ -224,6 +225,13 @@ void release_plc_communication(int port)
 	{
 		uint8_t tmp;
 		event_log l;
+		//log start time
+		l.event_code = BEGIN_COMMUNICATION_PLC_PORT;
+		l.time_stamp = plc_start_time;
+		l.checksum  =(getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;
+		tmp = 6;
+		write_to_eeprom(&l,&tmp,log_events);
+		//log end time
 		l.event_code = END_COMMUNICATION_PLC_PORT;
 		l.time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
 		l.checksum  =(getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;
@@ -688,7 +696,6 @@ static void hdlc_async_rx_end_in_hdr(async_hdlc_rx_t *rx, uint8_t byte)
 #endif
 }
 /*- End of function --------------------------------------------------------*/
-extern TimeStump plc_start_time;
 void iec62056_46_link_idle_timeout(iec62056_46_link_t *link)
 {
     dl_disconnect_indication(link, DL_DISCONNECT_INDICATION_LOCAL_DL);
@@ -701,14 +708,6 @@ void iec62056_46_link_idle_timeout(iec62056_46_link_t *link)
 	{
 		uint8_t tmp;
 		event_log l;
-		//log start time
-		l.event_code = BEGIN_COMMUNICATION_PLC_PORT;
-		l.time_stamp = plc_start_time;
-	    l.checksum  =(getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;
-	    tmp = 6;
-	    write_to_eeprom(&l,&tmp,log_events);
-
-		//log end time
 		l.event_code = END_COMMUNICATION_OPTICAL_PORT;
 		l.time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
 		l.checksum  =(getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;

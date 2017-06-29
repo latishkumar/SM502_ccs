@@ -28,7 +28,7 @@ const uint8_t synchronization_event_log_template[] =
 {
    STUFF_DATA | TAG_STRUCTURE, 3,
    STUFF_DATA | TAG_OCTET_STRING, 12,ITEM_TAG_DATETIME_SYNE2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Event Time stump
-   STUFF_DATA | TAG_UINT8, INJECT8(ITEM_TAG_EVENT_CODE_SE),                                    // Event code
+   STUFF_DATA | TAG_UINT8, INJECT8(ITEM_TAG_EVENT_CODE_SYNE),                                    // Event code
    STUFF_DATA | TAG_OCTET_STRING, 12,ITEM_TAG_DATETIME_SYNE1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // Former clock Time stump
 };
 
@@ -74,7 +74,7 @@ uint8_t find_num_synchronization_event_log__entries_between(const sSA_Range *sta
      {
          if(status.synchronization_event_log_overlapped == 1) // if the cirular buffer is full
          {
-           MAX_Entries = MAX_FIRMWARE_EVENT_LOGS;
+           MAX_Entries = MAX_SYNCHRONIZATION_EVENT_LOGS;
          }
          else{
             MAX_Entries = (last_synchronization_event_log_address - add_start)/TIME_BOUND_EVENT_LOG_TYPE_SIZE;
@@ -166,7 +166,7 @@ uint8_t find_num_total_synchronization_event_log_entries(uint16_t *num_entries,u
       *num_entries = 0;
       if(status.synchronization_event_log_overlapped == 1)
       {
-        *num_entries = MAX_FIRMWARE_EVENT_LOGS;
+        *num_entries = MAX_SYNCHRONIZATION_EVENT_LOGS;
       }
       else
       {
@@ -242,7 +242,7 @@ void obj_synchronization_event_log_capture(uint8_t *data,uint16_t data_len,uint8
 {
 	uint8_t tmp = 8;
 	time_bound_event_log l;
-	l.event_code = 8;
+	l.event_code = 0;
 	l.begin_time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute-1, rtcc.second);
 	l.end_time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
 	l.checksum = (int) (l.event_code + l.end_time_stamp.TimestampLow + l.end_time_stamp.TimestampUp);
