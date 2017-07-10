@@ -1614,7 +1614,62 @@ int8_t logEvent2(void *lt,void *StartAddress)
         return 1;
 }
 */
+uint8_t get_hourly_energy_log_ts(rtc_t *l,unsigned long StartAddress, uint8_t offset)
+{
+    uint8_t x=0,i=0;
+    TimeStump tmp;
 
+    for(;i<MAX_LOG_RETRAY;i++)
+    {
+        x = EEPROM2_ReadLong(StartAddress + offset,0,&(tmp.TimestampLow));
+        if(x==0)
+            continue;
+        x = EEPROM2_ReadNextInt8(1,&(tmp.TimestampUp));
+        if(x==0)
+            continue;
+        else
+            break;
+    }
+
+    *l = getTime(&tmp);
+
+    if(i >= MAX_LOG_RETRAY)
+        return 0;
+
+    return 1;
+}
+
+uint8_t get_hourly_energy_log_time_stamp(void *lt,uint32_t EntryNumber)
+{
+    int32_t en = --EntryNumber;
+    if(en < 0)
+        EntryNumber = 0;
+
+    //--EntryNumber;//handle zero based index
+    rtc_t *l = (rtc_t*)lt;
+    uint32_t StartAddress;
+    if(status.energy_log_overlapped == 1)//handle circular buffer
+    {
+        uint32_t val = (EnergyLogSize*EntryNumber);
+        if(EnergyLogAddress_Start + val > EnergyLogAddress_End)
+        {
+            StartAddress = val + EnergyLogAddress_Start + 22 - EnergyLogAddress_End;
+        }
+        else
+        {
+            StartAddress = (LastEnergyLogAddress + val);
+        }
+    }
+    else
+    {
+        StartAddress = EnergyLogAddress_Start + (EnergyLogSize*EntryNumber);
+    }
+
+    if(get_hourly_energy_log_ts(l,StartAddress,16) == 0)
+        return 0;
+
+    return 1;
+}
 int8_t logEnergy2(void *lt,uint32_t StartAddress)
 {
         EnergyLog *l = (EnergyLog*)lt;

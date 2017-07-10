@@ -217,14 +217,13 @@ void capture_load_profile_data(void *data, int direction)
    msg_info.template=load_profile_buffer_template;
    msg_info.sz_template=sizeof(load_profile_buffer_template);
 
-
-
    if(access_selector == 1) //range_descriptor specifically by date range
    {
      if(SA_Range[1].Year>4095 || SA_Range[0].Year>4095 )
-         msg_info.num_entries=0x0;
+         msg_info.num_entries = 0x0;
      else
-        find_num_energy_log__entries_between(&SA_Range[0],&SA_Range[1],&msg_info.start_entry,&msg_info.num_entries);/*msg_info.num_entries=5*/
+         get_captured_log_by_time_range(&SA_Range[0],&SA_Range[1],&msg_info.start_entry,&msg_info.num_entries);
+        //find_num_energy_log__entries_between(&SA_Range[0],&SA_Range[1],&msg_info.start_entry,&msg_info.num_entries);/*msg_info.num_entries=5*/
    }
    else if(access_selector == 2) //entry descriptor
    {
@@ -339,3 +338,97 @@ void obj_load_profile_reset(uint8_t *data,uint16_t data_len,uint8_t *response,ui
 void obj_load_profile_capture(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
 }
+
+uint8_t get_captured_log_by_time_range(const sSA_Range *startRange,const sSA_Range *endRange,uint16_t *startEntryNumber,uint16_t *numOfEntries)
+{
+     rtc_t temp_sRange ={startRange->Year,startRange->Month,startRange->Date,startRange->Hr,startRange->Min,0,0};
+     rtc_t temp_eRange ={endRange->Year,endRange->Month,endRange->Date,endRange->Hr,endRange->Min,0,0};
+     int8_t temp1 = compare_time(&temp_eRange,&temp_sRange);
+     int8_t temp2 = 0;
+     if(temp1 < 0)     // if the end time specified comes before the first time requested, then abort
+     {
+       *startEntryNumber = 0;
+       *numOfEntries = 0;
+       return 1;
+     }
+
+     uint16_t MAX_Entries = 0;
+     uint32_t add_start = EnergyLogAddress_Start;
+     if(status.energy_log_overlapped == 1) // if the circular buffer is full
+     {
+         MAX_Entries = EnergyLog_SIZE;
+     }
+     else
+     {
+        MAX_Entries = (LastEnergyLogAddress - add_start)/EnergyLogSize;
+        if(MAX_Entries == 0)
+        {
+            *startEntryNumber =0;
+            *numOfEntries = 0;
+            return 1;
+        }
+     }
+
+    rtc_t time_first;
+    rtc_t time_last ;
+    uint8_t z = get_hourly_energy_log_time_stamp(&time_first,1); //get our first entry
+    if(z == 0)
+    {
+        //error abort
+    }
+    z = get_hourly_energy_log_time_stamp(&time_last,MAX_Entries);//get the last entry
+    if(z == 0)
+    {
+        //error abort
+    }
+
+    temp1 = compare_time(&temp_eRange,&time_first);
+    temp2 = compare_time(&time_last,&temp_sRange);
+    if(temp1 < 0 || temp2 < 0) // if the first entry we have is after the last entry requested or
+    {                          // last entry we have is before the first entry requested then we don't have the data.
+        *startEntryNumber = 0;
+        *numOfEntries = 0;
+        return 1;
+    }
+    temp1 = compare_time(&temp_sRange,&time_first);
+    temp2 = compare_time(&time_last,&temp_eRange);
+    // if the first entry we have comes after the first entry requested and the the last entry we have comes before the last entry requested
+    // then return all data.
+    if(temp1 <= 0 && temp2 <= 0) // if the first entry we have is after the last entry requested or
+    {                            // last entry we have is before the first entry requested then we don't have the data.
+        *startEntryNumber = 1;
+        *numOfEntries = MAX_Entries;
+        return 1;
+    }
+    //search for start entry and number of entries
+    uint16_t index = 1;
+    uint16_t number_of_entries = 0;
+    for(;;)
+    {
+        z = get_hourly_energy_log_time_stamp(&time_first,index);//get the last entry
+        if(z == 0)
+        {
+            //error abort
+        }
+        temp1 = compare_time(&temp_sRange,&time_first);
+        temp2 = compare_time(&time_first,&temp_eRange);
+        if(temp1 <= 0 && temp2 <= 0 && index <= MAX_Entries) // we get an entry within the range
+        {
+            index++;
+            number_of_entries++;
+        }
+        else if(index > MAX_Entries || temp2 > 0)
+        {
+            break; // reached last entry
+        }
+        else
+        {
+            index++;
+        }
+    }
+    *startEntryNumber = index - number_of_entries ;
+    *numOfEntries = number_of_entries;
+
+    return 1;//success
+}
+

@@ -13,6 +13,10 @@ C_SRCS += \
 ../firmware_loader/eeprom_read_interface.c \
 ../firmware_loader/firmware_loader.c 
 
+C_DEPS += \
+./firmware_loader/eeprom_read_interface.d \
+./firmware_loader/firmware_loader.d 
+
 OBJS += \
 ./firmware_loader/eeprom_read.obj \
 ./firmware_loader/eeprom_read_interface.obj \
@@ -27,27 +31,23 @@ ASM_DEPS += \
 ./firmware_loader/loader.d \
 ./firmware_loader/power_handler.d 
 
-C_DEPS += \
-./firmware_loader/eeprom_read_interface.d \
-./firmware_loader/firmware_loader.d 
+OBJS__QUOTED += \
+"firmware_loader/eeprom_read.obj" \
+"firmware_loader/eeprom_read_interface.obj" \
+"firmware_loader/firmware_loader.obj" \
+"firmware_loader/flash_programmer.obj" \
+"firmware_loader/loader.obj" \
+"firmware_loader/power_handler.obj" 
 
 C_DEPS__QUOTED += \
-"firmware_loader\eeprom_read_interface.d" \
-"firmware_loader\firmware_loader.d" 
-
-OBJS__QUOTED += \
-"firmware_loader\eeprom_read.obj" \
-"firmware_loader\eeprom_read_interface.obj" \
-"firmware_loader\firmware_loader.obj" \
-"firmware_loader\flash_programmer.obj" \
-"firmware_loader\loader.obj" \
-"firmware_loader\power_handler.obj" 
+"firmware_loader/eeprom_read_interface.d" \
+"firmware_loader/firmware_loader.d" 
 
 ASM_DEPS__QUOTED += \
-"firmware_loader\eeprom_read.d" \
-"firmware_loader\flash_programmer.d" \
-"firmware_loader\loader.d" \
-"firmware_loader\power_handler.d" 
+"firmware_loader/eeprom_read.d" \
+"firmware_loader/flash_programmer.d" \
+"firmware_loader/loader.d" \
+"firmware_loader/power_handler.d" 
 
 ASM_SRCS__QUOTED += \
 "../firmware_loader/eeprom_read.asm" \

@@ -831,6 +831,9 @@ int8_t getEnergy2(void *l,uint32_t EntryNumber);
 int8_t log_daily_energy_snapshot(void *l2,void *dummy);
 int8_t get_daily_snapshot_energy_profile(void *lt,uint32_t EntryNumber);
 uint8_t get_daily_snapshot_overlap_flag(uint8_t *flag);
+uint8_t get_hourly_energy_log_ts(rtc_t *l,unsigned long StartAddress, uint8_t offset);
+uint8_t get_hourly_energy_log_time_stamp(void *lt,uint32_t EntryNumber);
+
 
 /**
 * Id2: pointer to the array to copy the id to

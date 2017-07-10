@@ -6,17 +6,17 @@
 C_SRCS += \
 ../DLMS/aes/TI_aes.c 
 
-OBJS += \
-./DLMS/aes/TI_aes.obj 
-
 C_DEPS += \
 ./DLMS/aes/TI_aes.d 
 
-C_DEPS__QUOTED += \
-"DLMS\aes\TI_aes.d" 
+OBJS += \
+./DLMS/aes/TI_aes.obj 
 
 OBJS__QUOTED += \
-"DLMS\aes\TI_aes.obj" 
+"DLMS/aes/TI_aes.obj" 
+
+C_DEPS__QUOTED += \
+"DLMS/aes/TI_aes.d" 
 
 C_SRCS__QUOTED += \
 "../DLMS/aes/TI_aes.c" 

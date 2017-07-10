@@ -18,18 +18,6 @@ C_SRCS += \
 ../hal_pmm.c \
 ../unused_interrupts_handler.c 
 
-OBJS += \
-./emeter-background.obj \
-./emeter-fir-table.obj \
-./emeter-foreground.obj \
-./emeter-main.obj \
-./emeter-phase-corrections.obj \
-./emeter-rtc.obj \
-./emeter-setup.obj \
-./hal_UCS.obj \
-./hal_pmm.obj \
-./unused_interrupts_handler.obj 
-
 C_DEPS += \
 ./emeter-background.d \
 ./emeter-fir-table.d \
@@ -42,17 +30,17 @@ C_DEPS += \
 ./hal_pmm.d \
 ./unused_interrupts_handler.d 
 
-C_DEPS__QUOTED += \
-"emeter-background.d" \
-"emeter-fir-table.d" \
-"emeter-foreground.d" \
-"emeter-main.d" \
-"emeter-phase-corrections.d" \
-"emeter-rtc.d" \
-"emeter-setup.d" \
-"hal_UCS.d" \
-"hal_pmm.d" \
-"unused_interrupts_handler.d" 
+OBJS += \
+./emeter-background.obj \
+./emeter-fir-table.obj \
+./emeter-foreground.obj \
+./emeter-main.obj \
+./emeter-phase-corrections.obj \
+./emeter-rtc.obj \
+./emeter-setup.obj \
+./hal_UCS.obj \
+./hal_pmm.obj \
+./unused_interrupts_handler.obj 
 
 OBJS__QUOTED += \
 "emeter-background.obj" \
@@ -65,6 +53,18 @@ OBJS__QUOTED += \
 "hal_UCS.obj" \
 "hal_pmm.obj" \
 "unused_interrupts_handler.obj" 
+
+C_DEPS__QUOTED += \
+"emeter-background.d" \
+"emeter-fir-table.d" \
+"emeter-foreground.d" \
+"emeter-main.d" \
+"emeter-phase-corrections.d" \
+"emeter-rtc.d" \
+"emeter-setup.d" \
+"hal_UCS.d" \
+"hal_pmm.d" \
+"unused_interrupts_handler.d" 
 
 C_SRCS__QUOTED += \
 "../emeter-background.c" \

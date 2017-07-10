@@ -1,10 +1,16 @@
 eclipse.preferences.version=1
+encoding//Debug/DLMS/abstract_objects/subdir_rules.mk=UTF-8
+encoding//Debug/DLMS/abstract_objects/subdir_vars.mk=UTF-8
 encoding//Debug/DLMS/aes/subdir_rules.mk=UTF-8
 encoding//Debug/DLMS/aes/subdir_vars.mk=UTF-8
 encoding//Debug/DLMS/core/subdir_rules.mk=UTF-8
 encoding//Debug/DLMS/core/subdir_vars.mk=UTF-8
+encoding//Debug/DLMS/electricity_related_objects/subdir_rules.mk=UTF-8
+encoding//Debug/DLMS/electricity_related_objects/subdir_vars.mk=UTF-8
 encoding//Debug/DLMS/server/subdir_rules.mk=UTF-8
 encoding//Debug/DLMS/server/subdir_vars.mk=UTF-8
+encoding//Debug/DLMS/src/subdir_rules.mk=UTF-8
+encoding//Debug/DLMS/src/subdir_vars.mk=UTF-8
 encoding//Debug/DLMS/subdir_rules.mk=UTF-8
 encoding//Debug/DLMS/subdir_vars.mk=UTF-8
 encoding//Debug/SM502/IEC62056/subdir_rules.mk=UTF-8
