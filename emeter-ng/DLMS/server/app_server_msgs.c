@@ -112,6 +112,12 @@ typedef struct
 
 typedef struct 
 {
+  hourly_energy_log_t l;
+  uint16_t logEntryNo;
+
+}hourly_current_entry_to_tx;
+typedef struct
+{
   EventLog l;
   uint16_t logEntryNo;
 }currentEventToTX;
@@ -149,7 +155,7 @@ typedef struct{
 
 //TODO .write this to EEPROM 
 DisconnectControlScript disconnect_script;*///n
-
+hourly_current_entry_to_tx current_hourly_energy_log_entry = {init_hourly_energy_log};
 currentEntryToTX currentEnergyLogEntry = {init_EnergyLog,0};//{0, 0, 0, 0, { 0, 0}, 0}
 uint8_t currentEnergyLogEntryData[12];
 
@@ -170,64 +176,25 @@ uint8_t dayProfileTime4[4];
 
 //extern void adjust_rtc(rtc_t *time);
 extern rtc_t required_last_entry_time;
-EnergyLog LastTxEnergyCopy;//variable used for incremental energy tx
-void loadEnergyToRam(unsigned int entry_no)
+void load_hourly_energy_to_ram(unsigned int entry_no)
 {
-	   getEnergy2(&currentEnergyLogEntry.l,entry_no);
-	   currentEnergyLogEntry.logEntryNo = entry_no;
-	   if(access_selector == 1) //if this is selective access by range
-	   {
-		 rtc_t time_last = getTime(&currentEnergyLogEntry.l.timeStump);
-		 if(time_last.isValid==0)
-		 {
-			 msg_info.entries_remaining = 1;
-			 return;
-		 }
-		 int8_t com3 = compare_time(&required_last_entry_time,&time_last);
-		 if(com3<0)//time_last comes after required_last_entry_time
-		  {
-			 msg_info.entries_remaining = 1;
-		  }
-	   }
-	  //formate the timestump and copy it to the buffer
-	  rtc_t time = getTime(&currentEnergyLogEntry.l.timeStump);
-	  uint8_t currentEnergyLogEntryData2[] = {
-		INJECT16(time.year), time.month, time.day, ((time.day - 1) > 0)?(time.day - 1):0,time.hour, time.minute,time.second, 0xFF, INJECT16(120), 0x00,
-	  };
-
-	  memcpy(currentEnergyLogEntryData,currentEnergyLogEntryData2,12);
-
-	  uint32_t x = currentEnergyLogEntry.l.active_energy;
-	  //calculate for incrimental data
-	  if(currentEnergyLogEntry.l.active_energy>=LastTxEnergyCopy.active_energy)
-	  {
-		  currentEnergyLogEntry.l.active_energy -= LastTxEnergyCopy.active_energy;
-	  }
-	  else {
-		 currentEnergyLogEntry.l.active_energy = 0;
-	  }
-	  LastTxEnergyCopy.active_energy = x;
-	  //end of update for incrimental energy log
-	  x = currentEnergyLogEntry.l.reactive_energy_QI;
-	  //calculate for incrimental data for R_QI
-	  if(currentEnergyLogEntry.l.reactive_energy_QI>=LastTxEnergyCopy.reactive_energy_QI){
-			currentEnergyLogEntry.l.reactive_energy_QI -= LastTxEnergyCopy.reactive_energy_QI;
-	  }
-	  else {
-		  currentEnergyLogEntry.l.reactive_energy_QI = 0;
-	  }
-	  LastTxEnergyCopy.reactive_energy_QI = x;
-
-	  x = currentEnergyLogEntry.l.reactive_energy_QIV;
-	  //calculate for incrimental data for R_QIV
-	  if(currentEnergyLogEntry.l.reactive_energy_QIV>=LastTxEnergyCopy.reactive_energy_QIV){
-			currentEnergyLogEntry.l.reactive_energy_QIV -= LastTxEnergyCopy.reactive_energy_QIV;
-	  }
-	  else {
-		  currentEnergyLogEntry.l.reactive_energy_QIV = 0;
-	  }
-	  LastTxEnergyCopy.reactive_energy_QIV = x;
-
+    get_hourly_energy_profile(&current_hourly_energy_log_entry.l,entry_no);
+    current_hourly_energy_log_entry.logEntryNo = entry_no;
+    if(access_selector == 1) //if this is selective access by range
+    {
+        rtc_t time_last = getTime(&current_hourly_energy_log_entry.l.time_stump);
+        if(time_last.isValid==0)
+        {
+            msg_info.entries_remaining = 1;
+            return;
+        }
+    }
+    //format the time stump and copy it to the buffer
+    rtc_t time = getTime(&current_hourly_energy_log_entry.l.time_stump);
+    uint8_t currentEnergyLogEntryData2[] = {
+    INJECT16(time.year), time.month, time.day, ((time.day - 1) > 0)?(time.day - 1):0,time.hour, time.minute,time.second, 0xFF, INJECT16(120), 0x00,
+    };
+    memcpy(currentEnergyLogEntryData,currentEnergyLogEntryData2,12);
 }
 
 void load_daily_energy_to_ram(unsigned int entry_no)
@@ -653,19 +620,6 @@ int64_t get_numeric_item(int item)
     case ITEM_TAG_KW_MAX_DEMAND:          val = 42;        break;
     case ITEM_TAG_KVA_MAX_DEMAND:         val = 42;        break;
         
-    case ITEM_TAG_VR_LP:  //done test
-      
-          entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
-          if(currentEnergyLogEntry.logEntryNo == entry_no)
-          {
-          }
-          else
-          {
-              loadEnergyToRam(entry_no);
-          }
-          val = currentEnergyLogEntry.l.reactive_energy_QIV;
-      
-    break; //update this correctly 
     case ITEM_TAG_EVENT_GROUP_SE:
          entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
           if(currentEventLogEntry.logEntryNo == entry_no)
@@ -781,46 +735,76 @@ int64_t get_numeric_item(int item)
 	   }
 	   val = current_disconnect_event_log.l.disconnect_control_status;
 	   break;
-    case ITEM_TAG_ACTIVE_POWER_LP:  //done test
-	  entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
-	  if(currentEnergyLogEntry.logEntryNo == entry_no)
-	  {
-
-	  }
-	  else
-	  {
-		  loadEnergyToRam(entry_no);
-	  }
-	  val = currentEnergyLogEntry.l.active_power;
-	  break; //update this correctly
-    case ITEM_TAG_REACTIVE_POWER_LP:  //done test
-      
-          entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
-          if(currentEnergyLogEntry.logEntryNo == entry_no)
-          {
-          }
-          else
-          {
-              loadEnergyToRam(entry_no);
-          }
-          val = currentEnergyLogEntry.l.reactive_energy_QI;
-      
-    break; //update this correctly
-    
-    case ITEM_TAG_CUM_KWH_TOTAL_LP: //done test
+// Hourly energy profile
+    case ITEM_TAG_ACTIVE_ENERGY_IMPORT_LP_1: //done test
         entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
-        if(currentEnergyLogEntry.logEntryNo == entry_no)
+        if(current_hourly_energy_log_entry.logEntryNo == entry_no)
         {
         }
         else
         {
-            loadEnergyToRam(entry_no);
+            load_hourly_energy_to_ram(entry_no);
         }
-        val = currentEnergyLogEntry.l.active_energy;
-      
-    break;
+        val = current_hourly_energy_log_entry.l.inc_active_import_energy;
+        break;
 
-  // Get Billing Profile Values
+    case ITEM_TAG_REACTIVE_ENERGY_QI_LP_1:  //done test
+        entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+        if(current_hourly_energy_log_entry.logEntryNo == entry_no)
+        {
+        }
+        else
+        {
+            load_hourly_energy_to_ram(entry_no);
+        }
+        val = current_hourly_energy_log_entry.l.inc_reactive_energy_QI;
+        break;
+
+    case ITEM_TAG_REACTIVE_ENERGY_QIV_LP_1:  //done test
+        entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+        if(current_hourly_energy_log_entry.logEntryNo == entry_no)
+        {
+        }
+        else
+        {
+            load_hourly_energy_to_ram(entry_no);
+        }
+        val = current_hourly_energy_log_entry.l.inc_reactive_energy_QIV;
+        break;
+    case ITEM_TAG_ACTIVE_ENERGY_EXPORT_LP_1:  //done test
+        entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+        if(current_hourly_energy_log_entry.logEntryNo == entry_no)
+        {
+        }
+        else
+        {
+            load_hourly_energy_to_ram(entry_no);
+        }
+        val = current_hourly_energy_log_entry.l.inc_active_export_energy;
+        break;
+     case ITEM_TAG_REACTIVE_ENERGY_QII_LP_1:  //done test
+        entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+        if(current_hourly_energy_log_entry.logEntryNo == entry_no)
+        {
+        }
+        else
+        {
+            load_hourly_energy_to_ram(entry_no);
+        }
+        val = current_hourly_energy_log_entry.l.inc_reactive_energy_QII;
+        break;
+      case ITEM_TAG_REACTIVE_ENERGY_QIII_LP_1:  //done test
+        entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
+        if(current_hourly_energy_log_entry.logEntryNo == entry_no)
+        {
+        }
+        else
+        {
+            load_hourly_energy_to_ram(entry_no);
+        }
+        val = current_hourly_energy_log_entry.l.inc_reactive_energy_QIII;
+        break;
+// Get Billing Profile Values
     case ITEM_TAG_AE_IM_BI: val=Billing_Data[0].ActiveImport;  break;
     case ITEM_TAG_AE_EX_BI: val =Billing_Data[0].ActiveExport; break;
 
@@ -1089,17 +1073,17 @@ int get_string_item(uint8_t *buf, int len, int item)
     case ITEM_TAG_CUM_LAST_MD_EVENT_DATETIME: memcpy(buf, zzz, len); return len;
 
 // Load Profile Data-period 1(hourly load profile
-    case ITEM_TAG_DATETIME_LP: // done, test 
+    case ITEM_TAG_DATETIME_LP_1: // done, test
       entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
-      if(currentEnergyLogEntry.logEntryNo == entry_no)
+      if(current_hourly_energy_log_entry.logEntryNo == entry_no)
       {
-          //memcpy(buf, currentEnergyLogEntryData, len);//currentEnergyLogEntryData
+
       }
       else
       {
-          loadEnergyToRam(entry_no);
+          load_hourly_energy_to_ram(entry_no);
       }
-      memcpy(buf, currentEnergyLogEntryData, len);//currentEnergyLogEntryData
+      memcpy(buf, currentEnergyLogEntryData, len);
       return len;
 
     case ITEM_TAG_DATETIME_SE: // standard event

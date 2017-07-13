@@ -139,7 +139,7 @@ void reset_firmware_upgrate_parameters();
 void restoreBackup();
 extern EnergyLog LastTxEnergyCopy;
 int local_comm_exchange_mode_flag=0; //optical:0; USB:1
-
+void test_circular_buffer();
 void main(void)
 {
     static int32_t x;
@@ -165,8 +165,8 @@ void main(void)
         #else
           PMMCTL0_H = PMMPW_H;    
           SVSMHCTL|=SVSMHRRL_5|SVSHRVL_1|SVMHE|SVSHE; //SVM monitoring level,set referance voltage for switching to auxilary supplay , 
-                                //Interrupt is generated when the supplay falls below this voltage,
-                                //Handel this interrupt to detect power failer 
+                                //Interrupt is generated when the supply falls below this voltage,
+                                //Handle this interrupt to detect power failer
           
           //PMMRIE =0;//&= ~SVSHPE;
           AUXCTL0 = AUXKEY ;
@@ -174,7 +174,7 @@ void main(void)
           AUXCTL1  &= ~AUX1OK;// | AUX2MD & ~AUX2OK | AUX0MD | AUX0OK; //Auxilary supplay one is dissabled, set AUX1OK = 0;
           AUXCTL2  |= AUX0LVL_7|AUX2LVL_7|AUXMR_2;
           AUX3CHCTL = AUXCHKEY | AUXCHC_1 | AUXCHV_1 | AUXCHEN;//comment this for the board Enable Charger for AUX3 to enable RTC
-          //configure non maskable Auxilary interrupt heare 
+          //configure non maskable Auxilary interrupt here
           AUXIE    |= AUXSWGIE|AUX2SWIE|AUX0SWIE|AUX2DRPIE;
           AUXIE    &= ~AUXMONIE;//|AUXMONIE; //use maskable interrupt for auxilary switching
           PMMCTL0_H = 0;  
@@ -265,7 +265,7 @@ void main(void)
              i = process_dlms_frame();
              if(i == 0)
              {
-              /* There is an error in the recived frame*/
+              /* There is an error in the received frame*/
              }
              else
              {
@@ -359,7 +359,7 @@ void main(void)
 						  /* The power factor should be calculated last */
 						  phase->readings.power_factor = labs(power_factor());
 
-						  //determin the current Quadrant
+						  //determine the current Quadrant
 						  if(phase->readings.active_power >= 0 && phase->readings.reactive_power >= 0 ) //QI
 						  {
 							active_quadrant = 1;
@@ -393,6 +393,7 @@ void main(void)
 							  {
 								  phase->active_energy_counter_QI -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
 								  phase->consumed_active_energy_QI++;
+								  phase->inc_active_import_energy++; //hourly energy
 							  }
 
 							  phase->reactive_energy_counter_QI += phase->readings.reactive_power;
@@ -400,6 +401,7 @@ void main(void)
 							  {
 								  phase->reactive_energy_counter_QI -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
 								  phase->consumed_reactive_energy_QI++;
+								  phase->inc_reactive_energy_QI++; //hourly energy
 							  }
 							 //ActiveQuadrant = 1;
 						}
@@ -412,6 +414,7 @@ void main(void)
 							  {
 								  phase->active_energy_counter_QII -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
 								  phase->consumed_active_energy_QII++;
+								  phase->inc_active_export_energy++; //hourly energy
 							  }
 
 							 phase->reactive_energy_counter_QII += phase->readings.reactive_power;
@@ -419,6 +422,7 @@ void main(void)
 							  {
 								  phase->reactive_energy_counter_QII -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
 								  phase->consumed_reactive_energy_QII++;
+								  phase->inc_reactive_energy_QII++; //hourly energy
 							  }
 							 //ActiveQuadrant = 2;
 						}
@@ -433,6 +437,7 @@ void main(void)
 							 {
 								 phase->active_energy_counter_QIII -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
 								 phase->consumed_active_energy_QIII++;
+								 phase->inc_active_export_energy++; //hourly energy
 							 }
 
 							 phase->reactive_energy_counter_QIII += phase->readings.reactive_power;
@@ -440,6 +445,7 @@ void main(void)
 							 {
 								 phase->reactive_energy_counter_QIII -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
 								 phase->consumed_reactive_energy_QIII++;
+								 phase->inc_reactive_energy_QIII++; //hourly energy
 							 }
 
 							//ActiveQuadrant = 3;
@@ -454,6 +460,7 @@ void main(void)
 							  {
 								  phase->active_energy_counter_QI -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
 								  phase->consumed_active_energy_QI++;
+								  phase->inc_active_import_energy++; //hourly energy
 							  }
 							 /*phase->active_energy_counter_QIV += phase->readings.active_power;
 							 while (phase->active_energy_counter_QIV > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
@@ -461,12 +468,14 @@ void main(void)
 								 phase->active_energy_counter_QIV -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
 								 phase->consumed_active_energy_QIV++;
 							 }
-*/
+							 */
 							 phase->reactive_energy_counter_QIV += phase->readings.reactive_power;
 							 while (phase->reactive_energy_counter_QIV > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
 							 {
 								 phase->reactive_energy_counter_QIV -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
 								 phase->consumed_reactive_energy_QIV++;
+								 phase->inc_reactive_energy_QIV++; //hourly energy
+
 							 }
   //                           ActiveQuadrant = 4;
 						}
@@ -518,22 +527,8 @@ void main(void)
                 	  ProcessRecivedPLCMessage();
                       status.PLCCommunicationDetected = 0;
                   }
-                  //Timed Tasks
-                  //Interrupt From Timer
-                  //15 minute interrupt for RTCC
-                  if (status.LoggingTimeIsUp == 1) //Timer
-                  {
-                      EnergyLog e;
-                      e.active_energy = chan1.active_energy_import;// chan1.consumed_active_energy;
-                      e.reactive_energy_QI = chan1.consumed_reactive_energy_QI;//chan1.readings.reactive_power;
-                      e.active_power = chan1.readings.active_power;
-                      e.reactive_energy_QIV = chan1.consumed_reactive_energy_QIV;//chan1.readings.V_rms;
-                      e.timeStump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-                      e.CRC = e.active_energy + e.reactive_energy_QI + e.timeStump.TimestampLow+ e.timeStump.TimestampUp;
-                      write_to_eeprom(&e,(uint8_t *)0,logEnergy);
-                      status.LoggingTimeIsUp =  0;          
-                  }
-                  
+
+                 // test_circular_buffer();
                   UpdateDisplay_c();
                   
                   if(status.task_exec_finished == 1)
@@ -579,32 +574,38 @@ volatile uint8_t __backingUp=0;
             
           struct info_mem_a_s backup2;
           
-          backup2.seg_a.s.active_power_counter = phase->active_power_counter;
-          backup2.seg_a.s.active_energy_counter = phase->active_energy_counter;          
-          backup2.seg_a.s.active_energy_counter_QI = phase->active_energy_counter_QI;
+          backup2.seg_a.s.active_power_counter      = phase->active_power_counter;
+          backup2.seg_a.s.active_energy_counter     = phase->active_energy_counter;
+          backup2.seg_a.s.active_energy_counter_QI  = phase->active_energy_counter_QI;
           backup2.seg_a.s.active_energy_counter_QII = phase->active_energy_counter_QII;
           
-          backup2.seg_a.s.active_energy_counter_QIII = phase->active_energy_counter_QIII;          
-          backup2.seg_a.s.active_energy_counter_QIV = phase->active_energy_counter_QIV;
+          backup2.seg_a.s.active_energy_counter_QIII   = phase->active_energy_counter_QIII;
+          backup2.seg_a.s.active_energy_counter_QIV    = phase->active_energy_counter_QIV;
           backup2.seg_a.s.active_energy_export_counter = phase->active_energy_export_counter;
           backup2.seg_a.s.active_energy_import_counter = phase->active_energy_import_counter;
          
-          backup2.seg_a.s.consumed_active_energy_QI = phase->consumed_active_energy_QI;
-          backup2.seg_a.s.consumed_active_energy_QII= phase->consumed_active_energy_QII;          
+          backup2.seg_a.s.consumed_active_energy_QI   = phase->consumed_active_energy_QI;
+          backup2.seg_a.s.consumed_active_energy_QII  = phase->consumed_active_energy_QII;
           backup2.seg_a.s.consumed_active_energy_QIII = phase->consumed_active_energy_QIII;
-          backup2.seg_a.s.consumed_active_energy_QIV = phase->consumed_active_energy_QIV;
+          backup2.seg_a.s.consumed_active_energy_QIV  = phase->consumed_active_energy_QIV;
           
-          backup2.seg_a.s.reactive_power_counter = phase->reactive_power_counter; 
-          backup2.seg_a.s.consumed_reactive_energy_QI = phase->consumed_reactive_energy_QI;
-          backup2.seg_a.s.consumed_reactive_energy_QII = phase->consumed_reactive_energy_QII;
+          backup2.seg_a.s.reactive_power_counter        = phase->reactive_power_counter;
+          backup2.seg_a.s.consumed_reactive_energy_QI   = phase->consumed_reactive_energy_QI;
+          backup2.seg_a.s.consumed_reactive_energy_QII  = phase->consumed_reactive_energy_QII;
           backup2.seg_a.s.consumed_reactive_energy_QIII = phase->consumed_reactive_energy_QIII;
           
           backup2.seg_a.s.consumed_reactive_energy_QIV = phase->consumed_reactive_energy_QIV;       
-          backup2.seg_a.s.reactive_energy_counter_QI = phase->reactive_energy_counter_QI;
-          backup2.seg_a.s.reactive_energy_counter_QII = phase->reactive_energy_counter_QII;
+          backup2.seg_a.s.reactive_energy_counter_QI   = phase->reactive_energy_counter_QI;
+          backup2.seg_a.s.reactive_energy_counter_QII  = phase->reactive_energy_counter_QII;
           backup2.seg_a.s.reactive_energy_counter_QIII = phase->reactive_energy_counter_QIII;
+          backup2.seg_a.s.reactive_energy_counter_QIV  = phase->reactive_energy_counter_QIV;
           
-          backup2.seg_a.s.reactive_energy_counter_QIV = phase->reactive_energy_counter_QIV;   
+          backup2.seg_a.s.inc_active_import_energy = chan1.inc_active_import_energy;
+          backup2.seg_a.s.inc_active_export_energy = chan1.inc_active_export_energy;
+          backup2.seg_a.s.inc_reactive_energy_QI   = chan1.inc_reactive_energy_QI;
+          backup2.seg_a.s.inc_reactive_energy_QII  = chan1.inc_reactive_energy_QII;
+          backup2.seg_a.s.inc_reactive_energy_QIII = chan1.inc_reactive_energy_QIII;
+          backup2.seg_a.s.inc_reactive_energy_QIV  = chan1.inc_reactive_energy_QIV;
           
           //TODO. Change this to get the Time From hardware, 
           //getHardwareTime(&rtcc);
@@ -612,21 +613,21 @@ volatile uint8_t __backingUp=0;
           
           //Log this to EEPROM when power weaks up
           backup2.seg_a.s.RTCHigh = ts.TimestampUp & 0x000000ff;
-          backup2.seg_a.s.RTCLow = ts.TimestampLow;
+          backup2.seg_a.s.RTCLow  = ts.TimestampLow;
           //Also Log Power down and Power Up Event
           
-          backup2.seg_a.s.TempLastEnergyValue = TempLastEnergyValue;
-          backup2.seg_a.s.CurrentBalance = Current_balance.balance;
-                              
-          backup2.seg_a.s.ConsumptionSinceLastBilling =   ConsumptionSinceLastBilling;
+//          backup2.seg_a.s.TempLastEnergyValue = TempLastEnergyValue;
+//          backup2.seg_a.s.CurrentBalance      = Current_balance.balance;
+//          backup2.seg_a.s.ConsumptionSinceLastBilling = ConsumptionSinceLastBilling;
+
           backup2.seg_a.s.valid_backup = 1;
           
           void *x = &backup2;
           int32_t * y = (int32_t *)x;
-          flashBackup(y,27);
+          flashBackup(y,30);
                                                                               
-            status.LogEnergy = 0;   
-            status.LogEnergyLogged = 1;                                   
+          status.LogEnergy = 0;
+          status.LogEnergyLogged = 1;
             __backingUp =0;
         }
       //end of back up for no battery conditions
@@ -934,32 +935,39 @@ void restoreBackup()
             
             
             
-            phase->active_power_counter = backup.seg_a.s.active_power_counter ;
-            phase->active_energy_counter = backup.seg_a.s.active_energy_counter ;          
-            phase->active_energy_counter_QI = backup.seg_a.s.active_energy_counter_QI ;
+            phase->active_power_counter      = backup.seg_a.s.active_power_counter ;
+            phase->active_energy_counter     = backup.seg_a.s.active_energy_counter ;
+            phase->active_energy_counter_QI  = backup.seg_a.s.active_energy_counter_QI ;
             phase->active_energy_counter_QII = backup.seg_a.s.active_energy_counter_QII ;
             
-            phase->active_energy_counter_QIII = backup.seg_a.s.active_energy_counter_QIII ;          
-            phase->active_energy_counter_QIV = backup.seg_a.s.active_energy_counter_QIV ;
+            phase->active_energy_counter_QIII   = backup.seg_a.s.active_energy_counter_QIII ;
+            phase->active_energy_counter_QIV    = backup.seg_a.s.active_energy_counter_QIV ;
             phase->active_energy_export_counter = backup.seg_a.s.active_energy_export_counter ;
             phase->active_energy_import_counter = backup.seg_a.s.active_energy_import_counter ;
            
-            phase->consumed_active_energy_QI = backup.seg_a.s.consumed_active_energy_QI ;
-            phase->consumed_active_energy_QII = backup.seg_a.s.consumed_active_energy_QII;          
+            phase->consumed_active_energy_QI   = backup.seg_a.s.consumed_active_energy_QI ;
+            phase->consumed_active_energy_QII  = backup.seg_a.s.consumed_active_energy_QII;
             phase->consumed_active_energy_QIII = backup.seg_a.s.consumed_active_energy_QIII ;
-            phase->consumed_active_energy_QIV = backup.seg_a.s.consumed_active_energy_QIV ;
+            phase->consumed_active_energy_QIV  = backup.seg_a.s.consumed_active_energy_QIV ;
             
-            phase->reactive_power_counter = backup.seg_a.s.reactive_power_counter ; 
-            phase->consumed_reactive_energy_QI = backup.seg_a.s.consumed_reactive_energy_QI ;
-            phase->consumed_reactive_energy_QII = backup.seg_a.s.consumed_reactive_energy_QII ;
+            phase->reactive_power_counter        = backup.seg_a.s.reactive_power_counter ;
+            phase->consumed_reactive_energy_QI   = backup.seg_a.s.consumed_reactive_energy_QI ;
+            phase->consumed_reactive_energy_QII  = backup.seg_a.s.consumed_reactive_energy_QII ;
             phase->consumed_reactive_energy_QIII = backup.seg_a.s.consumed_reactive_energy_QIII ;
             
             phase->consumed_reactive_energy_QIV = backup.seg_a.s.consumed_reactive_energy_QIV ;       
-            phase->reactive_energy_counter_QI = backup.seg_a.s.reactive_energy_counter_QI ;
-            phase->reactive_energy_counter_QII = backup.seg_a.s.reactive_energy_counter_QII ;
+            phase->reactive_energy_counter_QI   = backup.seg_a.s.reactive_energy_counter_QI ;
+            phase->reactive_energy_counter_QII  = backup.seg_a.s.reactive_energy_counter_QII ;
             phase->reactive_energy_counter_QIII = backup.seg_a.s.reactive_energy_counter_QIII ;
+            phase->reactive_energy_counter_QIV  = backup.seg_a.s.reactive_energy_counter_QIV ;
+
+            chan1.inc_active_import_energy = backup.seg_a.s.inc_active_import_energy ;
+            chan1.inc_active_export_energy = backup.seg_a.s.inc_active_export_energy;
+            chan1.inc_reactive_energy_QI   = backup.seg_a.s.inc_reactive_energy_QI;
+            chan1.inc_reactive_energy_QII = backup.seg_a.s.inc_reactive_energy_QII;
+            chan1.inc_reactive_energy_QIII = backup.seg_a.s.inc_reactive_energy_QIII;
+            chan1.inc_reactive_energy_QIV  = backup.seg_a.s.inc_reactive_energy_QIV;
             
-            phase->reactive_energy_counter_QIV = backup.seg_a.s.reactive_energy_counter_QIV ;  
             write_to_eeprom(phase,(uint8_t *)0,logPowerFailEnergy);
                                                                        
             //make this value invalid
@@ -970,7 +978,7 @@ void restoreBackup()
              memcpy(x,y,sizeof(backup));
              
              backup2.seg_a.s.valid_backup = 0;             
-             flashBackup(x,27);
+             flashBackup(x,30);
                             
                #if defined(USE_WATCHDOG)
                  kick_watchdog();

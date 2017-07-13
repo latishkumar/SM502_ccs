@@ -65,7 +65,7 @@ typedef struct
   volatile uint8_t KeyReleased:1;
   volatile uint8_t KeyPressed ;
   
-  volatile uint8_t LoggingTimeIsUp:1;
+  //volatile uint8_t LoggingTimeIsUp:1;
 
   volatile uint8_t AutoTransmissionTimeIsUp:1;
 

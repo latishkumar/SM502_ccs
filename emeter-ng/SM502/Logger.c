@@ -487,7 +487,7 @@ void InitLogg()
          #endif
                         
            //set Current balance to 0
-          Current_balance.balance = 9000000;
+          Current_balance.balance = 99990000;
           write_to_eeprom(&Current_balance,(uint8_t *)0,setCurrentBalance);
                         
           //clear event and energy log overlap flag
@@ -1073,7 +1073,7 @@ uint8_t updateNextLogAddress(uint8_t type)
     uint8_t tmp2;
 	if(type == 0) // incremental energy log
 	{
-        LastEnergyLogAddress += EnergyLogSize;//was 14
+        LastEnergyLogAddress += INCREMENTAL_ENERGY_LOG_SIZE;//was 14
         if(LastEnergyLogAddress >=  EnergyLogAddress_End)
           {
               tmp2 = 1;
@@ -1428,7 +1428,57 @@ int8_t logEnergy(void *l2,void *dummy)
         updateNextLogAddress(0);//0 for energy log
         return 1;
 }
+/*
+ * Logs hourly energy profile
+ */
+int8_t log_hourly_energy_profile(void *l2,void *dummy)
+{
+    hourly_energy_log_t *l = (hourly_energy_log_t *)l2;
+    uint8_t x=0;//,i=0;
+    uint32_t tmp = 0;
+    if(LastEnergyLogAddress<EnergyLogAddress_Start || LastEnergyLogAddress>EnergyLogAddress_End)
+    LastEnergyLogAddress = EnergyLogAddress_Start;
 
+    //        for(;i<MAX_LOG_RETRAY;i++)
+    //        {
+    tmp = (uint32_t) (l->inc_active_export_energy)<<16;
+    tmp |= (uint32_t)l->inc_active_import_energy;
+    x=EEPROM2_WriteLong(tmp,LastEnergyLogAddress,0);
+    //      if(x==0)
+    //      continue;
+    tmp = (uint32_t)(l->inc_reactive_energy_QI)<<16;
+    tmp |= (uint32_t)l->inc_reactive_energy_QII;
+    x= EEPROM2_WriteNextLong(tmp, 0);
+    //      if(x==0)
+    //      continue;
+    tmp = (uint32_t)(l->inc_reactive_energy_QIII)<<16;
+    tmp |= (uint32_t)l->inc_reactive_energy_QIV;
+    x= EEPROM2_WriteNextLong(tmp, 0);
+    //      if(x==0)
+    //      continue;
+
+    x= EEPROM2_WriteNextLong(l->time_stump.TimestampLow,0);
+    //        if(x==0)
+    //          continue;
+    x = EEPROM2_WriteNextInt8(l->time_stump.TimestampUp,0);
+    //        if(x==0)
+    //          continue;
+    x= EEPROM2_WriteNextInt8(l->crc,1);
+    if(x==0)
+    return 0;
+    //          continue;
+    //        else
+    //          break;
+    //        }
+
+    //        if(i>=MAX_LOG_RETRAY) //the logging was not successfull
+    //          return 0;
+    updateNextLogAddress(0);//0 for energy log
+    return 1;
+}
+/*
+ * Logs daily energy snaphot
+ */
 int8_t log_daily_energy_snapshot(void *l2,void *dummy)
 {
         EnergyLog *l = (EnergyLog *)l2;
@@ -1648,12 +1698,12 @@ uint8_t get_hourly_energy_log_time_stamp(void *lt,uint32_t EntryNumber)
     //--EntryNumber;//handle zero based index
     rtc_t *l = (rtc_t*)lt;
     uint32_t StartAddress;
-    if(status.energy_log_overlapped == 1)//handle circular buffer
+    if(status.energy_log_overlapped == 1)//handle cirular buffer
     {
-        uint32_t val = (EnergyLogSize*EntryNumber);
-        if(EnergyLogAddress_Start + val > EnergyLogAddress_End)
+        uint32_t val = INCREMENTAL_ENERGY_LOG_SIZE*EntryNumber;
+        if(LastEnergyLogAddress + val >= EnergyLogAddress_End)
         {
-            StartAddress = val + EnergyLogAddress_Start + 22 - EnergyLogAddress_End;
+            StartAddress = (EnergyLogAddress_Start + LastEnergyLogAddress + val) - 259898;//EnergyLogAddress_End;
         }
         else
         {
@@ -1661,11 +1711,9 @@ uint8_t get_hourly_energy_log_time_stamp(void *lt,uint32_t EntryNumber)
         }
     }
     else
-    {
-        StartAddress = EnergyLogAddress_Start + (EnergyLogSize*EntryNumber);
-    }
+    StartAddress = EnergyLogAddress_Start + (INCREMENTAL_ENERGY_LOG_SIZE*EntryNumber);
 
-    if(get_hourly_energy_log_ts(l,StartAddress,16) == 0)
+    if(get_hourly_energy_log_ts(l,StartAddress,12) == 0)
         return 0;
 
     return 1;
@@ -1717,9 +1765,9 @@ int8_t getEnergy2(void *lt,uint32_t EntryNumber)
        if(status.energy_log_overlapped == 1)//handle cirular buffer
        {
           uint32_t val = (EnergyLogSize*EntryNumber);
-          if(val > EnergyLogAddress_End)
+          if(LastEnergyLogAddress + val >= EnergyLogAddress_End)
           {
-             StartAddress = val + EnergyLogAddress_Start - EventLog_End;            
+             StartAddress = EnergyLogAddress_Start + (LastEnergyLogAddress + val - EnergyLogAddress_End);
           }
           else
           {
@@ -1734,7 +1782,90 @@ int8_t getEnergy2(void *lt,uint32_t EntryNumber)
 
         return 1;
 }
+/*
+ * Reads houlry energy profile from eeprom
+ */
+uint8_t get_hourly_energy(hourly_energy_log_t *l,unsigned long StartAddress)
+{
+    uint8_t x=0,i=0;
+    uint32_t tmp;
+    for(;i<MAX_LOG_RETRAY;i++)
+    {
+        x=EEPROM2_ReadLong(StartAddress,0,&tmp);
+        if(x==0)
+            continue;
+        l->inc_active_import_energy = 0xFFFF & tmp;
+        l->inc_active_export_energy = (uint16_t) (tmp >> 16);
 
+        x= EEPROM2_ReadNextLong(0,&tmp);
+        if(x==0)
+            continue;
+        l->inc_reactive_energy_QII = 0xFFFF & tmp;
+        l->inc_reactive_energy_QI = (uint16_t) (tmp >> 16);
+
+        x= EEPROM2_ReadNextLong(0,&tmp);
+        if(x==0)
+            continue;
+        l->inc_reactive_energy_QIV  =  0xFFFF & tmp;
+        l->inc_reactive_energy_QIII = (uint16_t) (tmp >> 16);
+
+        x= EEPROM2_ReadNextLong(0,&(l->time_stump.TimestampLow));
+        if(x==0)
+            continue;
+
+        x = EEPROM2_ReadNextInt8(0,&(l->time_stump.TimestampUp));
+        if(x==0)
+            continue;
+
+        x= EEPROM2_ReadNextInt8(1,&(l->crc));
+        if(x==0)
+            continue;
+        else
+            break;
+    }
+
+    if(i>=MAX_LOG_RETRAY)
+        return 0;
+
+    return 1;
+}
+/*
+ * Get hourly energy profile
+ */
+int8_t get_hourly_energy_profile(void *lt,uint32_t EntryNumber)
+{
+       int32_t en = --EntryNumber;
+       if(en < 0)
+          EntryNumber = 0;
+
+       //--EntryNumber;//handle zero based index
+       hourly_energy_log_t *l = (hourly_energy_log_t*)lt;
+
+       volatile uint32_t StartAddress;
+       volatile uint32_t val = 0;
+       if(status.energy_log_overlapped == 1)//handle cirular buffer
+       {
+          val = INCREMENTAL_ENERGY_LOG_SIZE*EntryNumber;
+          if(LastEnergyLogAddress + val >= EnergyLogAddress_End)
+          {
+             StartAddress = (EnergyLogAddress_Start + LastEnergyLogAddress + val) - 259898;//EnergyLogAddress_End;
+          }
+          else
+          {
+             StartAddress = (LastEnergyLogAddress + val);
+          }
+       }
+       else
+          StartAddress = EnergyLogAddress_Start + (INCREMENTAL_ENERGY_LOG_SIZE*EntryNumber);
+
+       if( get_hourly_energy(l,StartAddress) == 0 )
+         return 0;
+
+        return 1;
+}
+/*
+ * Get daily snapshot profile
+ */
 int8_t get_daily_snapshot_energy_profile(void *lt,uint32_t EntryNumber)
 {
        int32_t en = --EntryNumber;

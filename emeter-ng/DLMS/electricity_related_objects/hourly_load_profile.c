@@ -23,154 +23,19 @@ uint32_t load_profile_capture_period = 3600;    // 3.600 s (1 hour)
 uint8_t load_profile_sort_method = 1;           // 1:unsorted (FIFO)
 
 const uint16_t load_profile_column_szs[] = {16,18,23,28,33,38,43,48};//
-const uint8_t load_profile_buffer_template[] =
+const uint8_t load_profile_buffer_template[] = //load_hourly_energy_to_ram
 {
    STUFF_DATA | TAG_STRUCTURE, 8,
-        STUFF_DATA | TAG_OCTET_STRING, 12,ITEM_TAG_DATETIME_LP, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //Time stump
+        STUFF_DATA | TAG_OCTET_STRING, 12,ITEM_TAG_DATETIME_LP_1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //Time stump
                      TAG_UINT8, INJECT8(1),                                   //    AMR profile status
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_CUM_KWH_TOTAL_LP),         //    Active Energy A+     :Ai
-                     TAG_UINT32, INJECT32(0),                                 //    Active Energy A-     :Ae
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_REACTIVE_POWER_LP),        //    Reactive Energy QI   :R1
-                     TAG_UINT32, INJECT32(0),                                 //    Reactive Energy QII  :R2
-                     TAG_UINT32, INJECT32(0),                                 //    Reactive Energy QIII :R3
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_VR_LP),                    //    Reactive Energy QIV  :R4 //originally this was for voltage
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_ACTIVE_ENERGY_IMPORT_LP_1),         //    Active Energy A+     :Ai
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_ACTIVE_ENERGY_EXPORT_LP_1),                                 //    Active Energy A-     :Ae
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_REACTIVE_ENERGY_QI_LP_1),        //    Reactive Energy QI   :R1
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_REACTIVE_ENERGY_QII_LP_1),                                 //    Reactive Energy QII  :R2
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_REACTIVE_ENERGY_QIII_LP_1),                                 //    Reactive Energy QIII :R3
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_REACTIVE_ENERGY_QIV_LP_1),                    //    Reactive Energy QIV  :R4 //originally this was for voltage
 
 };
-
-uint8_t find_num_energy_log__entries_between(const sSA_Range *startRange,const sSA_Range *endRange,
-                                                   uint16_t *startEntryNumber,uint16_t *numOfEntries)
-{
-     rtc_t temp_sRange ={startRange->Year,startRange->Month,startRange->Date,startRange->Hr,startRange->Min,0,0};
-     rtc_t temp_eRange ={endRange->Year,endRange->Month,endRange->Date,endRange->Hr,endRange->Min,0,0};
-     int8_t temp1 = compare_time(&temp_eRange,&temp_sRange); // if the end time specified comes before the first time requested, then abort
-     if(temp1 < 0)
-     {
-       *startEntryNumber = 0;
-       *numOfEntries = 0;
-       return 1;
-     }
-
-     uint16_t MAX_Entries = 0;
-     uint32_t add_start = EnergyLogAddress_Start;
-
-    //confirm this with the number of entries we have
-     if(LastEnergyLogAddress>EnergyLogAddress_Start)//if we have entries
-     {
-
-         if(status.energy_log_overlapped == 1) // if the cirular buffer is full
-         {
-           MAX_Entries = EnergyLog_SIZE;
-         }
-         else{
-            MAX_Entries = (LastEnergyLogAddress - add_start)/EnergyLogSize;
-         }
-
-
-         EnergyLog firstEntery,lastEntry;
-          uint8_t z = getEnergy2(&firstEntery,1); //get our first entry
-          if(z == 0)
-          {
-            //error abort
-          }
-
-          rtc_t time_first = getTime(&firstEntery.timeStump);
-          temp1 = compare_time(&temp_eRange,&time_first);//if the first entry we have is is after the last entry requested then we don't have the data
-          if(temp1 < 0)
-          {
-             *startEntryNumber = 0;
-             *numOfEntries = 0;
-             return 1;
-          }
-
-          int8_t com2 = compare_time(&time_first,&temp_sRange);
-          if(com2 < 0)//if time_first comes before temp_sRange
-          {
-            //search for the entry number for temp_sRange;
-
-                //Search_t search_item;
-                search_item.start_entry = 0;//startEntryNumber;
-                search_item.end_entry = MAX_Entries;//search_item.start_entry +  *numOfEntries;
-                //search_item.SingleItemSize = EnergyLogSize;
-                EnergyLog l;
-                EnergyLog l2;
-                l2.timeStump = getTimeStamp(temp_sRange.year,temp_sRange.month,temp_sRange.day,temp_sRange.hour,temp_sRange.minute,temp_sRange.second);
-      //          rtc_t time;
-      //          search_item.current_c_data = &time;
-                search_item.current_data = &l;
-               // search_item.StartAddress = EnergyLogAddress_Start;
-                search_item.PeakItem = &getEnergy2;
-                search_item.Compare = &compare_energy;
-      //          search_item.getComapareItem = &getEnergyComapareItem;
-                search_item.search_data = &l2;//&temp_sRange;
-
-                uint32_t sa =  search_nearest_log(&search_item);
-      //          find the actual last entry
-      //          check if this entry is with in the start and end range
-
-                if(sa ==0)
-                {
-                *startEntryNumber = search_item.last_entry_no;
-                }
-                else
-                {
-                  *startEntryNumber = sa;
-                }
-          }
-          else
-          {
-             *startEntryNumber = 1;
-          }
-
-
-          z = getEnergy2(&lastEntry,MAX_Entries);//get the last entry
-          if(z == 0)
-          {
-                //error abort
-          }
-          rtc_t time_last = getTime(&lastEntry.timeStump);
-          int8_t com3 = compare_time(&time_last,&temp_eRange);
-
-
-
-          if(com3 >= 0)//temp_eRange comes before  time_last
-          {
-            //search for temp_eRange
-
-            void *t1 = &required_last_entry_time;
-            void *t2 = &temp_eRange;
-            memcpy(t1,t2,sizeof(required_last_entry_time));
-            if(com2<0)
-              *numOfEntries = (uint32_t)(getTimeDifferenceInMinutes(&temp_eRange,&temp_sRange)/EnergyLoggingTime);
-            else
-              *numOfEntries = (uint32_t)(getTimeDifferenceInMinutes(&temp_eRange,&time_first)/EnergyLoggingTime);
-          }
-          else
-          {
-            //last entry is the last number of entry
-
-            void *t1 = &required_last_entry_time;
-            void *t2 = &time_last;
-            memcpy(t1,t2,sizeof(time_last));
-            if(com2 < 0)
-              *numOfEntries = (uint32_t)(getTimeDifferenceInMinutes(&time_last,&temp_sRange)/EnergyLoggingTime);
-            else
-              *numOfEntries = (uint32_t)(getTimeDifferenceInMinutes(&time_last,&time_first)/EnergyLoggingTime);
-          }
-
-
-          if((*startEntryNumber*EnergyLogSize) + EnergyLogAddress_Start  > LastEnergyLogAddress)
-             *numOfEntries = 0;
-          else{
-             *numOfEntries = *numOfEntries>MAX_Entries?MAX_Entries:*numOfEntries;
-          }
-     }
-     else
-     {
-       *startEntryNumber =0;
-       *numOfEntries = 0;
-     }
-      return 1;//success
-}
 
 uint8_t find_num_total_energy_log_entries(uint16_t *num_entries,uint16_t *start_entry)
 {
@@ -206,7 +71,7 @@ uint8_t find_num_total_energy_log_entries(uint16_t *num_entries,uint16_t *start_
 
   return 1;//success
 }
-extern EnergyLog LastTxEnergyCopy;
+uint8_t get_captured_log_by_time_range(const sSA_Range *startRange,const sSA_Range *endRange,uint16_t *startEntryNumber,uint16_t *numOfEntries);
 /*
  * Hourly Load profile
  * buffer-callback function
@@ -222,8 +87,7 @@ void capture_load_profile_data(void *data, int direction)
      if(SA_Range[1].Year>4095 || SA_Range[0].Year>4095 )
          msg_info.num_entries = 0x0;
      else
-         get_captured_log_by_time_range(&SA_Range[0],&SA_Range[1],&msg_info.start_entry,&msg_info.num_entries);
-        //find_num_energy_log__entries_between(&SA_Range[0],&SA_Range[1],&msg_info.start_entry,&msg_info.num_entries);/*msg_info.num_entries=5*/
+        get_captured_log_by_time_range(&SA_Range[0],&SA_Range[1],&msg_info.start_entry,&msg_info.num_entries);
    }
    else if(access_selector == 2) //entry descriptor
    {
@@ -233,21 +97,20 @@ void capture_load_profile_data(void *data, int direction)
        if(SA_From_Entry <= SA_To_Entry)
        {
           msg_info.start_entry = msg_info.start_entry > SA_From_Entry? msg_info.start_entry :SA_From_Entry;
+          SA_To_Entry = SA_To_Entry > msg_info.num_entries? msg_info.num_entries : SA_To_Entry;
           SA_To_Entry -=  SA_From_Entry;
-          msg_info.num_entries = msg_info.num_entries > SA_To_Entry? (SA_To_Entry):msg_info.num_entries;
+          msg_info.num_entries = SA_To_Entry + 1;
+         // msg_info.num_entries = msg_info.num_entries > SA_To_Entry? (SA_To_Entry):msg_info.num_entries;
        }
        else
        {
-
+           msg_info.num_entries = 0x0;
        }
    }
    else//   if(access_selector == 0)
    {
       find_num_total_energy_log_entries(&msg_info.num_entries,&msg_info.start_entry);
    }
-
-   getEnergy2(&LastTxEnergyCopy,msg_info.start_entry-1);
-   //find_num_total_energy_log_entries(&msg_info.num_entries,&msg_info.start_entry);
    msg_info.column_szs=load_profile_column_szs;
 }
 
@@ -333,10 +196,29 @@ void obj_load_profile_reset(uint8_t *data,uint16_t data_len,uint8_t *response,ui
 
 /*
  * Hourly Load Profile
- * Capture method
+ * Capture method //
  */
 void obj_load_profile_capture(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
+    hourly_energy_log_t tmp;
+    tmp.inc_active_import_energy = (uint16_t) chan1.inc_active_import_energy;
+    tmp.inc_active_export_energy = (uint16_t) chan1.inc_active_export_energy;
+    tmp.inc_reactive_energy_QI   = (uint16_t) chan1.inc_reactive_energy_QI;
+    tmp.inc_reactive_energy_QII  = (uint16_t) chan1.inc_reactive_energy_QII;
+    tmp.inc_reactive_energy_QIII = (uint16_t) chan1.inc_reactive_energy_QIII;
+    tmp.inc_reactive_energy_QIV  = (uint16_t) chan1.inc_reactive_energy_QIV;
+    tmp.time_stump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
+    tmp.crc = tmp.inc_active_import_energy + tmp.inc_reactive_energy_QIV + tmp.time_stump.TimestampLow+ tmp.time_stump.TimestampUp;
+    write_to_eeprom(&tmp,(uint8_t *)0,log_hourly_energy_profile);
+
+    //reset hourly energy registers
+    chan1.inc_active_import_energy = 0;
+    chan1.inc_active_export_energy = 0;
+    chan1.inc_reactive_energy_QI = 0;
+    chan1.inc_reactive_energy_QII = 0;
+    chan1.inc_reactive_energy_QIII = 0;
+    chan1.inc_reactive_energy_QIV = 0;
+    *response_len = 0;
 }
 
 uint8_t get_captured_log_by_time_range(const sSA_Range *startRange,const sSA_Range *endRange,uint16_t *startEntryNumber,uint16_t *numOfEntries)
@@ -360,7 +242,7 @@ uint8_t get_captured_log_by_time_range(const sSA_Range *startRange,const sSA_Ran
      }
      else
      {
-        MAX_Entries = (LastEnergyLogAddress - add_start)/EnergyLogSize;
+        MAX_Entries = (LastEnergyLogAddress - add_start)/INCREMENTAL_ENERGY_LOG_SIZE;
         if(MAX_Entries == 0)
         {
             *startEntryNumber =0;
@@ -432,3 +314,42 @@ uint8_t get_captured_log_by_time_range(const sSA_Range *startRange,const sSA_Ran
     return 1;//success
 }
 
+int adderr = 5000;
+void test_circular_buffer()
+{
+    uint32_t add_start = EnergyLogAddress_Start;
+    uint16_t tmp2 = 0;
+    uint8_t day = 13;
+    uint8_t hour = 0;
+    uint8_t minute = 0;
+    hourly_energy_log_t tmp;
+
+    while(tmp2 < EnergyLog_SIZE-1)
+    {
+
+        tmp.inc_active_import_energy = 65000;
+        tmp.inc_active_export_energy = 62000;
+        tmp.inc_reactive_energy_QI   = 60000;
+        tmp.inc_reactive_energy_QII  = 58000;
+        tmp.inc_reactive_energy_QIII = 56000;
+        tmp.inc_reactive_energy_QIV  = 54000;
+        tmp.time_stump = getTimeStamp(rtcc.year, rtcc.month, day, hour, minute, 0);
+        tmp.crc = tmp.inc_active_import_energy + tmp.inc_reactive_energy_QIV + tmp.time_stump.TimestampLow+ tmp.time_stump.TimestampUp;
+        write_to_eeprom(&tmp,(uint8_t *)0,log_hourly_energy_profile);
+        tmp2 = (LastEnergyLogAddress - add_start)/INCREMENTAL_ENERGY_LOG_SIZE;
+        minute++;
+        if (minute == 60)
+        {
+            minute = 0;
+            hour++;
+            if(hour == 24)
+            {
+                hour = 0;
+                day++;
+            }
+        }
+    }
+
+    tmp2 = (LastEnergyLogAddress - add_start)/INCREMENTAL_ENERGY_LOG_SIZE;
+
+}

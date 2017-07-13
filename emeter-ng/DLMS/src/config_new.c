@@ -2560,8 +2560,8 @@ const struct object_desc_s object_list[] =
                                      ,2
                                      ,(const struct method_desc_s[]) {
 
-                                             {1, ACCESS_PC___MR___USR_, obj_load_profile_reset},
-                                             {2, ACCESS_PC___MR___USR_, obj_load_profile_capture}
+                                             {1, ACCESS_PC___MRRW_USRW, obj_load_profile_reset},
+                                             {2, ACCESS_PC___MRRW_USRW, obj_load_profile_capture}
 
                                      }
        },

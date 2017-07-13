@@ -42,18 +42,25 @@ struct INFOA_BACK_UP
       uint32_t consumed_reactive_energy_QII;
       uint32_t consumed_reactive_energy_QIII;
       uint32_t consumed_reactive_energy_QIV;
-          
       
+      //Hourly energy Registers
+      uint32_t inc_active_import_energy;
+      uint32_t inc_active_export_energy;
+      uint32_t inc_reactive_energy_QI;
+      uint32_t inc_reactive_energy_QII;
+      uint32_t inc_reactive_energy_QIII;
+      uint32_t inc_reactive_energy_QIV;
+
       //balance 
-      uint32_t CurrentBalance;
+     // uint32_t CurrentBalance;
       //Last Energy
-      uint32_t TempLastEnergyValue;
+     // uint32_t TempLastEnergyValue;
       
       //Time Stump
       uint32_t RTCLow; // this is the RTC_Back up time, also the Power out Timestump
       uint32_t RTCHigh;
          
-      uint32_t ConsumptionSinceLastBilling;
+     // uint32_t ConsumptionSinceLastBilling;
       uint32_t valid_backup;
 };
 

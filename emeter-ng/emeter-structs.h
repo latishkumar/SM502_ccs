@@ -852,6 +852,14 @@ struct phase_parms_s
 #endif
     /*! \brief Status bits */
     uint16_t /*volatile*/ status;
+
+    /*! \brief Hourly energy registers */
+    uint32_t inc_active_import_energy;
+    uint32_t inc_active_export_energy;
+    uint32_t inc_reactive_energy_QI;
+    uint32_t inc_reactive_energy_QII;
+    uint32_t inc_reactive_energy_QIII;
+    uint32_t inc_reactive_energy_QIV;
 };
 
 #if !defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)

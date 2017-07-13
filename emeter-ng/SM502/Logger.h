@@ -182,9 +182,26 @@ typedef struct
                     
     uint8_t CRC; //1byte     
 }EnergyLog;
-//1474,2003
 #define init_EnergyLog {0, 0, 0, 0, { 0, 0}, 0}
+/*
+ * Hourly load profile
+ * Incremental energy
+ * 18 bytes
+ */
+#define INCREMENTAL_ENERGY_LOG_SIZE 18
+typedef struct
+{
+    uint16_t inc_active_import_energy; //2 byte    consumed active energy import
+    uint16_t inc_active_export_energy; //2 byte    consumed active energy export
+    uint16_t inc_reactive_energy_QI;   //2 byte    consumed reactive energy QI
+    uint16_t inc_reactive_energy_QII;  //2 byte    consumed reactive energy QII
+    uint16_t inc_reactive_energy_QIII; //2 byte    consumed reactive energy QIII
+    uint16_t inc_reactive_energy_QIV;  //2 byte    consumed reactive energy QIV
+    TimeStump time_stump;               //5 byte
+    uint8_t crc;                       //1 byte
+}hourly_energy_log_t;
 
+#define init_hourly_energy_log {0, 0, 0, 0, 0, 0,{ 0, 0}, 0}
 
 #define EnergyBillingCutoffDayLogSize 47
 
@@ -308,7 +325,7 @@ int read_from_eeprom(void *readArgument_1,void *readArgument_2,int8_t(*read)(voi
 
 
 
-#define MemoryFormattedIndicatorCode {0x2a,0x2a,0x2a,0x2a,0x2a} //0x2F
+#define MemoryFormattedIndicatorCode {0x2f,0x2f,0x2f,0x2f,0x2f} //0x2F
 
 #define CONFIGURATION_BASE_ADDRESS 128ul //leave Address 0 out
 
@@ -709,9 +726,9 @@ int read_from_eeprom(void *readArgument_1,void *readArgument_2,int8_t(*read)(voi
 
 
 
-#define EnergyLogAddress_Start 131072ul  //   262143 - 131072 / 22  = 5957 logs, log is every 15 minute, 5957*15 =  49.6 days
-#define EnergyLog_SIZE  5856//
-#define EnergyLog_SIZE2  128832  // 128832/22 = 5856, every 15 minute 5856/(4*24)= 61 days //5957ul //
+#define EnergyLogAddress_Start 131072ul  //   262143 - 131072 / 18  = 7157 logs, log is every 15 minute,  74.5 days
+#define EnergyLog_SIZE   7157ul//
+#define EnergyLog_SIZE2  128826ul  // 128832/18 = 7157, every 15 minute 7157/(4*24)= 74.5 days //5957ul //
 #define EnergyLogAddress_End EnergyLogAddress_Start + EnergyLog_SIZE2 //262126ul//((uint32_t)((EnergyLogAddress_Start)+((uint32_t)(EnergyLog_SIZE * EnergyLogSize))))
 //Daily snapshot
 #define DAILY_SNAPSHOT_LOG_SIZE 22
@@ -722,7 +739,7 @@ int read_from_eeprom(void *readArgument_1,void *readArgument_2,int8_t(*read)(voi
 #define DAILY_SNAPSHOT_LOG_ADDRESS_START     DAILY_SNAPSHOT_LOG_OVER_LAP_ADDRESS_START + DAILY_SNAPSHOT_LOG_OVER_LAP_SIZE
 #define DAILY_SNAPSHOT_LOG_SIZE2 1342   // 1342/22 = 61 every single day , 61 days
 #define DAILY_SNAPSHOT_MAX_LOGS 61
-#define DAILY_SNAPSHOT_LOG_ADDRESS_END DAILY_SNAPSHOT_LOG_ADDRESS_START + DAILY_SNAPSHOT_LOG_SIZE2
+#define DAILY_SNAPSHOT_LOG_ADDRESS_END DAILY_SNAPSHOT_LOG_ADDRESS_START + DAILY_SNAPSHOT_LOG_SIZE2 - 22
 
 #ifdef EEPROM_REV_2
                                                   
@@ -833,8 +850,14 @@ int8_t get_daily_snapshot_energy_profile(void *lt,uint32_t EntryNumber);
 uint8_t get_daily_snapshot_overlap_flag(uint8_t *flag);
 uint8_t get_hourly_energy_log_ts(rtc_t *l,unsigned long StartAddress, uint8_t offset);
 uint8_t get_hourly_energy_log_time_stamp(void *lt,uint32_t EntryNumber);
-
-
+/*
+ * Logs hourly energy profile
+ */
+int8_t log_hourly_energy_profile(void *l2,void *dummy);
+/*
+ * Get hourly energy profile
+ */
+int8_t get_hourly_energy_profile(void *lt,uint32_t EntryNumber);
 /**
 * Id2: pointer to the array to copy the id to
 * type: the type of id to get 

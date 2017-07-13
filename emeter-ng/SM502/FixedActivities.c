@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include "self_diagnosis.h"
 #include "disconnect_control_and_log.h"
+#include "hourly_load_profile.h"
 //under voltage and current ranges 
 //extern uint8_t MIN_IRMS ;
 extern uint8_t MIN_VRMS ;
@@ -63,7 +64,7 @@ extern void perform_low_battry_backup(); //was __monitor func
 extern uint16_t number_of_long_power_failures;
 extern rtc_t activePassiveCalenderTime;
 
-uint8_t minuteCounts = 0;
+
 uint8_t low_bat_backup_min_counter;
 
 extern uint8_t SelectedCalender;
@@ -569,19 +570,10 @@ void per_minute_activity(void)
 	{
 		a -= EnergyLoggingTime;
 	}
-	if(a == 0)
+	if(a == 0) //capture hourly energy log
 	{
-		status.LoggingTimeIsUp = 1;
+		obj_load_profile_capture((uint8_t *)0,(uint16_t)0,(uint8_t *)0,(uint16_t *)0);
 	}
-
-    //[E.E]changed this to make load profile capture period on hh:00:00,hh:XX:00,hh:xx+xx:00....where xx is capture period
-   /* minuteCounts++;
-    if(minuteCounts >= EnergyLoggingTime )
-    {
-        status.LoggingTimeIsUp = 1;
-        minuteCounts = 0 ;
-    }*/
- 
     
     if(status.LogEnergyLogged == 1) //wait one minutes before the next power out detection starts working 
     {
