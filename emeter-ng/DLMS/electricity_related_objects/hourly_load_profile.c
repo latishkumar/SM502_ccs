@@ -311,6 +311,7 @@ uint8_t get_captured_log_by_time_range(const sSA_Range *startRange,const sSA_Ran
     return 1;//success
 }
 
+/*
 int adderr = 1000;
 void test_circular_buffer()
 {
@@ -351,3 +352,4 @@ void test_circular_buffer()
     tmp2 = (LastEnergyLogAddress - add_start)/INCREMENTAL_ENERGY_LOG_SIZE;
 
 }
+*/
