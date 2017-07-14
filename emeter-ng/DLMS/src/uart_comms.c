@@ -46,7 +46,7 @@ void configure_uart_port(int port, int mode)
     change_boud_rate(5);           
     break;
   case 2://8N1@9600
-   change_uart_a1_to_8n1_x_bd(5);
+   change_uart_a1_to_8n1_x_bd(6);
    break;
   case 3://8N1@19200
     change_uart_a1_to_8n1_x_bd(usb_comm_speed);//57600

@@ -2714,7 +2714,7 @@ const struct object_desc_s object_list[] =
                                      ,NULL
        },
 
-	  /* IInstantaneous current (sum over all phases)
+	  /* Instantaneous current (sum over all phases)
        * Class id-3,
        * 1-0:90.7.0.255
        */
@@ -3234,7 +3234,7 @@ const struct object_desc_s object_list[] =
        },
 
       /* Balance
-       * Class id-73,
+       * Class id-3,
        * 0-0:131.0.0.255
        */
        {ASSOC_MR_US, CLASS_ID_BALANCE,        0,{0,0,131,0,0,255}
@@ -3254,7 +3254,7 @@ const struct object_desc_s object_list[] =
                                      }
        },
 
-	  /* BOR reset
+	  /* BOR soft reset
        * Class id-3,
        * 0-0:144.0.0.255
        */
@@ -3274,7 +3274,7 @@ const struct object_desc_s object_list[] =
                                      }
        },
 
-	  /* USB communication baudrate config
+	  /* USB communication baud rate config
        * Class id-3,
        * 0-0:145.0.0.255
        */
@@ -3312,7 +3312,7 @@ const struct object_desc_s object_list[] =
 
 
 };
-//Tariff Scheam
+//Tariff Schema
 //LanguageSetting_SIZE
 //Low battery back up time
 //Monthly billing log 

@@ -260,6 +260,8 @@ void IEC_Start_SendBuffer()
 
 void receive_firmware_image();
 extern int local_comm_exchange_mode_flag;
+const uint32_t next_octect_timeout_thr = ((32768L*TIMEOUT_3_INTRA_FRAME)/1000L);
+const uint32_t inactivity_timeout_thr = ((32768L*TIMEOUT_2_INACTIVITY)/1000L);
 
 /*
  * USCI_A1 interrupt service routine
@@ -292,8 +294,8 @@ __interrupt void USCI_A1_ISR(void)
 					}
 				}
 				iec62056_46_rx_byte(&link[IEC_PORT], &rx[IEC_PORT], UCA1RXBUF);
-				next_octet_timeout[IEC_PORT] = now + ((32768L*TIMEOUT_3_INTRA_FRAME)/1000L);
-				next_inactivity_timeout[IEC_PORT] = now + ((32768L*TIMEOUT_2_INACTIVITY)/1000L);
+				next_octet_timeout[IEC_PORT] = now + next_octect_timeout_thr ;
+				next_inactivity_timeout[IEC_PORT] = now + inactivity_timeout_thr;
 			case USCI_UART_UCTXIFG:
 				 if((queue_isEmpty(iec_tx_buff)!=1) &&(Transmit == 1))//
 				 {

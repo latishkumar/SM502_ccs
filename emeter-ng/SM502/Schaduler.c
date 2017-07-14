@@ -1,13 +1,5 @@
-
-
-
 #include "Schaduler.h"
 #include <msp430.h>
-
-
-
-
-
 
 volatile funcPointers tasks[MaxScheduledTasks];
 volatile uint8_t executable_Task_Index[MaxScheduledTasks];
@@ -15,9 +7,10 @@ volatile uint8_t TotalTasks = 0;
 
 volatile uint8_t SchadulerIsOn=0;
 volatile uint8_t Schaduler_counter=0;
+
 /*
 *
-* Initializes time base for the scaduler
+* Initializes time base for the scheduler
 * Initializes timer 2 to run in 5 ms interval
 */
 void Init_Scheduler()
@@ -31,24 +24,23 @@ void Init_Scheduler()
           x = 2000 count 
         */
         TA2CTL = TASSEL_2 | ID_3 | MC_0 | TAIE; //clock source is SMLCK ,divide by 8 ,up mode, enable interrupt 
-        TA2CCR0 = 2000; //for 1msec interupt period 
+        TA2CCR0 = 2000; //for 1msec interrupt period
         TA2EX0 = 8;//TAIDEX_8
-        
         stopSchaduler();
 }
 
 
 /**
-* adds a task to be schaduled for execution at some time. The scaduler does not garrent that 
+* adds a task to be scheduled for execution at some time. The scheduler does not grant that
 * the task will be executed exactly at the specified time, but the task will not be executed before the specified time.
-* the minimum scadule time is 5msec 
+* the minimum schedule time is 5msec
 * @param Task: the callback to execute after the time has elapsed 
 * @param time_in_ms: the amount of time in milisecond to wait before executing this task
-* @param task_slot: where to put the task, use the TASKS_SLOTS defination heare
-* @return -1 if the task is not scaduled 
-*          xx: if the task is schaduled succfully, returns the task slot number 
+* @param task_slot: where to put the task, use the TASKS_SLOTS definition here
+* @return -1 if the task is not scheduled
+*          xx: if the task is scheduled successfully, returns the task slot number
 */
-__monitor uint8_t ScaduleTask(void(*Task)(),uint16_t time_in_ms,uint8_t task_slot)
+__monitor int8_t ScaduleTask(void(*Task)(),uint16_t time_in_ms,uint8_t task_slot)
 {
   
   if(task_slot < MaxScheduledTasks)
@@ -68,10 +60,10 @@ __monitor uint8_t ScaduleTask(void(*Task)(),uint16_t time_in_ms,uint8_t task_slo
 }
 
 /**
-*  cancels a shaduled task 
+*  cancels a scheduled task
 *  @param Task the task to cancel 
-*  @return 1 if the task was canceled sucessfully
-*          0 if the task was not scaduled before 
+*  @return 1 if the task was canceled successfully
+*          0 if the task was not scheduled before
 */
 __monitor uint8_t CancelTask2( void(*Task)() )
 {
@@ -88,7 +80,7 @@ __monitor uint8_t CancelTask2( void(*Task)() )
   return 0;
 }
 /**
-* starts the schaduler 
+* starts the scheduler
 */
 __monitor void startSchaduler()
 {
@@ -99,7 +91,7 @@ __monitor void startSchaduler()
   }
 }
 /**
-* stops the schaduler 
+* stops the scheduler
 */
 __monitor void stopSchaduler()
 {
@@ -111,7 +103,7 @@ __monitor void stopSchaduler()
 }
 /**
 * timer 2 interrupt service routine 
-* checks if time has passed for any of the scahduled events 
+* checks if time has passed for any of the scheduled events
 * and execute them
 */
 uint8_t temp_SC_Counter=0;
@@ -148,7 +140,7 @@ __interrupt void TIMER2_A1_ISR(void)
 }
 /**
 *  should be called constantly in the main loop
-*  this method is introduced to run schadueled tasks asyncroniously 
+*  this method is introduced to run scheduled tasks asynchronously
 *  with out disturbing  our main task in the system( the ADC ISR)
 */
 void executeTasks()

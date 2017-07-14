@@ -91,8 +91,6 @@ void capture_load_profile_data(void *data, int direction)
    }
    else if(access_selector == 2) //entry descriptor
    {
-//       SA_From_Entry;
-//       SA_To_Entry;
        find_num_total_energy_log_entries(&msg_info.num_entries,&msg_info.start_entry);
        if(SA_From_Entry <= SA_To_Entry)
        {
@@ -100,7 +98,6 @@ void capture_load_profile_data(void *data, int direction)
           SA_To_Entry = SA_To_Entry > msg_info.num_entries? msg_info.num_entries : SA_To_Entry;
           SA_To_Entry -=  SA_From_Entry;
           msg_info.num_entries = SA_To_Entry + 1;
-         // msg_info.num_entries = msg_info.num_entries > SA_To_Entry? (SA_To_Entry):msg_info.num_entries;
        }
        else
        {
@@ -314,7 +311,7 @@ uint8_t get_captured_log_by_time_range(const sSA_Range *startRange,const sSA_Ran
     return 1;//success
 }
 
-int adderr = 5000;
+int adderr = 1000;
 void test_circular_buffer()
 {
     uint32_t add_start = EnergyLogAddress_Start;
@@ -324,15 +321,15 @@ void test_circular_buffer()
     uint8_t minute = 0;
     hourly_energy_log_t tmp;
 
-    while(tmp2 < EnergyLog_SIZE-1)
+    while(tmp2 < 3000)//EnergyLog_SIZE-1)
     {
 
-        tmp.inc_active_import_energy = 65000;
-        tmp.inc_active_export_energy = 62000;
-        tmp.inc_reactive_energy_QI   = 60000;
-        tmp.inc_reactive_energy_QII  = 58000;
-        tmp.inc_reactive_energy_QIII = 56000;
-        tmp.inc_reactive_energy_QIV  = 54000;
+        tmp.inc_active_import_energy = 1000 + adderr;
+        tmp.inc_active_export_energy = 2000 + adderr;
+        tmp.inc_reactive_energy_QI   = 3000 + adderr;
+        tmp.inc_reactive_energy_QII  = 4000 + adderr;
+        tmp.inc_reactive_energy_QIII = 5000 + adderr;
+        tmp.inc_reactive_energy_QIV  = 6000 + adderr;
         tmp.time_stump = getTimeStamp(rtcc.year, rtcc.month, day, hour, minute, 0);
         tmp.crc = tmp.inc_active_import_energy + tmp.inc_reactive_energy_QIV + tmp.time_stump.TimestampLow+ tmp.time_stump.TimestampUp;
         write_to_eeprom(&tmp,(uint8_t *)0,log_hourly_energy_profile);
@@ -348,6 +345,7 @@ void test_circular_buffer()
                 day++;
             }
         }
+        adderr+=10;
     }
 
     tmp2 = (LastEnergyLogAddress - add_start)/INCREMENTAL_ENERGY_LOG_SIZE;

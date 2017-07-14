@@ -359,7 +359,7 @@ void UpadateErrorIndicators()
 void checkConfigrationPortsStatus()
 {
   
-  if((configurationRS232Pin&configurationRS232Bit) == configurationRS232Bit)
+  if((configurationRS232Pin & configurationRS232Bit) == configurationRS232Bit)
   {
     RS232(1);
   }
@@ -367,7 +367,7 @@ void checkConfigrationPortsStatus()
   {
     RS232(0);
   }
-  if((configurationUSBPin&configurationUSBBit) == configurationUSBBit)
+  if((configurationUSBPin & configurationUSBBit) == configurationUSBBit)
   {
     USB(1);
   }

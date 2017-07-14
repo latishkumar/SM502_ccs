@@ -115,7 +115,7 @@ uint8_t is_time_valid(const rtc_t *time_temp_var)
 int get_weekday(rtc_t *datetime)
 {    
     /* This works for years 2000-2099 */
-    /* Result is 0=Sunday, 1=Monday, etc. */
+    /* Result is  1=Monday, 7=Sunday,etc. */
     /* Allow for the day of the month */
     uint8_t i;
     uint8_t days = datetime->day + 6;
@@ -133,71 +133,78 @@ int get_weekday(rtc_t *datetime)
     return days;
 }
 
-//Set the Current System Time to time. this mthod handels the hardware and all software timers that need to be corrected with the hardware 
-//
+//Set the Current System Time to time. this method handles the hardware and all software timers that need to be corrected with the hardware
+extern uint8_t day_of_week;
 void adjust_rtc(rtc_t *time,uint8_t logEvent1)
 {
-      RTCCTL0_H = RTCKEY_H;                  // Unlock RTC
-      RTCCTL13 = RTCBCD+RTCHOLD+RTCMODE+RTCTEV_0; // Init RTC
-      //RTCCTL13 |=RTCHOLD;
-      
-      RTCSEC = 0;
-      
-      BIN2BCD = time->minute;
-      RTCMIN = BIN2BCD;
+    RTCCTL0_H = RTCKEY_H;                       // Unlock RTC
+    RTCCTL13 = RTCBCD+RTCHOLD+RTCMODE+RTCTEV_0; // Init RTC
+    //RTCCTL13 |=RTCHOLD;
+    if(time->second != 0xFF)
+    {
+        BIN2BCD = time->second;
+        RTCSEC  = BIN2BCD;
+        rtc_temp_var.second    = time->second;
+        rtc_global_temp.second = rtc_temp_var.second;
+        rtc_backup.second      = rtc_temp_var.second;
+        rtcc.second            = rtc_temp_var.second;
+    }
+    if(time->minute != 0xFF)
+    {
+        BIN2BCD = time->minute;
+        RTCMIN  = BIN2BCD;
+        rtc_temp_var.minute    = time->minute;
+        rtc_global_temp.minute = rtc_temp_var.minute;
+        rtc_backup.minute      = rtc_temp_var.minute;
+        rtcc.minute            = rtc_temp_var.minute;
+    }
+    if(time->hour != 0xFF)
+    {
+        BIN2BCD = time->hour;
+        RTCHOUR = BIN2BCD;
+        rtc_temp_var.hour    = time->hour;
+        rtc_global_temp.hour = rtc_temp_var.hour;
+        rtc_backup.hour      = rtc_temp_var.hour;
+        rtcc.hour            = rtc_temp_var.hour;
+    }
+    if(day_of_week != 0xFF)
+    {
+        BIN2BCD = day_of_week;
+        RTCDOW  = BIN2BCD;
+    }
+    if(time->day != 0xFF)
+    {
+        BIN2BCD = time->day;
+        RTCDAY  =  BIN2BCD;
+        rtc_temp_var.day    = time->day;
+        rtc_global_temp.day = rtc_temp_var.day;
+        rtc_backup.day      = rtc_temp_var.day;
+        rtcc.day            = rtc_temp_var.day;
+    }
+    if(time->month != 0xFF)
+    {
+        BIN2BCD = time->month;
+        RTCMON  = BIN2BCD;
+        rtc_temp_var.month    = time->month;
+        rtc_global_temp.month = rtc_temp_var.month;
+        rtc_backup.month      = rtc_temp_var.month;
+        rtcc.month            = rtc_temp_var.month;
+    }
+    if(time->year != 0xFF)
+    {
+        BIN2BCD = time->year;
+        RTCYEAR = BIN2BCD;
+        rtc_temp_var.year    = time->year;
+        rtc_global_temp.year = rtc_temp_var.year;
+        rtc_backup.year      = rtc_temp_var.year;
+        rtcc.year            = rtc_temp_var.year;
+    }
 
-      BIN2BCD = time->hour; 
-      RTCHOUR = BIN2BCD;
-      
-      BIN2BCD = time->day;
-      RTCDAY =  BIN2BCD;
+    RTCCTL13 &= ~RTCHOLD;  // Enable RTC
+    RTCCTL0_H = 0;         // LOCK RTC
 
-      BIN2BCD = time->month;
-      RTCMON = BIN2BCD;
-
-      BIN2BCD = time->year;
-      RTCYEAR = BIN2BCD;
-                                            
-      RTCCTL13 &= ~RTCHOLD;                   // Enable RTC
-      RTCCTL0_H = 0;   // LOCK RTC
-    
-      
-      rtc_temp_var.year = time->year;
-      rtc_temp_var.month = time->month;
-      rtc_temp_var.day = time->day;
-      rtc_temp_var.hour = time->hour;
-      rtc_temp_var.minute = time->minute;
-      rtc_temp_var.second = time->second;
-
-  
-
-      rtc_global_temp.year   = rtc_temp_var.year;
-      rtc_global_temp.month  = rtc_temp_var.month;
-      rtc_global_temp.day    = rtc_temp_var.day;
-      rtc_global_temp.hour   = rtc_temp_var.hour;
-      rtc_global_temp.minute = rtc_temp_var.minute;
-      rtc_global_temp.second = rtc_temp_var.second;
-  
-      rtc_backup.year   = rtc_temp_var.year;
-      rtc_backup.month  = rtc_temp_var.month;
-      rtc_backup.day    = rtc_temp_var.day;
-      rtc_backup.hour   = rtc_temp_var.hour;
-      rtc_backup.minute = rtc_temp_var.minute;
-      rtc_backup.second = rtc_temp_var.second;
-
-      
-      rtcc.year = rtc_temp_var.year;
-      rtcc.month = rtc_temp_var.month;
-      rtcc.day = rtc_temp_var.day;
-      rtcc.hour = rtc_temp_var.hour;
-      rtcc.minute = rtc_temp_var.minute;
-      rtcc.second = rtc_temp_var.second; 
-      
-      status.UpdateDate = 1;
-      status.UpdateTime = 1;
-      
-      
-
+    status.UpdateDate = 1;
+    status.UpdateTime = 1;
 }
 
 void getHardwareTime(rtc_t *rtc)

@@ -99,8 +99,10 @@ uint8_t getRateStartIndex(const uint32_t *rates_start_array10, unsigned long Ene
   uint8_t i =0;
    for(;i<10;i++)
    {
-      if(*(++rates_start_array10)>EnergySinceLastBillingCuttoff)
-        return i;
+      if(*(rates_start_array10++)>EnergySinceLastBillingCuttoff)
+      {
+          return i;
+      }
    }
    return 9;//return the highest rate index
 }
@@ -114,47 +116,37 @@ uint8_t getRateStartIndex(const uint32_t *rates_start_array10, unsigned long Ene
 void CalculateTariff_New(int32_t *CurrentBalance, unsigned long *TempLastEnergy,unsigned long CurrentEnergy_Import_Reading,
                          unsigned long *ConsumptionSinceLastBilling)
 {
-   
-     int32_t NetEnergyReading = CurrentEnergy_Import_Reading - *TempLastEnergy;
-     if(NetEnergyReading < 0)
-     {
-     }
-     else if(NetEnergyReading >= 1000) 
-     {       
-       int32_t temp = NetEnergyReading / 1000; //avoid floating point artimatic by calculating only for even number of Thousands                                 
-                *TempLastEnergy  += NetEnergyReading + ((CurrentEnergy_Import_Reading%1000));//WH +  //was chan1.consumed_active_energy
-       unsigned long charge = 0;   
-       uint8_t tariffslot=0;
-       if(temp>0)
-       {
-          tariffslot = GetCurrentMinuteTariffTimeSlot();  //on which 4 slots of the day the tariff is found           
-       }
+    int32_t NetEnergyReading = CurrentEnergy_Import_Reading - *TempLastEnergy;
+    if(NetEnergyReading >= 1000)
+    {
+        int32_t temp = NetEnergyReading / 1000; //avoid floating point artimatic by calculating only for even number of Thousands
+        *TempLastEnergy  += NetEnergyReading + ((CurrentEnergy_Import_Reading%1000));//WH +  //was chan1.consumed_active_energy
+        unsigned long charge = 0;
+        uint8_t tariffslot=0;
+
+        tariffslot = GetCurrentMinuteTariffTimeSlot();  //on which 4 slots of the day the tariff is found
+
+        while(temp > 0) //it is nearly impossible for temp to be greater than 1
+        {
+            ++(*ConsumptionSinceLastBilling);
+            uint8_t rateIndex = getRateStartIndex(power_brakes,*ConsumptionSinceLastBilling );
+            charge = rates[rateIndex+(tariffslot*10)];
+
+            if(billingSchema == PRE_PAID)
+                *CurrentBalance -= charge;
+            else
+                *CurrentBalance += charge;
+            temp--;
+        }
+        write_to_eeprom(&Current_balance,(uint8_t *)0,setCurrentBalance);
+        write_to_eeprom(&TempLastEnergyValue,(uint8_t *)0,setTempLastEnergyValue);
+        write_to_eeprom(&ConsumptionSinceLastBilling,(uint8_t *)0,setConsumptionSinceLastBilling);
                 
-       while(temp > 0) //it is nearly impossible for temp to be greater than 1
-       {
-
-         ++(*ConsumptionSinceLastBilling);
-          uint8_t rateIndex = getRateStartIndex(power_brakes,*ConsumptionSinceLastBilling );
-                  charge = rates[rateIndex+(tariffslot*10)];
-                   
-                 
-                   if(billingSchema == PRE_PAID)
-                    *CurrentBalance -= charge;
-                   else 
-                    *CurrentBalance += charge;                              
-                   temp--;
-                   
-       }
-       write_to_eeprom(&Current_balance,(uint8_t *)0,setCurrentBalance);
-       write_to_eeprom(&TempLastEnergyValue,(uint8_t *)0,setTempLastEnergyValue);
-       write_to_eeprom(&ConsumptionSinceLastBilling,(uint8_t *)0,setConsumptionSinceLastBilling);
-
-      
-       if(billingSchema == PRE_PAID)
-         CheckTariff(power_brakes,ConsumptionSinceLastBilling);                
-       else
-         status.LowTariff = 0;    
-     } 
+        if(billingSchema == PRE_PAID)
+            CheckTariff(power_brakes,ConsumptionSinceLastBilling);
+        else
+            status.LowTariff = 0;
+    }
 }
 
 /**
@@ -169,7 +161,7 @@ void switch_billing_schema(uint8_t schema)
        if(schema == PRE_PAID)
        {
           //TODO. log schema changed event 
-          //handel the current pre paid and post paied balances
+          //handle the current pre paid and post paid balances
           //remove low balance errors 
           status.LowTariff = 0;
 //          setBillingSchema(PRE_PAID);

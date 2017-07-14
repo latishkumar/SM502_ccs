@@ -528,7 +528,7 @@ void main(void)
                       status.PLCCommunicationDetected = 0;
                   }
 
-                 // test_circular_buffer();
+                  //test_circular_buffer();
                   UpdateDisplay_c();
                   
                   if(status.task_exec_finished == 1)

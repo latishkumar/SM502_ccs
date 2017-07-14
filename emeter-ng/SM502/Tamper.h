@@ -24,7 +24,7 @@
 #define Magnetic_TamperBIT BIT7//BIT4
 //#define ConfigrationPort_TamperBIT BIT5
 
-#define UC_TamperSEL P2SEL
+#define UC_TamperSEL P1SEL
 #define LC_TamperSEL P1SEL//P2SEL
 
 #define UC_IE P1IE//P2IE

@@ -810,7 +810,7 @@ printf("Got a 'Switch to mode E' request\n");
             tx[link->port].msg[2] = 'D';
             tx[link->port].msg[3] = 'V';
             tx[link->port].msg[4] = 'E';
-            tx[link->port].msg[5] = '5'; //9600bd
+            tx[link->port].msg[5] = '6';//'5'; //9600bd
             tx[link->port].msg[6] = '\\';
             tx[link->port].msg[7] = '2';
             tx[link->port].msg[8] = 'T';
@@ -845,7 +845,7 @@ printf("Got a 'Switch to mode E' stage 2 request\n");
             tx[link->port].msg[0] = 0x06;
             tx[link->port].msg[1] = 0xA0;
             tx[link->port].msg[2] = 0xB2;
-            tx[link->port].msg[3] = 0xB5;
+            tx[link->port].msg[3] = 0xB6;
             tx[link->port].msg[4] = 0xB2;
             tx[link->port].msg[5] = 0x0D;
             tx[link->port].msg[6] = 0x0A;

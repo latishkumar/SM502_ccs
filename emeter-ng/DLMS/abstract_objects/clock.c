@@ -28,15 +28,16 @@ uint8_t max_allowed_time_shift = 30;   // Maximum allowed time shift without reg
 
 uint16_t clock_time_shift_invalid_lim = 600; // Maximum allowed time shift without setting IV measurement status to 1
 
-uint8_t last_clock_synchronized_date_time[] = // Date (corrected) of last clock synchronisation / setting
+uint8_t last_clock_synchronized_date_time[] = // Date (corrected) of last clock synchronization / setting
 {
   12,'Y','Y','M','M','D','D','H','H','M','M','S','S'
 };
+uint8_t day_of_week;
 void get_date_time_string(void *data, int direction)
 {
   if(direction == ATTR_READ)
   {
-     uint8_t dw = get_weekday(&rtcc);
+     uint8_t dw = RTCDOW;//get_weekday(&rtcc);
      uint8_t temp[] = {12,INJECT16(rtcc.year), rtcc.month, rtcc.day, dw , rtcc.hour, rtcc.minute, rtcc.second, 0xFF, INJECT16(120), 0x00};
      memcpy(data,temp,13);
   }
@@ -52,7 +53,7 @@ void get_date_time_string(void *data, int direction)
      temp.year |= (utemp<<8);
      temp.month = *datap++;
      temp.day = *datap++;
-     *datap++; // daw of the week
+     day_of_week = *datap++; // dow of the week
      temp.hour = *datap++;
      temp.minute = *datap++;
      temp.second = *datap++;
@@ -66,7 +67,6 @@ void get_date_time_string(void *data, int direction)
      adjust_rtc(&temp,1);
      l.end_time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second); //after synchronization
      l.checksum  =(getCheckSum(&(l.end_time_stamp.TimestampLow),4) + l.end_time_stamp.TimestampUp + l.event_code)&0xff;
-     //l.value = 0;
      uint8_t tmp = 8;
      write_to_eeprom(&l,&tmp,log_events);
   }

@@ -50,7 +50,7 @@ void Init_Scheduler();
 * @return -1 if the task is not scaduled 
 *          xx: if the task is schaduled succfully, returns the task slot number 
 */
-__monitor uint8_t ScaduleTask(void(*Task)(),uint16_t time_in_ms,uint8_t task_slot);
+__monitor int8_t ScaduleTask(void(*Task)(),uint16_t time_in_ms,uint8_t task_slot);
 
 /**
 *  cancels a shaduled task 
