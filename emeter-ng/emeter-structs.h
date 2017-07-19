@@ -1079,14 +1079,8 @@ extern int16_t extra_total_reactive_power_counter;
 extern uint32_t total_consumed_reactive_energy;
 #endif
 
-#if defined(SINGLE_PHASE)
 extern struct phase_parms_s chan1;
-#else
-extern struct phase_parms_s chan[NUM_PHASES];
-    #if defined(NEUTRAL_MONITOR_SUPPORT)
-extern struct neutral_parms_s neutral_c;
-    #endif
-#endif
+
 //__infomem__
 extern const struct info_mem_s nv_parms;
 extern const struct nv_parms_s nv_def;
@@ -1549,47 +1543,17 @@ extern int8_t magnetic_interference_persistence;
 #endif
 
 /* Persistence check counters for anti-tamper measures. */
-#if defined(PHASE_REVERSED_DETECTION_SUPPORT)
+// PHASE_REVERSED_DETECTION_SUPPORT
 extern int8_t current_reversed;
-#endif
-#if defined(POWER_BALANCE_DETECTION_SUPPORT)
+
+// POWER_BALANCE_DETECTION_SUPPORT
 extern int8_t current_unbalanced;
-#endif
+
 
 //--------------------------------------------------------------------------
 
-#if defined(__AQCOMPILER__)
-extern void main(void);
-#endif
 
-#if !defined(__MSP430__)
-/*! This function is the interrupt service routine for the ADC. It performs the phase
-    corrections and calculation of dot products needed to measure the mains power
-    parameters. It also assesses supplementary information, such as the mains frequency.
-    It controls any energy pulse LEDs/display segments. It scans and debounces any keys.
-    It monitors for power failure.
-    \brief ADC interrupt service routine. */
-extern void adc_interrupt(void);
-
-/*! This function opens the data source file, when the software is built as a model running on a
-    host computer. */
-extern int start_host_environment(int argc, char *argv[]);
-
-/*! This function gets the ADC values for a single sample of the mains waveforms, when the software
-    is built as a model running on a host computer. */
-extern void get_sample(int16_t adc_buffer[]);
-
-/*! This function loads a set of non-volatile memory parameters from a text file, when the software
-    is built as a model running on a host computer. */
-extern int host_load_parms(struct nv_parms_s *nv);
-extern int host_store_parms(struct nv_parms_s *nv);
-
-/*! This function logs the set of non-volatile memory parameters being used, when the software
-    is built as a model running on a host computer. */
-extern void log_parms(struct nv_parms_s *nv);
-#endif
-
-/*! \brief Initialise all the data and peripherals, and prepare the machine to run
+/*! \brief Initialize all the data and peripherals, and prepare the machine to run
     after reset. */
 extern void system_setup(void);
 
@@ -1653,65 +1617,6 @@ extern int record_meter_failure(int type);
 extern int record_meter_warning(int type);
 #endif
 
-#if !defined(SINGLE_PHASE)
-/*! This functions calculates the frequency of the power for a single phase, from the information
-    in the specified phase and phase_nv structures.
-    \brief Calculate the mains frequency for a single phase.
-    \param phase
-    \param phase_nv
-    \return The frequency in 1/100Hz increments. */
-extern int16_t frequency(struct phase_parms_s *phase, struct phase_nv_parms_s const *phase_nv);
-
-/*! This functions calculates the RMS voltage for a single phase, from the information in the
-    specified phase and phase_nv structures.
-    \brief Calculate the RMS voltage of a single phase.
-    \param phase
-    \param phase_nv
-    \return The RMS voltage in 10mV increments. */
-extern int32_t voltage(struct phase_parms_s *phase, struct phase_nv_parms_s const *phase_nv);
-
-/*! This functions calculates the RMS current for a single phase, from the information in the
-    specified phase and phase_nv structures.
-    \brief Calculate the RMS current flowing in a single phase.
-    \param phase
-    \param phase_nv
-    \return The RMS current in 1mA increments. */
-extern rms_current_t current(struct phase_parms_s *phase, struct phase_nv_parms_s const *phase_nv, int ph);
-
-extern rms_current_t neutral_current(void);
-
-/*! This functions calculates the power factor of a single phase, from the information in the
-    specified phase and phase_nv structures.
-    \brief Calculate the power factor of a single phase.
-    \param phase
-    \param phase_nv
-    \return The power factor, as Q1.15 fraction. */
-extern int16_t power_factor(struct phase_parms_s *phase, struct phase_nv_parms_s const *phase_nv);
-
-/*! This functions calculates the power for a single phase, from the information in the
-    specified phase and phase_nv structures.
-    \brief Calculate the active power for a single phase.
-    \param phase
-    \param phase_nv
-    \return The active power in 10mW increments. */
-extern power_t active_power(struct phase_parms_s *phase, struct phase_nv_parms_s const *phase_nv);
-
-/*! This functions calculates the reactive power for a single phase, from the information in the
-    specified phase and phase_nv structures.
-    \brief Calculate the reactive power for a single phase.
-    \param phase
-    \param phase_nv
-    \return The reactive power in 10mW increments. */
-extern int32_t reactive_power(struct phase_parms_s *phase, struct phase_nv_parms_s const *phase_nv);
-
-/*! This function calculates the apparent power (i.e. the simple product of RMS voltage and RMS current) for a
-    single phase, from the information in the specified phase and phase_nv structures.
-    \brief Calculate the apparent power for a single phase.
-    \param phase
-    \param phase_nv
-    \return The apparent power in 10mW increments. */
-extern int32_t apparent_power(struct phase_parms_s *phase, struct phase_nv_parms_s const *phase_nv);
-#else
 /*! This functions calculates the frequency of the power, from the information in the phase
     and phase_nv structures.
     \brief Calculate the mains frequency.
@@ -1755,7 +1660,7 @@ extern int32_t reactive_power(void);
     \brief Calculate the apparent power.
     \return The apparent power in 10mW increments. */
 extern int32_t apparent_power(void);
-#endif
+
 
 #if defined(__HAS_SD_ADC__)
 void set_sd16_phase_correction(struct phase_correction_sd16_s *s, int ph, int correction);

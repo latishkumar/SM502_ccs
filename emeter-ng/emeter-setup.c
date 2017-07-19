@@ -1222,7 +1222,7 @@ void switch_to_powerfail_mode(void)
     }
         #endif
     /* Come out of power down in limp mode, as we don't know
-       if there is sufficent power available to driver the meter
+       if there is sufficient power available to driver the meter
        at full speed. We will soon switch to normal mode if a
        voltage signal is available. */
     /* Limp mode will fire up the ADC again. */

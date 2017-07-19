@@ -191,7 +191,7 @@ void UpdateTamperIndicators()
   }
   
   
-  if(status.NeutralTamperTimedoutStatus == 1)
+  if(status.NeutralTamperStatus == 1)
   {
     temp|=0x08;
     if((tamper_Visibility & N_tamperVisibility) != N_tamperVisibility)

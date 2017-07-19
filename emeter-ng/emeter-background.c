@@ -324,24 +324,37 @@ ISR(SD24B, adc_interrupt)
 	++phase->metrology.current.dot_prod.sample_count;
 
 	// NEUTRAL_MONITOR_SUPPORT
+	I_neutral_sample = dc_filter_current(phase->metrology.neutral.I_dc_estimate[0], phase->metrology.neutral.I_history[0][0]);
 	corrected = adc_i_buffer[1];
+	if ((corrected >= I_ADC_MAX  ||  corrected <= I_ADC_MIN)  &&  phase->metrology.neutral.I_endstops)
+	{
+	    phase->metrology.neutral.I_endstops--;
+	}
+	for (k = 0;  k < I_HISTORY_STEPS - 1;  k++)
+	{
+	    phase->metrology.neutral.I_history[0][k] = phase->metrology.neutral.I_history[0][k + 1];
+	}
+	phase->metrology.neutral.I_history[0][I_HISTORY_STEPS - 1] = corrected;
+	sqac_current(phase->metrology.neutral.dot_prod.I_sq, I_neutral_sample);
+
+	/*corrected = adc_i_buffer[1];
 	if ((corrected >= I_ADC_MAX  ||  corrected <= I_ADC_MIN)  &&  phase->metrology.neutral.I_endstops)
 			phase->metrology.neutral.I_endstops--;
 	phase->metrology.neutral.I_history[0][0] = corrected;
 	I_neutral_sample = dc_filter_current(phase->metrology.neutral.I_dc_estimate[0], phase->metrology.neutral.I_history[0][0]);
-	sqac_current(phase->metrology.neutral.dot_prod.I_sq, I_neutral_sample);
+	sqac_current(phase->metrology.neutral.dot_prod.I_sq, I_neutral_sample);*///new
 
 	/*I_neutral_sample = dc_filter_current(neutral_c.metrology.current.I_dc_estimate[0], neutral_c.metrology.current.I_history[0][0]);
 	corrected = adc_i_buffer[1];
 	neutral_c.metrology.current.I_history[0][0] = corrected;
 	if ((corrected >= I_ADC_MAX  ||  corrected <= I_ADC_MIN)  &&  neutral_c.metrology.current.I_endstops)
 		neutral_c.metrology.current.I_endstops--;
-	sqac_current(neutral_c.metrology.current.dot_prod.I_sq, I_neutral_sample);*/
+	sqac_current(neutral_c.metrology.current.dot_prod.I_sq, I_neutral_sample);*///old
 
 	if (operating_mode == OPERATING_MODE_NORMAL)
 	{
 
-    //	V_corrected = phase->metrology.V_history[(phase->metrology.V_history_index - phase->metrology.neutral.in_phase_correction[use_stage].step) & V_HISTORY_MASK];
+    	V_corrected = phase->metrology.V_history[(phase->metrology.V_history_index - phase->metrology.neutral.in_phase_correction[use_stage].step) & V_HISTORY_MASK];
 		mac_power(phase->metrology.neutral.dot_prod.P_active, V_corrected, I_neutral_sample);
 	}
 	++phase->metrology.neutral.dot_prod.sample_count;
@@ -453,7 +466,7 @@ ISR(SD24B, adc_interrupt)
           //EnergyLedOn();
           perform_low_battry_backup();
           //EnergyLedOff();
-          //Power Failer
+          //Power Failure
         }
         /* Do the power cycle start detection */
         /* There is no hysteresis used here, but since the signal is

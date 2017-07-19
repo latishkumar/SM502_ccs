@@ -65,26 +65,22 @@ uint32_t total_consumed_reactive_energy;
 
 
 
-/* Meter status flag bits. */
+// Meter status flag bits.
 uint16_t meter_status;
 
-/* Current operating mode - normal, limp, power down, etc. */
+// Current operating mode - normal, limp, power down, etc.
 volatile int8_t operating_mode;
 
-///* Persistence check counters for anti-tamper measures. */
-#if defined(PHASE_REVERSED_DETECTION_SUPPORT)
+/* Persistence check counters for anti-tamper measures. */
+// PHASE_REVERSED_DETECTION_SUPPORT
 int8_t current_reversed;
-#endif
-
+// POWER_BALANCE_DETECTION_SUPPORT
+int8_t current_unbalanced;
 
 
 
 /* The main per-phase working parameter structure */
 struct phase_parms_s chan1;
-
-
-// (NEUTRAL_MONITOR_SUPPORT)
-struct neutral_parms_s neutral_c;
 
 rtc_t rtc;
 MeterStatus status;
@@ -310,7 +306,7 @@ void main(void)
 							phase_presence &= ~BIT0;
 						  }
 
-//						  phase->metrology.neutral.I_rms = neutral_current();
+						 // phase->metrology.neutral.I_rms = neutral_current();
 
 						  /*if the phase reading is less than 3mA and then set the neutral reading to zero.
 							This is to prevent from causing neutral tamper status at very small current*/

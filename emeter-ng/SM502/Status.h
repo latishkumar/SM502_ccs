@@ -39,7 +39,7 @@ typedef struct
   volatile uint8_t UpperCoverRemovedTamperStatus:1;
   volatile uint8_t LowerCoverRemovedTamperStatus:1;
   volatile uint8_t NeutralTamperStatus:1;
-  volatile uint8_t NeutralTamperTimedoutStatus:1;
+ // volatile uint8_t NeutralTamperTimedoutStatus:1;
   volatile uint8_t MagneticTamperLoggedSatus:1;
   
   volatile uint8_t TamperDetectedStatus:1;

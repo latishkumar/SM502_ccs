@@ -46,9 +46,9 @@ uint16_t UnderFrequencyTripDuration =  10;
 
 
 uint16_t CoverRemovalTripDuration = 1;
-uint16_t NeutralTamperTripDuration = 1; //1 min
+//uint16_t NeutralTamperTripDuration = 1; //1 min
 
-uint32_t Current_Thrushold = 625; // current balance multiplied by 100 i.e 6.25% & 12.5% 
+//uint32_t Current_Thrushold = 625; // current balance multiplied by 100 i.e 6.25% & 12.5%
 
 /*uint16_t NumberOfLongPowerFails = 0; //use method to read from EERPOM*///n
 

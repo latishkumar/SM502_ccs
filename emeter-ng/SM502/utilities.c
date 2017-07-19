@@ -257,7 +257,7 @@ TimeStump getTimeStamp(uint16_t year,uint8_t month,uint8_t date,uint8_t hour,uin
   temp2 >>= 6;
 
   t.TimestampLow = temp;
-  t.TimestampUp  = (uint8_t)temp2;       /* copy uper 8 bits of year */
+  t.TimestampUp  = (uint8_t)temp2;       /* copy upper 8 bits of year */
 
   return t;
 }

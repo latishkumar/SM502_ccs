@@ -256,7 +256,7 @@ void InitLogg()
           status.DisplayMode  =0;
           status.DisplayState  =0;
           status.NeutralTamperStatus = 0;
-          status.NeutralTamperTimedoutStatus = 0;
+     //     status.NeutralTamperTimedoutStatus = 0;
           status.OverCurrentStatus = 0;
           status.OverCurrentTimedOutStatus = 0;
           status.OverFreqStatus = 0;
@@ -1703,7 +1703,7 @@ uint8_t get_hourly_energy_log_time_stamp(void *lt,uint32_t EntryNumber)
         uint32_t val = INCREMENTAL_ENERGY_LOG_SIZE*EntryNumber;
         if(LastEnergyLogAddress + val >= EnergyLogAddress_End)
         {
-            StartAddress = (EnergyLogAddress_Start + LastEnergyLogAddress + val) - 259898;//EnergyLogAddress_End;
+            StartAddress = (EnergyLogAddress_Start + LastEnergyLogAddress + val) - (EnergyLogAddress_End);
         }
         else
         {
@@ -1767,7 +1767,7 @@ int8_t getEnergy2(void *lt,uint32_t EntryNumber)
           uint32_t val = (EnergyLogSize*EntryNumber);
           if(LastEnergyLogAddress + val >= EnergyLogAddress_End)
           {
-             StartAddress = EnergyLogAddress_Start + (LastEnergyLogAddress + val - EnergyLogAddress_End);
+             StartAddress = EnergyLogAddress_Start + (LastEnergyLogAddress + val - (EnergyLogAddress_End));
           }
           else
           {
@@ -1846,9 +1846,9 @@ int8_t get_hourly_energy_profile(void *lt,uint32_t EntryNumber)
        if(status.energy_log_overlapped == 1)//handle cirular buffer
        {
           val = INCREMENTAL_ENERGY_LOG_SIZE*EntryNumber;
-          if(LastEnergyLogAddress + val >= EnergyLogAddress_End)
+          if(LastEnergyLogAddress + val >= (EnergyLogAddress_End))
           {
-             StartAddress = (EnergyLogAddress_Start + LastEnergyLogAddress + val) - 259898;//EnergyLogAddress_End;
+             StartAddress = (EnergyLogAddress_Start + LastEnergyLogAddress + val) - (EnergyLogAddress_End);//259898;/
           }
           else
           {
@@ -1880,7 +1880,7 @@ int8_t get_daily_snapshot_energy_profile(void *lt,uint32_t EntryNumber)
           uint32_t val = (DAILY_SNAPSHOT_LOG_SIZE*EntryNumber);
           if(last_daily_snapshot_log_address + val > DAILY_SNAPSHOT_LOG_ADDRESS_END)
           {
-              StartAddress = last_daily_snapshot_log_address + val - DAILY_SNAPSHOT_LOG_ADDRESS_END;
+              StartAddress = last_daily_snapshot_log_address + val - (DAILY_SNAPSHOT_LOG_ADDRESS_END);
              //StartAddress = val + DAILY_SNAPSHOT_LOG_ADDRESS_START - EventLog_End;
           }
           else{

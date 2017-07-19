@@ -83,15 +83,6 @@
 #include "emeter-rtc.h"
 #include "identification_numbers.h"
 
-
-
-
-
-
-#if defined(NEUTRAL_MONITOR_SUPPORT)
-extern struct neutral_parms_s neutral_c;
-#endif
-
 extern rtc_t rtcc;
 extern uint8_t active_quadrant;
 typedef struct{

@@ -55,7 +55,7 @@ extern uint32_t Current_Thrushold;
 
 extern Tamper_Count TamperCount;
 
-uint16_t neutral_tamper_trip_counter;
+//uint16_t neutral_tamper_trip_counter;
 uint8_t low_bat_backup_time = 5;
 
 extern uint8_t output_state;
@@ -69,23 +69,20 @@ uint8_t low_bat_backup_min_counter;
 
 extern uint8_t SelectedCalender;
 extern HardwareStatus hardware_status;
-#if defined(NEUTRAL_MONITOR_SUPPORT)
-extern struct neutral_parms_s neutral_c;
-#endif
+
 /**
 * compares the current difference between the phase and neutral lines and updates the system status
 * @param phase_current:- the phase current 
 * @param neutral_current:- the neutral current
-* @param Thrushold:- the current comparision thrushold 
-*                    this sould be current_thrushold is in percent scaled by 100
-*                    e.g for 5% thrushold => 5 *100 = 500
+* @param Threshold:- the current comparison threshold
+*                    this should be current_thrushold is in percent scaled by 100
+*                    e.g for 5% threshold => 5 *100 = 500
 * 
 */
-void test_current_balance(float phase_current,float neutral_current,uint32_t Thrushold)
+/*void test_current_balance(float phase_current,float neutral_current,uint32_t Thrushold)
 {
-
       phase_current = phase_current/1000;
-      neutral_current = neutral_current/100; 
+      neutral_current = neutral_current/1000;
       if(phase_current < 1)
         phase_current =0;
       if(neutral_current < 1)
@@ -128,10 +125,10 @@ void test_current_balance(float phase_current,float neutral_current,uint32_t Thr
      {
         neutral_tamper_trip_counter = 0; 
      }      
-}
+}*/
 
 /** 
-* used for Calender switching, from passive to active calender 
+* used for Calendar switching, from passive to active calendar
 * this method is not used
 */
 
@@ -494,9 +491,20 @@ void per_second_activity()
     
    
       //check for neutral tamper 
-#ifdef NEUTRAL_MONITOR_SUPPORT
-      test_current_balance(phase->readings.I_rms,neutral_c.readings.I_rms,Current_Thrushold);
-#endif 
+    if(phase->status & PHASE_UNBALANCED)// neutral tamper is detected
+    {
+        TamperCount.Neutral_Count++;
+        uint8_t temp82 = TamperCount.Neutral_Count;
+        uint8_t temp8 = NeutralTamperType;
+        write_to_eeprom(&temp82,&temp8,setTamperCount);
+        status.NeutralTamperStatus = 1; // set tamper status
+    }
+
+    if(status.NeutralTamperStatus == 1 && !(phase->status & PHASE_UNBALANCED)) //tamper is restored
+    {
+        status.NeutralTamperStatus = 0; // clear tamper status
+    }
+    //  test_current_balance(phase->readings.I_rms,phase->metrology.neutral.I_rms,Current_Thrushold);
    
       UpdateTamperIndicators();
       

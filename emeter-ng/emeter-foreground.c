@@ -79,35 +79,18 @@
 //
 #include <stdint.h>
 #include <stdlib.h>
-#if !defined(__MSP430__)
-#include <stdio.h>
-#include <fcntl.h>
-#include <unistd.h>
-#endif
-#if defined(__GNUC__)
-#include <signal.h>
-#endif
 #include <math.h>
 #include <io.h>
 #include <emeter-toolkit.h>
-#define __MAIN_PROGRAM__
-
 #include "emeter-structs.h"
-#if defined(MESH_NET_SUPPORT)
-#include "mesh_structure.h"
-#endif
 
 int32_t xxx;
 int32_t yyy;
 
-
-static __inline__ long labs(long __x);
-
-static __inline__ long labs(long __x)
+__inline__ long labs(long __x)
 {
     return (__x < 0) ? -__x : __x;
 }
-
 
 void set_phase_correction(struct phase_correction_s *s, int correction)
 {
@@ -138,23 +121,25 @@ void set_sd16_phase_correction(struct phase_correction_sd16_s *s, int ph, int co
     };
     uint8_t bump;
 
-    /* Only try to nudge the converter's timing when in normal operating mode. */
+    /* Only try to nudge the converter's
+     * timing when in normal operating mode.
+     */
     if (operating_mode == OPERATING_MODE_NORMAL)
     {
-      // [HOTFIX RO] Take the larger size of the preload register into account
-      //  if ((bump = s->sd16_preloaded_offset - (correction & 0xFF)))
-           if ((bump = s->sd16_preloaded_offset - (correction & 0xFF)))
-      // [END HOTFIX RO]        
+        if ((bump = s->sd16_preloaded_offset - (correction & 0xFF)))
+        {
             *sd16_locations[ph] = bump;
+        }
     }
-    /* Always store the required correction. */
+    /*
+     * Always store the required correction.
+     */
     s->step = I_HISTORY_STEPS - (correction >> 8);
-////    s->step = (correction >> 8) - I_HISTORY_STEPS + 1;
     s->sd16_preloaded_offset = correction;
 }
 
-#if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)  &&  defined(POWER_BALANCE_DETECTION_SUPPORT)
-static int32_t test_phase_balance(int32_t live_signal, int32_t neutral_signal, int threshold)
+// NEUTRAL_MONITOR_SUPPORT and POWER_BALANCE_DETECTION_SUPPORT
+static int32_t test_phase_balance(int64_t live_signal, int64_t neutral_signal, int threshold)
 {
     int permitted_imbalance_fraction;
 
@@ -196,7 +181,7 @@ static int32_t test_phase_balance(int32_t live_signal, int32_t neutral_signal, i
         else
         {
             current_unbalanced = 0;
-            /* The imbalanced might have swapped around - check. */
+            /* The imbalance might have swapped around - check. */
             /* Here we just choose the greater signal each block, as we have
                 already confirmed (i.e. debounced) the imbalance condition. */
             if (neutral_signal > live_signal)
@@ -238,84 +223,47 @@ static int32_t test_phase_balance(int32_t live_signal, int32_t neutral_signal, i
         return  neutral_signal;
     return  live_signal;
 }
-#endif
 
-#if defined(MAINS_FREQUENCY_SUPPORT)
+
+/*
+ * MAINS_FREQUENCY_SUPPORT
+ * The mains frequency, in steps of 10mHz
+ */
 int16_t frequency(void)
 {
     int32_t x;
-    //int step;
-    //int offset;
 
     /* Calculate the mains frequency in 1/100Hz increments, based on the mains
        period assessment from the background activity. */
-#if defined(LIMP_MODE_SUPPORT)
-    if (operating_mode == OPERATING_MODE_LIMP)
-    {
-        /* In limp mode there is no voltage waveform, so we get the frequency from
-           the current in the active lead. This may fail to measure frequency
-           correctly for very low currents, and very distorted current waveforms. */
-    #if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)
-        if ((phase->status & CURRENT_FROM_NEUTRAL))
-            x = phase->metrology.neutral.mains_period;
-        else
-    #endif
-            x = phase->metrology.current.mains_period;
-    }
-    else
-    {
-#endif
-        /* Normally we get the mains frequency from the voltage. Voltage is always
-           present, and is not subject to the same level of distortion as the current
-           waveform with difficult loads. */
-      
-#if defined(REACTIVE_POWER_BY_QUADRATURE_SUPPORT)
-        /* We have a whole cycle period in the upper 16 bits, but we want the delay for 90 degrees, so we shift 2
-           extra bits for that. */
-        x = (phase->metrology.mains_period >> 18);
-    #if defined(__HAS_SD_ADC__)
-        set_phase_correction(&phase->metrology.current.quadrature_correction[0], x);
-        #if GAIN_STAGES > 1
-        set_phase_correction(&phase->metrology.current.quadrature_correction[1], x);
-        #endif
-    #else
-        set_phase_correction(&phase->metrology.current.quadrature_correction[0], x + phase_nv->current.phase_correction[0]);
-        #if GAIN_STAGES > 1
-        set_phase_correction(&phase->metrology.current.quadrature_correction[1], x + phase_nv->current.phase_correction[1]);
-        #endif
-    #endif
-    #if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)
-        #if defined(__HAS_SD_ADC__)
-        set_phase_correction(&phase->metrology.neutral.quadrature_correction[0], x);
-            #if GAIN_STAGES > 1
-        set_phase_correction(&phase->metrology.neutral.quadrature_correction[1], x);
-            #endif
-        #else
-        set_phase_correction(&phase->metrology.neutral.quadrature_correction[0], x + nv_parms.seg_a.s.neutral.phase_correction[0]);
-            #if GAIN_STAGES > 1
-        set_phase_correction(&phase->metrology.neutral.quadrature_correction[1], x + nv_parms.seg_a.s.neutral.phase_correction[1]);
-            #endif
-        #endif
-    #endif
-#endif
 
-        
-        
-        x = phase->metrology.mains_period;
-#if defined(LIMP_MODE_SUPPORT)
-    }
-#endif
+    /* Normally we get the mains frequency from the voltage. Voltage is always
+       present, and is not subject to the same level of distortion as the current
+       waveform with difficult loads. */
+
+    /*
+    * REACTIVE_POWER_BY_QUADRATURE_SUPPORT
+    * We have a whole cycle period in the upper 16 bits, but we want the delay for 90 degrees, so we shift 2
+    * extra bits for that.
+    */
+    x = (phase->metrology.mains_period >> 18);
+    set_phase_correction(&phase->metrology.current.quadrature_correction[0], x);
+
+    // NEUTRAL_MONITOR_SUPPORT
+    set_phase_correction(&phase->metrology.neutral.quadrature_correction[0], x);
+
+    x = phase->metrology.mains_period;
+
     x = (int32_t) SAMPLES_PER_10_SECONDS*256L*10L/(x >> 16);
     return  x;
 }
-#endif
+
 
 int32_t voltage(void)
 {
     int16_t i;
     int32_t x;
 
-    /* Calculate the RMS voltage in 10mV increments. Return -1 for overrange
+    /* Calculate the RMS voltage in 10mV increments. Return -1 for over range
        (i.e. ADC clip). */
     if ((phase->status & V_OVERRANGE))
         return -1;
@@ -335,11 +283,11 @@ rms_current_t current(void)
     rms_current_t y;
     int64_t tmp;
     
-    /* Calculate the RMS current in 1mA increments. Return -1 for overrange
+    /* Calculate the RMS current in 1mA increments. Return -1 for over range
        (i.e. ADC clip). A side effect of this routine is it updates the dynamic
        phase correction settings, based on the newly calculated current. */
     /* We always have to work out the properly scaled current from both leads, in
-       order to work out the FIR coeffs for the next block. */
+       order to work out the FIR coffients for the next block. */
     if ((phase->status & I_NEUTRAL_OVERRANGE))
     {
         y = (rms_current_t) ~0;
@@ -361,13 +309,9 @@ rms_current_t current(void)
         phase->metrology.neutral.I_rms = y;
     }
 
-
-        #if defined(PER_SENSOR_PRECALCULATED_PARAMETER_SUPPORT)
-    	phase->metrology.neutral.readings.I_rms = y;
-        #endif
-        #if defined(DYNAMIC_PHASE_CORRECTION_SUPPORT)
-    	dynamic_phase_correction_neutral(phase, phase_nv, ch);
-        #endif
+    #if defined(PER_SENSOR_PRECALCULATED_PARAMETER_SUPPORT)
+    phase->metrology.neutral.readings.I_rms = y;
+    #endif
 
     if ((phase->status & I_OVERRANGE))
     {
@@ -390,102 +334,30 @@ rms_current_t current(void)
         }
     }
 
-	#if defined(PRECALCULATED_PARAMETER_SUPPORT)
-		phase->metrology.current.I_rms = x;
-	#endif
+	// PRECALCULATED_PARAMETER_SUPPORT
+    phase->metrology.current.I_rms = x;
 
-	#if defined(DYNAMIC_PHASE_CORRECTION_SUPPORT)
-	dynamic_phase_correction(phase, phase_nv, ch);
-	#endif
+    /* The power calculation has provided us which is the appropriate
+       current to use. */
+    // NEUTRAL_MONITOR_SUPPORT
+    if((phase->status & CURRENT_FROM_NEUTRAL))
+    {
+        x = y;
+    }
 
-    #if defined(LIMP_MODE_SUPPORT)
-    if (operating_mode == OPERATING_MODE_LIMP)
-    {
-        /* We need to work out for ourselves which is the relevant current
-           to use. */
-        #if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)  &&  defined(POWER_BALANCE_DETECTION_SUPPORT)
-        x = test_phase_balance(x, y, PHASE_UNBALANCED_THRESHOLD_CURRENT);
-          /* In limp mode we have no way to determine if the phase is reversed,
-             so just say it is not. */
-        phase->status &= ~PHASE_REVERSED;
-        #endif
-    }
-    else
-    #endif
-    {
-        /* The power calculation has provided us which is the appropriate
-           current to use. */
-    #if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)
-		if ((phase->status & CURRENT_FROM_NEUTRAL))
-               x = y;
-    #endif
-    }
     return  x;
 }
 
 
-#if defined(NEUTRAL_MONITOR_SUPPORT)
-extern struct neutral_parms_s neutral_c;
-#endif
-
-#if  defined(NEUTRAL_MONITOR_SUPPORT)  &&  defined(IRMS_SUPPORT)
-rms_current_t neutral_current(void)
-{
-    rms_current_t x;
-    int16_t i;
-    #if defined(TWENTYFOUR_BIT)
-    int64_t tmp;
-    #else
-    int32_t tmp;
-    #endif
-
-    /* Calculate the RMS current in 1mA increments. Return -1 for overrange
-       (i.e. ADC clip). A side effect of this routine is it updates the dynamic
-       phase correction settings, based on the newly calculated current. */
-    if ((neutral_c.status & I_OVERRANGE))
-        return (rms_current_t) ~0;
-
-    tmp = div_ac_current(neutral_c.metrology.current.dot_prod_logged.I_sq, neutral_c.metrology.current.dot_prod_logged.sample_count);
-    if (tmp < nv_parms.seg_a.s.neutral.ac_offset)
-        return 0;
-
-    #if defined(TWENTYFOUR_BIT)
-    x = isqrt64(tmp - nv_parms.seg_a.s.neutral.ac_offset) >> 26;
-    #else
-    x = isqrt32(tmp - nv_parms.seg_a.s.neutral.ac_offset) >> 2;
-    #endif
-    #if defined(LIMP_MODE_SUPPORT)
-    if (operating_mode == OPERATING_MODE_LIMP)
-        i = nv_parms.s.neutral.I_rms_limp_scale_factor;
-    else
-    #endif
-        i = nv_parms.seg_a.s.neutral.I_rms_scale_factor;
-    x = mul48u_32_16(x, i) >> 10;
-    return x;
-}
-#endif
-
-#if defined(SINGLE_PHASE)
+/*! \brief Calculate the active power in the specified phase, based on the information within that
+    phase structure.
+    \brief Calculate the active power.
+    \return The active power in 10mW increments. */
 power_t active_power(void)
-#else
-power_t active_power(struct phase_parms_s *phase, struct phase_nv_parms_s const *phase_nv)
-#endif
 {
-    #if defined(TWENTYFOUR_BIT)
     int64_t x;
-    #else
-    int32_t x;
-    #endif
-    #if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)
-        #if defined(TWENTYFOUR_BIT)
     int64_t y;
-        #else
-    int32_t y;
-        #endif
-    #endif
-    #if defined(PHASE_REVERSED_DETECTION_SUPPORT)
     int reversed;
-    #endif
 
     if (phase->status & (V_OVERRANGE | I_OVERRANGE))
         return (power_t) ~0;
@@ -495,24 +367,23 @@ power_t active_power(struct phase_parms_s *phase, struct phase_nv_parms_s const 
        both power levels, and decide between them. Issues to be assessed here are
        whether one or both leads show reverse power, and whether the power levels
        are balanced. */
-#if defined(PHASE_REVERSED_DETECTION_SUPPORT)
+
+    // PHASE_REVERSED_DETECTION_SUPPORT
     /* If we find a negative power level we may be genuinely feeding power to the grid,
-       or we may be seeing a tamper condition. This is application dependant. */
+       or we may be seeing a tamper condition. This is application dependent. */
     reversed = FALSE;
-#endif
 
     x = div_ac_power(phase->metrology.current.dot_prod_logged.P_active, phase->metrology.current.dot_prod_logged.sample_count);
-     x >>= 12;
+    x >>= 12;
     x = mul48_32_16(x, phase_nv->current.P_scale_factor[0]);
-    #if defined(PRECALCULATED_PARAMETER_SUPPORT)
-        phase->metrology.current.active_power = x;
-    #endif
-#if defined(PHASE_REVERSED_DETECTION_SUPPORT)
+    // PRECALCULATED_PARAMETER_SUPPORT
+    phase->metrology.current.active_power = x;
+
+// PHASE_REVERSED_DETECTION_SUPPORT
     if (x < 0)
     {
-    #if defined(PHASE_REVERSED_IS_TAMPERING)
+        // PHASE_REVERSED_IS_TAMPERING
         x = -x;
-    #endif
         phase->status |= I_REVERSED;
         if (x > PHASE_REVERSED_THRESHOLD_POWER)
             reversed = TRUE;
@@ -521,21 +392,21 @@ power_t active_power(struct phase_parms_s *phase, struct phase_nv_parms_s const 
     {
         phase->status &= ~I_REVERSED;   
     }
-#endif
-#if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)
+
+// NEUTRAL_MONITOR_SUPPORT
     y = div_ac_power(phase->metrology.neutral.dot_prod_logged.P_active, phase->metrology.neutral.dot_prod_logged.sample_count);
-   // y >>= 12;
-    y = mul48_32_16(y, neutral_nv->P_scale_factor[0]);
+    y <<= 2;
+    y = (mul48_32_16(y, neutral_nv->P_scale_factor[0])) >>4;
     phase->metrology.neutral.active_power = y;
     #if defined(PER_SENSOR_PRECALCULATED_PARAMETER_SUPPORT)
     phase->metrology.neutral.readings.active_power = y;
     #endif
-    #if defined(PHASE_REVERSED_DETECTION_SUPPORT)
+    // PHASE_REVERSED_DETECTION_SUPPORT
     if (y < 0)
     {
-    #if defined(PHASE_REVERSED_IS_TAMPERING)
+        //PHASE_REVERSED_IS_TAMPERING)
         y = -y;
-    #endif
+
         phase->status |= I_NEUTRAL_REVERSED;
         if (y > PHASE_REVERSED_THRESHOLD_POWER)
             reversed = TRUE;
@@ -544,13 +415,9 @@ power_t active_power(struct phase_parms_s *phase, struct phase_nv_parms_s const 
     {
         phase->status &= ~I_NEUTRAL_REVERSED;  
     }
-    #endif
-    #if defined(POWER_BALANCE_DETECTION_SUPPORT)
-        #if defined(SINGLE_PHASE)
+
+    // POWER_BALANCE_DETECTION_SUPPORT
     x = test_phase_balance(x, y, PHASE_UNBALANCED_THRESHOLD_POWER);
-        #else
-    x = test_phase_balance(phase, x, y, PHASE_UNBALANCED_THRESHOLD_POWER);
-        #endif
     if ((phase->status & PHASE_UNBALANCED))
     {
         /* When the phase is unbalanced we only look for reversed current in the 
@@ -563,9 +430,8 @@ power_t active_power(struct phase_parms_s *phase, struct phase_nv_parms_s const 
         else
             reversed = phase->status & I_REVERSED;
     }
-    #endif
-#endif
-#if defined(PHASE_REVERSED_DETECTION_SUPPORT)
+
+// PHASE_REVERSED_DETECTION_SUPPORT
     if ((phase->status & PHASE_REVERSED))
     {
         if (!reversed)
@@ -596,29 +462,24 @@ power_t active_power(struct phase_parms_s *phase, struct phase_nv_parms_s const 
             current_reversed = 0;
         }
     }
-#endif
+
     return x;
 }
 
-#if defined(REACTIVE_POWER_SUPPORT)  &&  defined(REACTIVE_POWER_BY_QUADRATURE_SUPPORT)
-    #if defined(SINGLE_PHASE)
+/*
+ * Calculate the phase reactive power.
+ * return The reactive power in 10mW increments.
+ */
 power_t reactive_power(void)
-    #else
-power_t reactive_power(struct phase_parms_s *phase, struct phase_nv_parms_s const *phase_nv)
-    #endif
 {
-    #if defined(TWENTYFOUR_BIT)
     int64_t x;
-    #else
-    int32_t x;
-    #endif
     int16_t i;
 
     if (phase->status & (V_OVERRANGE | I_OVERRANGE))
         return (power_t) ~0;
 
     /* We can only do real power assessment in full operating mode. */
-    #if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)
+    // NEUTRAL_MONITOR_SUPPORT
     /* If we have neutral monitoring for a single phase meter, we need to use whichever
        channel has been selected by the anti-tamper validation scheme. */
     if ((phase->status & CURRENT_FROM_NEUTRAL))
@@ -628,7 +489,7 @@ power_t reactive_power(struct phase_parms_s *phase, struct phase_nv_parms_s cons
           
     }
     else
-    #endif
+
     {
         x = div_ac_power(phase->metrology.current.dot_prod_logged.P_reactive, phase->metrology.current.dot_prod_logged.sample_count);
         i = Q1_15_mul(phase_nv->current.P_scale_factor[0], phase->metrology.current.quadrature_correction[0].fir_gain);
@@ -642,26 +503,16 @@ power_t reactive_power(struct phase_parms_s *phase, struct phase_nv_parms_s cons
         #endif
     phase->metrology.current.readings.reactive_power = x;
     #endif
-//    #if defined(PHASE_REVERSED_DETECTION_SUPPORT)
-//    if (x < 0) 
-//    {
-//        #if defined(PHASE_REVERSED_IS_TAMPERING)
-//        x = -x;
-//        #endif
-//    }
-//    #endif
     return  x;//don changed this from x to -x to compensate for current transformer direction
 }
-#endif
 
-#if defined(APPARENT_POWER_SUPPORT)
-    #if defined(SINGLE_PHASE)
+/*
+ * This function calculates the apparent power (i.e. the simple product of RMS voltage and RMS current),
+ * from the information in the phase and phase_nv structures.
+ * returns the apparent power in 10mW increments.
+ */
 int32_t apparent_power(void)
-    #else
-int32_t apparent_power(struct phase_parms_s *phase, struct phase_nv_parms_s const *phase_nv)
-    #endif
 {
-    #if defined(REACTIVE_POWER_BY_QUADRATURE_SUPPORT)
     int32_t p;
     int32_t x;
     int shift;
@@ -679,77 +530,20 @@ int32_t apparent_power(struct phase_parms_s *phase, struct phase_nv_parms_s cons
     }
     x = isqrt32(p*p + x*x);
     x >>= (16 - shift);
-    #else
-    int16_t i;
-    int32_t x;
-    int32_t y;
 
-    /* Calculate VA power in 0.01W increments */
-    x = isqrt32(div_ac_voltage(phase->metrology.dot_prod_logged.V_sq, phase->metrology.dot_prod_logged.sample_count));
-        #if defined(LIMP_MODE_SUPPORT)
-    if (operating_mode == OPERATING_MODE_LIMP)
-        i = phase_nv->V_rms_limp_scale_factor;
-    else
-        #endif
-        i = phase_nv->V_rms_scale_factor;
-    x = (x >> 12)*i;
-    x >>= 14;
-
-        #if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)
-    if ((phase->status & CURRENT_FROM_NEUTRAL))
-    {
-            #if defined(TWENTYFOUR_BIT)
-        y = isqrt64(div_ac_current(phase->metrology.neutral.dot_prod_logged.I_sq, phase->metrology.dot_prod_logged.sample_count)
-                  - phase_nv->neutral.ac_offset) >> 36;
-            #else
-        y = isqrt32(div_ac_current(phase->metrology.neutral.dot_prod_logged.I_sq, phase->metrology.dot_prod_logged.sample_count)
-                  - phase_nv->neutral.ac_offset) >> 12;
-            #endif
-            #if defined(LIMP_MODE_SUPPORT)
-        if (operating_mode == OPERATING_MODE_LIMP)
-            y *= phase_nv->neutral.I_rms_limp_scale_factor;
-        else
-            #endif
-            y *= phase_nv->neutral.I_rms_scale_factor;
-        y >>= 14;
-    }
-    else
-    {
-        #endif
-        #if defined(TWENTYFOUR_BIT)
-        y = isqrt64(div_ac_current(phase->metrology.current.dot_prod_logged.I_sq, phase->metrology.current.dot_prod_logged.sample_count)
-                  - phase_nv->neutral.ac_offset) >> 36;
-        #else
-        y = isqrt32(div_ac_current(phase->metrology.current.dot_prod_logged.I_sq, phase->metrology.current.dot_prod_logged.sample_count)
-                  - phase_nv->neutral.ac_offset) >> 12;
-        #endif
-        #if defined(LIMP_MODE_SUPPORT)
-        if (operating_mode == OPERATING_MODE_LIMP)
-            y *= phase_nv->current.I_rms_limp_scale_factor;
-        else
-        #endif
-            y *= phase_nv->current.I_rms_scale_factor;
-        y >>= 14;
-        #if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)
-    }
-        #endif
-    x *= y;
-    x /= 1000;
-    #endif
     return x;
 }
-#endif
 
-#if defined(POWER_FACTOR_SUPPORT)
+
+
 int16_t power_factor()
 {
     int32_t p;
     int32_t x;
 
     p = labs(phase->readings.active_power);
-    #if defined(APPARENT_POWER_SUPPORT)
-      x = labs(phase->readings.apparent_power);
-    #endif
+    x = labs(phase->readings.apparent_power);
+
     if (p  &&  x)
     {
         /* Justify for optimal accuracy */
@@ -777,4 +571,4 @@ int16_t power_factor()
 //    }
     return p;
 }
-#endif
+

@@ -186,29 +186,6 @@ int check_rtc_sumcheck(void)
 /* Return the current day of the week, based on the RTC. */
 int weekday(void)
 {
-    //int i;
-    //int days;
-
-    //donayam chaged this 
-    //why do all this calculation we can just return 
     //the value in the RTCDOW register;
     return RTCDOW;
-    
-
-//    /* This works for years 2000-2099 */
-//    /* Result is 0=Sunday, 1=Monday, etc. */
-//    /* Allow for the day of the month */
-//    days = rtcc.day + 6;
-//    /* Allow for the months to date this year... */
-//    for (i = 1;  i < rtcc.month;  i++)
-//        days += month_lengths[i];
-//    /* ...with a little offset if we are early in a leap year */
-//    if ((rtcc.year & 0x03) == 0  &&  rtcc.month <= 2)
-//        days--;
-//    /* Allow for the years... */
-//    days += rtcc.year;
-//    /* ...and a little extra for the leap years */
-//    days += (rtcc.year >> 2);
-//    days %= 7;
-//    return days;
 }
