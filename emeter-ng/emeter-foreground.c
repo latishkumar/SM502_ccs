@@ -395,8 +395,8 @@ power_t active_power(void)
 
 // NEUTRAL_MONITOR_SUPPORT
     y = div_ac_power(phase->metrology.neutral.dot_prod_logged.P_active, phase->metrology.neutral.dot_prod_logged.sample_count);
-    y <<= 2;
-    y = (mul48_32_16(y, neutral_nv->P_scale_factor[0])) >>4;
+    y >>= 8;
+    y = mul48_32_16(y, neutral_nv->P_scale_factor[0]);
     phase->metrology.neutral.active_power = y;
     #if defined(PER_SENSOR_PRECALCULATED_PARAMETER_SUPPORT)
     phase->metrology.neutral.readings.active_power = y;
@@ -418,18 +418,18 @@ power_t active_power(void)
 
     // POWER_BALANCE_DETECTION_SUPPORT
     x = test_phase_balance(x, y, PHASE_UNBALANCED_THRESHOLD_POWER);
-    if ((phase->status & PHASE_UNBALANCED))
+    /*if ((phase->status & PHASE_UNBALANCED))
     {
-        /* When the phase is unbalanced we only look for reversed current in the 
+         When the phase is unbalanced we only look for reversed current in the
            lead with the higher current. If we do not impose this restriction, coupling
            through a parasitic CT power supply transformer can cause the reverse condition
            to be raised incorrectly. If there is no parasitic supply this test is probably
-           a waste of time. */
+           a waste of time.
         if ((phase->status & CURRENT_FROM_NEUTRAL))
             reversed = phase->status & I_NEUTRAL_REVERSED;
         else
             reversed = phase->status & I_REVERSED;
-    }
+    }*/
 
 // PHASE_REVERSED_DETECTION_SUPPORT
     if ((phase->status & PHASE_REVERSED))
@@ -486,17 +486,19 @@ power_t reactive_power(void)
     {
         x = div_ac_power(phase->metrology.neutral.dot_prod_logged.P_reactive, phase->metrology.neutral.dot_prod_logged.sample_count);
         i = Q1_15_mul(neutral_nv->P_scale_factor[0], phase->metrology.neutral.quadrature_correction[0].fir_gain);
-          
+        x >>= 6;
+        x = mul48_32_16(x, i);
     }
     else
 
     {
         x = div_ac_power(phase->metrology.current.dot_prod_logged.P_reactive, phase->metrology.current.dot_prod_logged.sample_count);
         i = Q1_15_mul(phase_nv->current.P_scale_factor[0], phase->metrology.current.quadrature_correction[0].fir_gain);
+        x >>= 12;
+        x = mul48_32_16(x, i);
+        x <<= 2;
     }
-    x >>= 12;
-    x = mul48_32_16(x, i);
-    x <<= 2;
+
     #if defined(PER_SENSOR_PRECALCULATED_PARAMETER_SUPPORT)
         #if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)
     phase->metrology.neutral.readings.reactive_power = x;
