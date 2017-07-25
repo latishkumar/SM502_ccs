@@ -184,10 +184,10 @@ void change_hourly_load_profile_capture_period(void *data,int data_direction)
 void obj_load_profile_reset(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
       uint32_t tmp32 = EnergyLogAddress_Start;
-      uint8_t temp8=0;
-      LastEnergyLogAddress = EnergyLogAddress_Start;
-      write_to_eeprom(&tmp32,&temp8,setLastLogAddress);
-      write_to_eeprom(&temp8,(uint8_t *)0,setEnergyOverlapFlag);
+      uint8_t temp1=0;
+      LastEnergyLogAddress = tmp32;
+      write_to_eeprom(&tmp32,&temp1,setLastLogAddress);
+      write_to_eeprom(&temp1,&temp1,setEnergyOverlapFlag);
       *response_len = 0;
 }
 

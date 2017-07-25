@@ -251,7 +251,7 @@ void WriteFloat_c(long number,uint8_t dp) {
 
 /**
 * show a tamper indicator 
-* @param TamperType:- see the tmaper module for list of tamper types
+* @param TamperType:- see the tamper module for list of tamper types
 */
 void ShowTamper_c(int TamperType)
 {
@@ -299,7 +299,7 @@ void ClearTamper_c(int TamperType)
 	    	LTamper(0);
 	    	break;
 	    case NeutralTamperType:
-                NTamper(0);
+            NTamper(0);
 	    	break;
 	    case EarthTamperType:
 	    	break;

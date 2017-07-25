@@ -2048,6 +2048,16 @@ void send_get_response(iec62056_46_link_t *link,
                             {
                               *object_list[obj].attrs[element].addr = 0;
                               *(object_list[obj].attrs[element].addr+1) = 0;
+
+                               current_get_block_type = 1 ;
+                               current_get_block_datatype = object_list[obj].attrs[element].type;
+                               current_get_block_len = msg_info.sz_template; /*((s[0] & 0x7F) << 8) | s[1]*/;
+                               current_get_block_addr = (uint8_t *) object_list[obj].attrs[element].addr;
+                               current_get_block_callback = 0;
+                               msg_info.entries_remaining=msg_info.num_entries;
+                               last_start = 0;
+                               send_get_response_block(link, invoke_id, 0);
+                               return;
                             }
                             
                             else if((msg_info.sz_template > Chunk_Size)|| (msg_info.num_entries>1) || (msg_info.template !=NULL) )

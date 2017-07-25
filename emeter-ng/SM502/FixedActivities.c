@@ -580,7 +580,7 @@ void per_minute_activity(void)
 	}
 	if(a == 0) //capture hourly energy log
 	{
-		//obj_load_profile_capture((uint8_t *)0,(uint16_t)0,(uint8_t *)0,(uint16_t *)0);
+		obj_load_profile_capture((uint8_t *)0,(uint16_t)0,(uint8_t *)0,(uint16_t *)0);
 	}
     
     if(status.LogEnergyLogged == 1) //wait one minutes before the next power out detection starts working 

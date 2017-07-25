@@ -10,7 +10,7 @@
 #include "Logger.h"
 
 #include <configuration_defaults.h>
-#include "LCD_C_Graphics.h"//graphics.h"
+#include "LCD_C_Graphics.h"
 #include "LCD_C.h"
 #include "EventTypes.h"
 #include "Status.h"
@@ -160,19 +160,19 @@ void main(void)
           AUXCTL0 = 0;       
         #else
           PMMCTL0_H = PMMPW_H;    
-          SVSMHCTL|=SVSMHRRL_5|SVSHRVL_1|SVMHE|SVSHE; //SVM monitoring level,set referance voltage for switching to auxilary supplay , 
+          SVSMHCTL|=SVSMHRRL_5|SVSHRVL_1|SVMHE|SVSHE; //SVM monitoring level,set reference voltage for switching to auxiliary supply ,
                                 //Interrupt is generated when the supply falls below this voltage,
-                                //Handle this interrupt to detect power failer
+                                //Handle this interrupt to detect power failure
           
           //PMMRIE =0;//&= ~SVSHPE;
           AUXCTL0 = AUXKEY ;
           AUXCTL1  |= AUX1MD;
-          AUXCTL1  &= ~AUX1OK;// | AUX2MD & ~AUX2OK | AUX0MD | AUX0OK; //Auxilary supplay one is dissabled, set AUX1OK = 0;
+          AUXCTL1  &= ~AUX1OK;// | AUX2MD & ~AUX2OK | AUX0MD | AUX0OK; //Auxiliary supply one is disabled, set AUX1OK = 0;
           AUXCTL2  |= AUX0LVL_7|AUX2LVL_7|AUXMR_2;
           AUX3CHCTL = AUXCHKEY | AUXCHC_1 | AUXCHV_1 | AUXCHEN;//comment this for the board Enable Charger for AUX3 to enable RTC
-          //configure non maskable Auxilary interrupt here
+          //configure non maskable Auxiliary interrupt here
           AUXIE    |= AUXSWGIE|AUX2SWIE|AUX0SWIE|AUX2DRPIE;
-          AUXIE    &= ~AUXMONIE;//|AUXMONIE; //use maskable interrupt for auxilary switching
+          AUXIE    &= ~AUXMONIE;//|AUXMONIE; //use maskable interrupt for auxiliary switching
           PMMCTL0_H = 0;  
 
           AUXCTL0 = 0;
@@ -255,8 +255,7 @@ void main(void)
             #if defined(USE_WATCHDOG)
             kick_watchdog();
             #endif
-
-          #if ( defined(DLMS)) || defined(DLMS_IEC_21)
+             /*process dlms frame */
              uint8_t i=0;       
              i = process_dlms_frame();
              if(i == 0)
@@ -266,8 +265,8 @@ void main(void)
              else
              {
              } 
-          #endif
-           /* display relay status */
+
+            /* display relay status */
             if(status.RelayStatus == 1) //connected
             {
                output_state = 1;
@@ -310,7 +309,7 @@ void main(void)
 
 						  /*if the phase reading is less than 3mA and then set the neutral reading to zero.
 							This is to prevent from causing neutral tamper status at very small current*/
-						  if(phase->metrology.neutral.I_rms < MIN_NUTRAL_CURRENT_CONSIDERED_ZERO && phase->readings.I_rms <= MIN_PHASE_CURRENT_CONSIDERED_ZERO)
+						  if(phase->metrology.neutral.I_rms < MIN_NEUTRAL_CURRENT_CONSIDERED_ZERO && phase->readings.I_rms <= MIN_PHASE_CURRENT_CONSIDERED_ZERO)
 						  {
 							phase->metrology.neutral.I_rms = 0;
 						  }
@@ -607,7 +606,7 @@ volatile uint8_t __backingUp=0;
           //getHardwareTime(&rtcc);
           TimeStump ts = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
           
-          //Log this to EEPROM when power weaks up
+          //Log this to EEPROM when power weak up
           backup2.seg_a.s.RTCHigh = ts.TimestampUp & 0x000000ff;
           backup2.seg_a.s.RTCLow  = ts.TimestampLow;
           //Also Log Power down and Power Up Event
@@ -629,7 +628,7 @@ volatile uint8_t __backingUp=0;
       //end of back up for no battery conditions
 }
 /**
-* Proccesses Diagnosis results. Addes Errors to the system error list
+* Processes Diagnosis results. Adds Errors to the system error list
 */
 void ProcessDiagnosisResult()
 {
