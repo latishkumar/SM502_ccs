@@ -498,6 +498,14 @@ void per_second_activity()
         uint8_t temp8 = NeutralTamperType;
         write_to_eeprom(&temp82,&temp8,setTamperCount);
         status.NeutralTamperStatus = 1; // set tamper status
+
+        //Log fraud event to the EEPROM
+        event_log l;
+        l.event_code = NeutralTamperError;
+        l.time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
+        l.checksum  =(getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;
+        tmp = 4;
+        write_to_eeprom(&l,&tmp,log_events);
     }
 
     if(status.NeutralTamperStatus == 1 && !(phase->status & PHASE_UNBALANCED)) //tamper is restored
@@ -525,7 +533,7 @@ void per_second_activity()
       
       //if(checkCalenderSwitchTime() == 1)
       {
-         //TODO. switch calender 
+         //TODO. switch calendar
          //copy passive activity calendar to active activity calendar
       } 
       

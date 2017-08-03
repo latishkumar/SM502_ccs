@@ -1,6 +1,7 @@
 
 #include "iec62056_uart.h"
 #include <msp430.h>
+#include <Scheduler.h>
 #include "UI.h"
 #include "EventTypes.h"
 #include "Relay.h"
@@ -10,7 +11,6 @@
 #include "Tamper.h"
 #include "PLC/MAC_PIB.h"
 #include "PLC/Data_Transfer.h"
-#include "Schaduler.h"
 #include "LCD_C_Graphics.h"
 
 extern MeterStatus status;
@@ -91,7 +91,7 @@ void InitUI()
    //Delete this Lines only for power consumption test 
 //          BuzzerOn();
    //end of Delete this Lines only for power consumption test 
-   ScaduleTask(processKey,5000,PROCESS_KEY_TASK);       
+    schedule_task(processKey,5000,PROCESS_KEY_TASK);
 }
 
 
@@ -226,7 +226,7 @@ void processKey()
    else if(keyState == 0)
    {
    }
-   ScaduleTask(processKey,10,PROCESS_KEY_TASK);
+   schedule_task(processKey,10,PROCESS_KEY_TASK);
 }
 /**
 * alarms a single beep sound on the buzzor
@@ -234,7 +234,7 @@ void processKey()
 void BeepBuzzer()
 {
   BuzzerOn();
-  ScaduleTask(BuzzerOff,30,KEEPAD_BEEP_TASK);
+  schedule_task(BuzzerOff,30,KEEPAD_BEEP_TASK);
   
 }
 /**
@@ -267,7 +267,7 @@ void ToggleBuzzer2()
      SecondBeeps();
      buzeer_time_counter=0;
   }
-  ScaduleTask(ToggleBuzzer2,MINUTE,TOOGLE_BUZZER_TASK); 
+  schedule_task(ToggleBuzzer2,MINUTE,TOOGLE_BUZZER_TASK);
 }
 
 
@@ -280,11 +280,11 @@ void SecondBeeps()
   if(numberOfBeepCounter<(NumberOfBeep<<1))
   {    
     ToggleBuzzer();
-    ScaduleTask(SecondBeeps,1000,SECCOND_BEEP_TASK);
+    schedule_task(SecondBeeps,1000,SECCOND_BEEP_TASK);
   }
   else
   {
-    CancelTask2(SecondBeeps);
+      cancel_task(SecondBeeps);
     BuzzerOff();
     numberOfBeepCounter=0;
   }

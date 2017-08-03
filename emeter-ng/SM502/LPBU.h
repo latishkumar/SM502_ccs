@@ -13,13 +13,13 @@
 struct INFOA_BACK_UP
 {
       //Energy Registers  
-      int32_t active_power_counter;
-      int32_t active_energy_counter;
+      int32_t active_power_counter; // must be removed
+      int32_t active_energy_counter;// must be removed
       
       uint32_t active_energy_counter_QI;
       uint32_t active_energy_counter_QII;
-      uint32_t active_energy_counter_QIII;
-      uint32_t active_energy_counter_QIV;
+      uint32_t active_energy_counter_QIII; // must be removed
+      uint32_t active_energy_counter_QIV; // must be removed
       
       
       uint32_t active_energy_import_counter;
@@ -28,11 +28,11 @@ struct INFOA_BACK_UP
       
       uint32_t consumed_active_energy_QI;
       uint32_t consumed_active_energy_QII;
-      uint32_t consumed_active_energy_QIII;
-      uint32_t consumed_active_energy_QIV;
+      uint32_t consumed_active_energy_QIII; // must be removed
+      uint32_t consumed_active_energy_QIV;  // must be removed
         
       
-      int32_t reactive_power_counter;      
+      int32_t reactive_power_counter;       // must be removed
       uint32_t reactive_energy_counter_QI;
       uint32_t reactive_energy_counter_QII;
       uint32_t reactive_energy_counter_QIII;

@@ -9,6 +9,14 @@
 #include "manufacturer_specific_objects.h"
 #include "self_diagnosis.h"
 int16_t alarm_status;
+
+/*! This is a shift value for comparing currents or powers when looking for
+    imbalance between live and neutral. 3 give 12.5%. 4 give 6.25%. These are the
+    two commonest values to use. The relaxed version is used at low power levels,
+    where the values are less accurate, and a tight imbalance check might give false
+    results. */
+uint8_t permitted_power_imbalance_fraction = PERMITTED_IMBALANCE_FRACTION;
+
 /*
  * Method function for reset alarm object
  */
@@ -125,7 +133,7 @@ void calibrate_current_scaler(void *data, int data_direction)
     }
 }
 /*
- * Callback function for voltage scaler caliberation
+ * Callback function for voltage scaler calibration
  */
 void calibrate_voltage_scaler(void *data, int data_direction)
 {
@@ -175,7 +183,7 @@ void calibrate_current(uint8_t *data, uint16_t data_len,uint8_t *response,uint16
 
 }
 /*
- * Reset methods for voltage sclaer
+ * Reset methods for voltage scaler
  */
 void calibrate_voltage(uint8_t *data, uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
@@ -239,15 +247,17 @@ void decrement_balance(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_
  * Method for BOR reset
  */
 void Reset_System();
+void perform_low_battry_backup();
 void bor_reset(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
+    perform_low_battry_backup();
 	Reset_System();
 	*response_len = 0;
 }
 
 int usb_comm_speed = 7;
 /*
- * Callback function for usb communication baudrate configuration
+ * Callback function for USB communication baud rate configuration
  */
 void configure_usb_baudrate(void *data, int data_direction)
 {
@@ -264,3 +274,69 @@ void configure_usb_baudrate(void *data, int data_direction)
         *datap = usb_comm_speed & 0xFF;
     }
 }
+
+/*
+ * Call back function for neutral power scaler calibration
+ */
+void calibrate_neutral_power_scaler(void *data, int data_direction)
+{
+    uint8_t *datap =  data;
+    if(data_direction == ATTR_WRITE)
+    {
+      int16_t nv_2=0;
+      uint8_t *ptr2 = data;
+      nv_2 = *(ptr2+1);
+      nv_2 |= ((*(ptr2))<<8);
+      updateCalibrationFactor(nv_2,3);
+    }
+    else if(data_direction == ATTR_READ)
+    {
+        int16_t tmp_power_scale_factor = nv_parms.seg_a.s.neutral.P_scale_factor[0];
+        *datap = tmp_power_scale_factor & 0xFF;
+         datap++;
+        *datap = (tmp_power_scale_factor>>8) & 0xFF;
+    }
+}
+
+/*
+ * Callback function for neutral current scaler calibration
+ */
+void calibrate_neutral_current_scaler(void *data, int data_direction)
+{
+    uint8_t *datap =  data;
+    if(data_direction == ATTR_WRITE)
+    {
+      int16_t nv_2=0;
+      uint8_t *ptr2 = data;
+      nv_2 = *(ptr2+1);
+      nv_2 |= ((*(ptr2))<<8);
+      updateCalibrationFactor(nv_2,4);
+    }
+    else if(data_direction == ATTR_READ)
+    {
+        int16_t tmp_power_scale_factor = nv_parms.seg_a.s.neutral.I_rms_scale_factor;
+        *datap = tmp_power_scale_factor & 0xFF;
+         datap++;
+        *datap = (tmp_power_scale_factor>>8) & 0xFF;
+    }
+}
+
+/*
+ * Callback function for permitted power imbalance fraction configuration
+ */
+void configure_permitted_power_imbalance_fraction(void *data, int data_direction)
+{
+    uint8_t *datap =  data;
+    if(data_direction == ATTR_WRITE)
+    {
+      uint8_t nv_2 = 0;
+      uint8_t *ptr2 = data;
+      nv_2 = *ptr2;
+      permitted_power_imbalance_fraction = nv_2;
+    }
+    else if(data_direction == ATTR_READ)
+    {
+        *datap = permitted_power_imbalance_fraction & 0xFF;
+    }
+}
+

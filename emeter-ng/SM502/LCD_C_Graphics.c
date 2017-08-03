@@ -14,7 +14,7 @@
 #include "Tariff.h"
 #include "Tamper.h" // for tamper types
 #include <string.h>
-#include "Schaduler.h"
+#include <Scheduler.h>
 #include "utilities.h"  
 
 extern  struct phase_parms_s chan1;
@@ -84,7 +84,7 @@ void swtch_to_auto_mode_c()
   
   status.DisplayMode  = 0;
   status.DisplayState = 0;
-  ScaduleTask(display_next_item_c,AutoDisplayTime,AUTO_DISPLAY_TASK);
+  schedule_task(display_next_item_c,AutoDisplayTime,AUTO_DISPLAY_TASK);
   
 }
 /**
@@ -127,12 +127,12 @@ void display_next_item_c()
       
       if(status.DisplayMode == 0) //auto mode
       {
-         ScaduleTask(display_next_item_c,AutoDisplayTime,AUTO_DISPLAY_TASK);
+          schedule_task(display_next_item_c,AutoDisplayTime,AUTO_DISPLAY_TASK);
       }
       else if(status.DisplayMode == 1) //manual Mode 
       {
-        CancelTask2(swtch_to_auto_mode_c);
-        ScaduleTask(swtch_to_auto_mode_c,BackToAutoModeTime,AUTO_MANUAL_DISPLAY_END_TASK);
+          cancel_task(swtch_to_auto_mode_c);
+          schedule_task(swtch_to_auto_mode_c,BackToAutoModeTime,AUTO_MANUAL_DISPLAY_END_TASK);
       }     
 }
 

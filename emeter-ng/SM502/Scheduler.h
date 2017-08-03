@@ -33,13 +33,13 @@ enum TASK_SLOTS
   KEEPAD_BEEP_TASK,
   TOOGLE_BUZZER_TASK,
   SECCOND_BEEP_TASK,
-  ADC10_SC_TASK,
+  BACKUP_TASK,//ADC10_SC_TASK
   GENERAL_TASK
 };
 /**
-* initializes time base for the scaduler
+* initializes time base for the scheduler
 */
-void Init_Scheduler();
+void init_scheduler();
 /**
 * adds a task to be schaduled for execution at some time. The scaduler does not garrent that 
 * the task will be executed exactly at the specified time, but the task will not be executed before the specified time.
@@ -50,7 +50,7 @@ void Init_Scheduler();
 * @return -1 if the task is not scaduled 
 *          xx: if the task is schaduled succfully, returns the task slot number 
 */
-__monitor int8_t ScaduleTask(void(*Task)(),uint16_t time_in_ms,uint8_t task_slot);
+__monitor int8_t schedule_task(void(*Task)(),uint16_t time_in_ms,uint8_t task_slot);
 
 /**
 *  cancels a shaduled task 
@@ -58,21 +58,21 @@ __monitor int8_t ScaduleTask(void(*Task)(),uint16_t time_in_ms,uint8_t task_slot
 *  @return 1 if the task was canceled sucessfully
 *          0 if the task was not scaduled before 
 */
-__monitor uint8_t CancelTask2( void(*Task)() );
+__monitor uint8_t cancel_task( void(*Task)() );
 
 /**
 * starts the schaduler 
 */
-__monitor void startSchaduler();
+__monitor void start_scheduler();
 /**
 * stops the schaduler 
 */
-__monitor void stopSchaduler();
+__monitor void stop_scheduler();
 
 /**
 *  should be called constantly in the main loop
 *  this method is introduced to run schadueled tasks asyncroniously 
 *  with out disturbing  our main task in the system( the ADC ISR)
 */
-void executeTasks();
+void execute_tasks();
 #endif

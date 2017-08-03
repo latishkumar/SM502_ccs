@@ -166,7 +166,7 @@
     two commonest values to use. The relaxed version is used at low power levels,
     where the values are less accurate, and a tight imbalance check might give false
     results. */
-#define PERMITTED_IMBALANCE_FRACTION                4
+#define PERMITTED_IMBALANCE_FRACTION                3//4
 
 /*! This is a relaxed version of the permitted imbalance fraction, for use at low
     powers/currents, where the power (and hence imbalance) measurement may be less
@@ -215,7 +215,7 @@
 
 /*! This is the number of successive measurement blocks which must agree the
     unbalanced status has changed before we accept it. */
-#define PHASE_UNBALANCED_PERSISTENCE_CHECK          5
+//#define PHASE_UNBALANCED_PERSISTENCE_CHECK          5
 
 /*! This enables monitoring of the balance between the current in the live and neutral
     leads, for tamper detection. */
@@ -675,12 +675,12 @@
 
 #define DEFAULT_ROOM_TEMPERATURE                    250
 
-#define DEFAULT_V_RMS_SCALE_FACTOR_A                14432//14432// 14480//ee//14564//m.g//11208//9520
+#define DEFAULT_V_RMS_SCALE_FACTOR_A                14438//14432//14432// 14480//ee//14564//m.g//11208//9520
 #define DEFAULT_V_RMS_LIMP_SCALE_FACTOR             21280
-#define DEFAULT_I_RMS_SCALE_FACTOR_A                15414//11750//7613//ee//15150//5348
+#define DEFAULT_I_RMS_SCALE_FACTOR_A                15396//15414//11750//7613//ee//15150//5348
 #define DEFAULT_I_RMS_LIMP_SCALE_FACTOR             3537
 
-#define DEFAULT_P_SCALE_FACTOR_A_LOW                6947//5296//3450//ee//5300//5308//6365        /* Low current, high gain, range. Test at 2A on 30A max meter */
+#define DEFAULT_P_SCALE_FACTOR_A_LOW                6941//6947//5296//3450//ee//5300//5308//6365        /* Low current, high gain, range. Test at 2A on 30A max meter */
 
 #define DEFAULT_V_PRESCALE_FACTOR                   53//34
 

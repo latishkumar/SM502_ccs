@@ -13,7 +13,7 @@
 #include "../IEC62056/IEC62056_UART.H"
 #endif 
 #include <stdio.h>
-#include "../Schaduler.h"
+#include <Scheduler.h>
 Queue plc_tx_buff;
 //uint8_t TX_BUF[MaxTxBufferLength];
 uint8_t RX_BUF[MaxRxBufferLength];
@@ -106,7 +106,7 @@ void PLC_Byte_Recived(uint8_t data)
             switch(RXCount)
             {
               case 0:   
-                ScaduleTask(ResetPLC_StateFlow,PLC_Frame_Timeout,IEC_REST_TASK);
+                 schedule_task(ResetPLC_StateFlow,PLC_Frame_Timeout,IEC_REST_TASK);
  
                  if ( data > 0x14 && ( data != 0x97 && data != 0x96 )) //Valid range is 0x00-0x14
                  {

@@ -3254,7 +3254,7 @@ const struct object_desc_s object_list[] =
                                      }
        },
 
-	  /* BOR soft reset
+      /* Shunt power scaler calibration
        * Class id-3,
        * 0-0:144.0.0.255
        */
@@ -3263,6 +3263,40 @@ const struct object_desc_s object_list[] =
                                      ,(const struct attribute_desc_s[]) {
 
                                               {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[REFERENCE_OBIS_START + 7].instance_id, NULL},
+                                              {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) Data_Buffer, calibrate_neutral_power_scaler},
+                                              {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_PF, NULL}
+
+                                     }
+                                     ,0
+                                     ,NULL
+       },
+
+      /* Shunt power scaler calibration
+       * Class id-3,
+       * 0-0:145.0.0.255
+       */
+       {ASSOC_MR_US, CLASS_ID_REGISTER,        0,{0,0,145,0,0,255}
+                                     ,3
+                                     ,(const struct attribute_desc_s[]) {
+
+                                              {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[REFERENCE_OBIS_START + 8].instance_id, NULL},
+                                              {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) Data_Buffer, calibrate_neutral_current_scaler},
+                                              {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_PF, NULL}
+
+                                     }
+                                     ,0
+                                     ,NULL
+       },
+
+	  /* BOR soft reset
+       * Class id-3,
+       * 0-0:146.0.0.255
+       */
+       {ASSOC_MR_US, CLASS_ID_REGISTER,        0,{0,0,146,0,0,255}
+                                     ,3
+                                     ,(const struct attribute_desc_s[]) {
+
+                                              {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[REFERENCE_OBIS_START + 9].instance_id, NULL},
                                               {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) Data_Buffer, NULL},
                                               {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_PF, NULL}
 
@@ -3274,16 +3308,33 @@ const struct object_desc_s object_list[] =
                                      }
        },
 
-	  /* USB communication baud rate config
+	  /* USB communication baud rate configuration
        * Class id-3,
-       * 0-0:145.0.0.255
+       * 0-0:147.0.0.255
        */
-       {ASSOC_MR_US, CLASS_ID_REGISTER,        0,{0,0,145,0,0,255}
+       {ASSOC_MR_US, CLASS_ID_REGISTER,        0,{0,0,147,0,0,255}
                                      ,3
                                      ,(const struct attribute_desc_s[]) {
 
-                                              {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[REFERENCE_OBIS_START + 8].instance_id, NULL},
+                                              {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[REFERENCE_OBIS_START + 10].instance_id, NULL},
                                               {2, ACCESS_PC___MRRW_USRW, TAG_UINT8,           (void *) &usb_comm_speed, configure_usb_baudrate},
+                                              {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_referance_voltage, NULL}
+
+                                     }
+                                     ,0
+                                     ,NULL
+       },
+
+      /* permitted power imbalance fraction
+       * Class id-3,
+       * 0-0:148.0.0.255
+       */
+       {ASSOC_MR_US, CLASS_ID_REGISTER,        0,{0,0,148,0,0,255}
+                                     ,3
+                                     ,(const struct attribute_desc_s[]) {
+
+                                              {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[REFERENCE_OBIS_START + 11].instance_id, NULL},
+                                              {2, ACCESS_PC___MRRW_USRW, TAG_UINT8,           (void *) &permitted_power_imbalance_fraction, configure_permitted_power_imbalance_fraction},
                                               {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_referance_voltage, NULL}
 
                                      }

@@ -1,3 +1,4 @@
+
 #define __MAIN_PROGRAM__
 
 #include <intrinsics.h>
@@ -25,7 +26,7 @@
 #include "iec62056_uart.h"
 #include "errors.h"
 #include "battery_monitor.h"
-#include "Schaduler.h"
+#include <Scheduler.h>
 
 #include <stdio.h>
 #include "LCD_C.h"
@@ -136,6 +137,7 @@ void restoreBackup();
 extern EnergyLog LastTxEnergyCopy;
 int local_comm_exchange_mode_flag=0; //optical:0; USB:1
 void test_circular_buffer();
+uint16_t overflowsamples, second_counter;
 void main(void)
 {
     static int32_t x;
@@ -222,32 +224,9 @@ void main(void)
       
     }
     
-
-#if !defined(ESP_SUPPORT)  &&  defined(PHASE_CORRECTION_SUPPORT)  &&  !defined(DYNAMIC_PHASE_CORRECTION_SUPPORT)
-
-    #if defined(__MSP430_HAS_ADC12__)  ||  defined(__MSP430_HAS_ADC10__)
-        set_phase_correction(&phase->metrology.current.in_phase_correction[0], phase_nv->current.phase_correction[0]);
-        #if GAIN_STAGES > 1
-        set_phase_correction(&phase->metrology.current.in_phase_correction[1], phase_nv->current.phase_correction[1]);
-        #endif
-        #if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)
-        set_phase_correction(&phase->neutral.in_phase_correction[0], nv_parms.seg_a.s.neutral.phase_correction[0]);
-            #if GAIN_STAGES > 1
-        set_phase_correction(&phase->neutral.in_phase_correction[1], nv_parms.seg_a.s.neutral.phase_correction[1]);
-            #endif
-        #endif
-    #else
-        #if defined(SINGLE_PHASE)
-        set_sd16_phase_correction(&phase->metrology.current.in_phase_correction[0], 0, phase_nv->current.phase_correction[0]);
-            #if defined(NEUTRAL_MONITOR_SUPPORT)
-        set_sd16_phase_correction(&phase->metrology.neutral.in_phase_correction[0], 1, nv_parms.seg_a.s.neutral.phase_correction[0]);
-            #endif
-        #else
-        set_sd16_phase_correction(&phase->metrology.current.in_phase_correction[0], ch, phase_nv->current.phase_correction[0]);
-        #endif
-    #endif
-
-#endif
+// PHASE_CORRECTION_SUPPORT  &&  !defined(DYNAMIC_PHASE_CORRECTION_SUPPORT)
+    set_sd16_phase_correction(&phase->metrology.current.in_phase_correction[0], 0, phase_nv->current.phase_correction[0]);
+    set_sd16_phase_correction(&phase->metrology.neutral.in_phase_correction[0], 1, nv_parms.seg_a.s.neutral.phase_correction[0]);
 
 
     for (;;)
@@ -382,22 +361,32 @@ void main(void)
 						  /*D. updated this for 4 quadrant energy measurement */
 						  if(phase->readings.active_power >= 0 && phase->readings.reactive_power >= 0 ) //QI
 						  {
-							  phase->active_energy_import_counter += phase->readings.active_power;// variable used for pulse generation purpose
-							  phase->active_energy_counter_QI += phase->readings.active_power;
-							  while (phase->active_energy_counter_QI > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
-							  {
-								  phase->active_energy_counter_QI -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
-								  phase->consumed_active_energy_QI++;
-								  phase->inc_active_import_energy++; //hourly energy
-							  }
+						      if(phase->readings.active_power == 0 && phase->readings.reactive_power == 0)
+						      {
 
-							  phase->reactive_energy_counter_QI += phase->readings.reactive_power;
-							  while (phase->reactive_energy_counter_QI > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
-							  {
-								  phase->reactive_energy_counter_QI -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
-								  phase->consumed_reactive_energy_QI++;
-								  phase->inc_reactive_energy_QI++; //hourly energy
-							  }
+						      }
+						      else
+						      {
+                                    phase->active_energy_import_counter += phase->readings.active_power;// variable used for pulse generation purpose
+                                    phase->active_energy_counter_QI += phase->readings.active_power;
+                                   // overflowsamples += (phase->metrology.dot_prod_logged.sample_count-4096);
+                                   // second_counter++;
+                                    //phase->active_energy_counter_QI += mul_32_32(phase->readings.active_power, phase->metrology.dot_prod_logged.sample_count);
+                                    while (phase->active_energy_counter_QI >= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)//ENERGY_WATT_HOUR_THRESHOLD)//
+                                    {
+                                        phase->active_energy_counter_QI -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;//ENERGY_WATT_HOUR_THRESHOLD;//
+                                        phase->consumed_active_energy_QI++;
+                                        phase->inc_active_import_energy++; //hourly energy
+                                    }
+
+                                    phase->reactive_energy_counter_QI += phase->readings.reactive_power;
+                                    while (phase->reactive_energy_counter_QI > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
+                                    {
+                                        phase->reactive_energy_counter_QI -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
+                                        phase->consumed_reactive_energy_QI++;
+                                        phase->inc_reactive_energy_QI++; //hourly energy
+                                    }
+						      }
 							 //ActiveQuadrant = 1;
 						}
 						else if(phase->readings.active_power < 0 && phase->readings.reactive_power >= 0 ) //QII
@@ -421,14 +410,14 @@ void main(void)
 							  }
 							 //ActiveQuadrant = 2;
 						}
-						else if(phase->readings.active_power < 0 && phase->readings.reactive_power < 0 ) //QIII
+						else if(phase->readings.active_power < 0 && phase->readings.reactive_power <= 0 ) //QIII
 						{
 							 phase->readings.active_power = labs(phase->readings.active_power);
 							 phase->readings.reactive_power = labs(phase->readings.reactive_power);
 
 							 phase->active_energy_export_counter +=phase->readings.active_power;
 							 phase->active_energy_counter_QIII += phase->readings.active_power;
-							 while (phase->active_energy_counter_QIII > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
+							 while (phase->active_energy_counter_QIII >= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
 							 {
 								 phase->active_energy_counter_QIII -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
 								 phase->consumed_active_energy_QIII++;
@@ -436,7 +425,7 @@ void main(void)
 							 }
 
 							 phase->reactive_energy_counter_QIII += phase->readings.reactive_power;
-							 while (phase->reactive_energy_counter_QIII > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
+							 while (phase->reactive_energy_counter_QIII >= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
 							 {
 								 phase->reactive_energy_counter_QIII -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
 								 phase->consumed_reactive_energy_QIII++;
@@ -451,9 +440,12 @@ void main(void)
 
 							 phase->active_energy_import_counter +=phase->readings.active_power;// * phase->metrology.dot_prod_logged.sample_count;
 							 phase->active_energy_counter_QI += phase->readings.active_power;
-							  while (phase->active_energy_counter_QI > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
+							 //overflowsamples += (phase->metrology.dot_prod_logged.sample_count-4096);
+							 //second_counter++;
+							 //phase->active_energy_counter_QI += mul_32_32(phase->readings.active_power, phase->metrology.dot_prod_logged.sample_count);
+							  while (phase->active_energy_counter_QI >= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)//ENERGY_WATT_HOUR_THRESHOLD)//
 							  {
-								  phase->active_energy_counter_QI -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
+								  phase->active_energy_counter_QI -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;//ENERGY_WATT_HOUR_THRESHOLD;//
 								  phase->consumed_active_energy_QI++;
 								  phase->inc_active_import_energy++; //hourly energy
 							  }
@@ -465,7 +457,7 @@ void main(void)
 							 }
 							 */
 							 phase->reactive_energy_counter_QIV += phase->readings.reactive_power;
-							 while (phase->reactive_energy_counter_QIV > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
+							 while (phase->reactive_energy_counter_QIV >= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
 							 {
 								 phase->reactive_energy_counter_QIV -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
 								 phase->consumed_reactive_energy_QIV++;
@@ -529,7 +521,7 @@ void main(void)
                   if(status.task_exec_finished == 1)
                   {
                       status.task_exec_finished = 0;
-                      executeTasks();
+                      execute_tasks();
                       status.task_exec_finished = 1;
                   }                  
              }
@@ -559,7 +551,7 @@ void main(void)
 * writes low power mode entering backup data to Flash
 */
 volatile uint8_t __backingUp=0;
- void perform_low_battry_backup() //was __monitor function
+void perform_low_battry_backup() //was __monitor function
 {
         // back up for no battery conditions
         if(__backingUp == 0)
@@ -707,7 +699,7 @@ void custom_initialisation() {
      
         
         
-        Init_Scheduler();
+        init_scheduler();
         initTampperSwitchs();//should be initalized after scheduler because of its dependency
         InitUI();//should be initalized after scheduler because of its dependency
         
@@ -980,4 +972,30 @@ void restoreBackup()
                #endif
             write_to_eeprom(&rtcc,(uint8_t *)0,setRTCCheck);
   }
+}
+uint32_t epprom_backup_energy_counter;
+uint8_t flash_backup_energy_counter;
+#define BACKUP_TIME 180000 //msec
+void backup_energy_parameters();
+void check_for_backup()
+{
+    epprom_backup_energy_counter += phase->readings.active_power;
+    if(epprom_backup_energy_counter >= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME*1000)//1kwh
+    {
+        cancel_task(backup_energy_parameters);
+        schedule_task(backup_energy_parameters,BACKUP_TIME,BACKUP_TASK);
+    }
+
+}
+void backup_energy_parameters()
+{
+    //back up to eeprom
+    flash_backup_energy_counter++;
+    epprom_backup_energy_counter -=ENERGY_WATT_HOUR_THRESHOLD_CUSTOME*1000;
+    if(flash_backup_energy_counter >= 35)
+    {
+        //backup to flash memory
+        flash_backup_energy_counter = 0;
+    }
+    schedule_task(backup_energy_parameters,BACKUP_TIME,BACKUP_TASK);
 }

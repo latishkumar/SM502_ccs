@@ -1,5 +1,5 @@
-#include "Schaduler.h"
 #include <msp430.h>
+#include <Scheduler.h>
 
 volatile funcPointers tasks[MaxScheduledTasks];
 volatile uint8_t executable_Task_Index[MaxScheduledTasks];
@@ -13,7 +13,7 @@ volatile uint8_t Schaduler_counter=0;
 * Initializes time base for the scheduler
 * Initializes timer 2 to run in 5 ms interval
 */
-void Init_Scheduler()
+void init_scheduler()
 {
         /*
           TA2CLK =  16MHZ / 8 == 2000000
@@ -26,7 +26,7 @@ void Init_Scheduler()
         TA2CTL = TASSEL_2 | ID_3 | MC_0 | TAIE; //clock source is SMLCK ,divide by 8 ,up mode, enable interrupt 
         TA2CCR0 = 2000; //for 1msec interrupt period
         TA2EX0 = 8;//TAIDEX_8
-        stopSchaduler();
+        stop_scheduler();
 }
 
 
@@ -40,19 +40,19 @@ void Init_Scheduler()
 * @return -1 if the task is not scheduled
 *          xx: if the task is scheduled successfully, returns the task slot number
 */
-__monitor int8_t ScaduleTask(void(*Task)(),uint16_t time_in_ms,uint8_t task_slot)
+__monitor int8_t schedule_task(void(*Task)(),uint16_t time_in_ms,uint8_t task_slot)
 {
   
   if(task_slot < MaxScheduledTasks)
   {
     if(tasks[task_slot].time_in_ms != 0)
-       CancelTask2(Task);
+        cancel_task(Task);
   
        tasks[task_slot].time_in_ms = time_in_ms;
        tasks[task_slot].fp= Task;
        tasks[task_slot].counter = 0;
 //       executable_Task_Index[task_slot] = 0;
-       startSchaduler();
+       start_scheduler();
     return task_slot;
   }
   else 
@@ -65,7 +65,7 @@ __monitor int8_t ScaduleTask(void(*Task)(),uint16_t time_in_ms,uint8_t task_slot
 *  @return 1 if the task was canceled successfully
 *          0 if the task was not scheduled before
 */
-__monitor uint8_t CancelTask2( void(*Task)() )
+__monitor uint8_t cancel_task( void(*Task)() )
 {
   uint8_t i=0;
   for(;i<MaxScheduledTasks;i++)
@@ -82,7 +82,7 @@ __monitor uint8_t CancelTask2( void(*Task)() )
 /**
 * starts the scheduler
 */
-__monitor void startSchaduler()
+__monitor void start_scheduler()
 {
   if(SchadulerIsOn == 0)
   {
@@ -93,7 +93,7 @@ __monitor void startSchaduler()
 /**
 * stops the scheduler
 */
-__monitor void stopSchaduler()
+__monitor void stop_scheduler()
 {
 //  if((SchadulerIsOn == 1))
   {
@@ -133,7 +133,7 @@ __interrupt void TIMER2_A1_ISR(void)
            }
            if(temp_SC_Counter == 0)
            {
-             stopSchaduler();
+             stop_scheduler();
            }
        break;
     }  
@@ -143,7 +143,7 @@ __interrupt void TIMER2_A1_ISR(void)
 *  this method is introduced to run scheduled tasks asynchronously
 *  with out disturbing  our main task in the system( the ADC ISR)
 */
-void executeTasks()
+void execute_tasks()
 {
   
   uint8_t z =0;

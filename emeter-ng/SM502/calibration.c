@@ -73,64 +73,113 @@ const struct info_mem_s nv_parms =
 *                       = 0:Power
 *                         1:RMS Current
 *                         2:RMS Voltage
+*                         3:Shunt power
+*                         4:Shunt current
 */
 
 void updateCalibrationFactor(int16_t ErrorPercent,uint8_t type)
 {
-    if(type > 2)
+    if(type > 4)
         return;
     
     uint8_t sign = ErrorPercent<0?1:0;
     if(sign)
       ErrorPercent = -ErrorPercent;
+
+    uint32_t z  = 0;
+    int a = 0;
+    int *address;
+
+    switch(type)
+    {
+    case 0: //Live power scaler
+        z = (uint32_t)nv_parms.seg_a.s.chan1.current.P_scale_factor[0] * ErrorPercent;
+        z /= 10000;
+
+        if(sign)
+            a= nv_parms.seg_a.s.chan1.current.P_scale_factor[0] + (uint16_t)z;
+        else
+        {
+            a= nv_parms.seg_a.s.chan1.current.P_scale_factor[0] - (uint16_t)z;
+            if(a <= 0)
+            {
+                return;
+            }
+        }
+        address = (int *)(&nv_parms.seg_a.s.chan1.current.P_scale_factor[0]);
+        break;
     
+    case 1: //CT current scaler
+        z = (uint32_t)nv_parms.seg_a.s.chan1.current.I_rms_scale_factor * ErrorPercent;
+        z /= 10000;
     
-     uint32_t z  = 0; 
-     int a = 0;
-     int *address;
-     
-     
-     switch(type)
-     {
-       case 0:
-            z = (uint32_t)nv_parms.seg_a.s.chan1.current.P_scale_factor[0] * ErrorPercent;
-            z /= 10000;
-            
-           if(sign)
-              a= nv_parms.seg_a.s.chan1.current.P_scale_factor[0] + (uint16_t)z;
-           else
-              a= nv_parms.seg_a.s.chan1.current.P_scale_factor[0] - (uint16_t)z;
-           
-           address = (int *)(&nv_parms.seg_a.s.chan1.current.P_scale_factor[0]);  
-           
-         break;
-       case 1:
-            z = (uint32_t)nv_parms.seg_a.s.chan1.current.I_rms_scale_factor * ErrorPercent;
-            z /= 10000;  
-         
-         
-           if(sign)
-              a= nv_parms.seg_a.s.chan1.current.I_rms_scale_factor + (uint16_t)z;
-           else
-              a= nv_parms.seg_a.s.chan1.current.I_rms_scale_factor - (uint16_t)z;         
-          
-           address = (int *)(&nv_parms.seg_a.s.chan1.current.I_rms_scale_factor);  
-         break;
-       case 2:
-           
-          z = (uint32_t)nv_parms.seg_a.s.chan1.V_rms_scale_factor * ErrorPercent;
-          z /= 10000; 
-         
-          if(sign)
-              a= nv_parms.seg_a.s.chan1.V_rms_scale_factor + (uint16_t)z;
-           else
-              a= nv_parms.seg_a.s.chan1.V_rms_scale_factor - (uint16_t)z;         
-           
-          address = (int *)(&nv_parms.seg_a.s.chan1.V_rms_scale_factor);       
-         break;
+        if(sign)
+            a= nv_parms.seg_a.s.chan1.current.I_rms_scale_factor + (uint16_t)z;
+        else
+        {
+            a= nv_parms.seg_a.s.chan1.current.I_rms_scale_factor - (uint16_t)z;
+            if(a <= 0)
+            {
+                return;
+            }
+        }
+        address = (int *)(&nv_parms.seg_a.s.chan1.current.I_rms_scale_factor);
+        break;
+
+    case 2: //voltage scaler
+        z = (uint32_t)nv_parms.seg_a.s.chan1.V_rms_scale_factor * ErrorPercent;
+        z /= 10000;
+
+        if(sign)
+            a= nv_parms.seg_a.s.chan1.V_rms_scale_factor + (uint16_t)z;
+        else
+        {
+            a= nv_parms.seg_a.s.chan1.V_rms_scale_factor - (uint16_t)z;
+            if(a <= 0)
+            {
+                return;
+            }
+        }
+        address = (int *)(&nv_parms.seg_a.s.chan1.V_rms_scale_factor);
+        break;
+
+    case 3: //Neutral power scaler
+        z = (uint32_t)nv_parms.seg_a.s.neutral.P_scale_factor[0] * ErrorPercent;
+        z /= 10000;
+
+        if(sign)
+            a= nv_parms.seg_a.s.neutral.P_scale_factor[0] + (uint16_t)z;
+        else
+        {
+            a= nv_parms.seg_a.s.neutral.P_scale_factor[0] - (uint16_t)z;
+            if(a <= 0)
+            {
+                return;
+            }
+        }
+        address = (int *)(&nv_parms.seg_a.s.neutral.P_scale_factor[0]);
+        break;
+
+    case 4: //Neutral current scaler
+        z = (uint32_t)nv_parms.seg_a.s.neutral.I_rms_scale_factor * ErrorPercent;
+        z /= 10000;
+
+        if(sign)
+            a= nv_parms.seg_a.s.neutral.I_rms_scale_factor + (uint16_t)z;
+        else
+        {
+            a= nv_parms.seg_a.s.neutral.I_rms_scale_factor - (uint16_t)z;
+            if(a <= 0)
+            {
+                return;
+            }
+        }
+        address = (int *)(&nv_parms.seg_a.s.neutral.I_rms_scale_factor);
+        break;
+
        default:
          return;
-     }     
+    }
      flash_replace16(address,a);    
 }
 

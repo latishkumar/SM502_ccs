@@ -10,6 +10,8 @@
 
 extern int16_t alarm_status;
 
+extern uint8_t permitted_power_imbalance_fraction;
+
 extern int usb_comm_speed;
 
 void reset_persistent_events(void *data, int data_direction);
@@ -36,5 +38,10 @@ void bor_reset(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *respo
 
 void configure_usb_baudrate(void *data, int data_direction);
 
+void calibrate_neutral_power_scaler(void *data, int data_direction);
+
+void calibrate_neutral_current_scaler(void *data, int data_direction);
+
+void configure_permitted_power_imbalance_fraction(void *data, int data_direction);
 
 #endif /* DLMS_ABSTRACT_OBJECTS_MANUFACTURER_SPECIFIC_OBJECTS_H_ */

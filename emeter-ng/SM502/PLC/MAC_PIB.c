@@ -6,9 +6,8 @@
 #include "Attach.h"
 
 #include "Shutdown.h"
-#include "../Schaduler.h"
-
 #include <stdint.h>
+#include <Scheduler.h>
 
 GET_MAC_PID_Replay MAC_PIB_replay;
 
@@ -42,7 +41,7 @@ void KeepAlive()
    if(plc_connection_status!= SENDING_ATTACH_REQUEST)  
    {
         GET_MAC_PIB_Request(0x24);
-        keepAliveTaskNumber = ScaduleTask(Get_Mac_PIB_TimedOut,keepAliveTimeOutTime_ms,MAC_PIB_TIMEOUT_TASK);//SchaduleTask(Get_Mac_PIB_TimedOut,keepAliveTimeOutTime_ms);
+        keepAliveTaskNumber = schedule_task(Get_Mac_PIB_TimedOut,keepAliveTimeOutTime_ms,MAC_PIB_TIMEOUT_TASK);//SchaduleTask(Get_Mac_PIB_TimedOut,keepAliveTimeOutTime_ms);
    }
    
 }
@@ -82,7 +81,7 @@ void GET_MAC_PIB_rep(GET_MAC_PID_Replay *Replay)
 printf("-> Keep Alive Response: Meter Disconnected\n");
 #endif 
 
-       CancelTask2(Get_Mac_PIB_TimedOut);
+        cancel_task(Get_Mac_PIB_TimedOut);
 //       PLC_INIT_step4_to_8();
        
        
@@ -98,9 +97,9 @@ printf("-> Keep Alive Response: Meter Disconnected\n");
 #ifdef CUSTOM_LOGGER
 printf("-> Keep Alive Response: CL Closed\n");
 #endif       
-       CancelTask2(Get_Mac_PIB_TimedOut);
+       cancel_task(Get_Mac_PIB_TimedOut);
        Attach_Request(&req);
-       ScaduleTask(AttachTimedOut,AttachRequestTimeout,ATTACH_TIMEOUT_TASK);//SchaduleTask(AttachTimedOut,AttachRequestTimeout);   
+       schedule_task(AttachTimedOut,AttachRequestTimeout,ATTACH_TIMEOUT_TASK);//SchaduleTask(AttachTimedOut,AttachRequestTimeout);
        pib_status = PIB_CL_CLOSE;
     }
     else if((*(Replay->AttributeValue) == 1) || (*(Replay->AttributeValue) == 2))
@@ -108,8 +107,8 @@ printf("-> Keep Alive Response: CL Closed\n");
 #ifdef CUSTOM_LOGGER
 printf("-> Keep Alive Response: OK\n");
 #endif 
-          CancelTask2(Get_Mac_PIB_TimedOut);
-          keepAliveTaskNumber = ScaduleTask(KeepAlive,keepAliveTimeOutTime_ms,KEEP_ALIVE_TASK);//SchaduleTask(KeepAlive,keepAliveTimeOutTime_ms);
+          cancel_task(Get_Mac_PIB_TimedOut);
+          keepAliveTaskNumber = schedule_task(KeepAlive,keepAliveTimeOutTime_ms,KEEP_ALIVE_TASK);//SchaduleTask(KeepAlive,keepAliveTimeOutTime_ms);
           pib_status = PIB_OK;
     }
   }  
@@ -125,15 +124,15 @@ printf("-> Keep Alive Timed Out\n");
   {
      // do this asyncroniously 
      // CancelTask2(Get_Mac_PIB_TimedOut);
-     CancelTask2(KeepAlive);
-     CancelTask2(otherPLCRequestsTimeOut);
+     cancel_task(KeepAlive);
+     cancel_task(otherPLCRequestsTimeOut);
      temp_counter = 0;
      otherPLCRequestsTimeOut();
      pib_status = PIB_NOK;
   }
   else
   {
-     keepAliveTaskNumber = ScaduleTask(KeepAlive,keepAliveTimeOutTime_ms,KEEP_ALIVE_TASK);//SchaduleTask(KeepAlive,keepAliveTimeOutTime_ms);
+     keepAliveTaskNumber = schedule_task(KeepAlive,keepAliveTimeOutTime_ms,KEEP_ALIVE_TASK);//SchaduleTask(KeepAlive,keepAliveTimeOutTime_ms);
 //     pib_status = PIB_NOK;
   }
 }

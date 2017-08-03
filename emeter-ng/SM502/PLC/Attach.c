@@ -4,9 +4,9 @@
 #include "Attach.h"
 #include "PLC.h"
 #include "MAC_PIB.h"
-#include "../Schaduler.h"
 #include "Configration.h"
 #include <stdio.h>
+#include <Scheduler.h>
 
 
 
@@ -86,9 +86,9 @@ printf("-> Attach Response %d\n",x);
        //Load_System_Config_Request(PRIME_LLC_Config,'A');
          
        //start the keep alive process   
-       CancelTask2( AttachTimedOut );
-       CancelTask2( Get_Mac_PIB_TimedOut );
-       keepAliveTaskNumber = ScaduleTask(KeepAlive,keepAliveTimeOutTime_ms,KEEP_ALIVE_TASK);//SchaduleTask(KeepAlive,keepAliveTimeOutTime_ms);
+       cancel_task( AttachTimedOut );
+       cancel_task( Get_Mac_PIB_TimedOut );
+       keepAliveTaskNumber = schedule_task(KeepAlive,keepAliveTimeOutTime_ms,KEEP_ALIVE_TASK);//SchaduleTask(KeepAlive,keepAliveTimeOutTime_ms);
        plc_connection_status = ATTACHED;
   }
 }
@@ -104,7 +104,7 @@ void AttachTimedOut()
   else
   {       
       
-       ScaduleTask(AttachTimedOut,AttachRequestTimeout,ATTACH_TIMEOUT_TASK);//SchaduleTask(AttachTimedOut,AttachRequestTimeout);   
+      schedule_task(AttachTimedOut,AttachRequestTimeout,ATTACH_TIMEOUT_TASK);//SchaduleTask(AttachTimedOut,AttachRequestTimeout);
   }
   
 }

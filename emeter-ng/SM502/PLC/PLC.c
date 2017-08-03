@@ -22,7 +22,7 @@
 
 #include "../Logger.h"
 #include "../self_diagnosis.h"
-#include "../Schaduler.h"   
+#include <Scheduler.h>   
 
 #include <stdio.h>
    
@@ -381,7 +381,7 @@ void InitPLC2()
            Attach_Request(&req);//requires 30 Min Timeout 
            statusRecived =0;
 
-           ScaduleTask(AttachTimedOut,AttachRequestTimeout,ATTACH_TIMEOUT_TASK);
+           schedule_task(AttachTimedOut,AttachRequestTimeout,ATTACH_TIMEOUT_TASK);
            PLC_INIT_STATE++; 
            
        break;
@@ -448,8 +448,8 @@ int SendMessage(PLC_Message *Message)
      //if there is communication 
   if(tasks[KEEP_ALIVE_TASK].time_in_ms !=0 && jump_cancel_getMACPIB!=1)
   {
-      CancelTask2(Get_Mac_PIB_TimedOut);
-      keepAliveTaskNumber = ScaduleTask(KeepAlive,keepAliveTimeOutTime_ms,KEEP_ALIVE_TASK);//SchaduleTask(KeepAlive,keepAliveTimeOutTime_ms);
+      cancel_task(Get_Mac_PIB_TimedOut);
+      keepAliveTaskNumber = schedule_task(KeepAlive,keepAliveTimeOutTime_ms,KEEP_ALIVE_TASK);//SchaduleTask(KeepAlive,keepAliveTimeOutTime_ms);
       jump_cancel_getMACPIB = 0;
   }
   
@@ -545,7 +545,7 @@ void ProcessRecivedPLCMessage()
       
       if(RecivedMessage.header.Message_Type == PLC_DATA_TRANSFER)
       {
-           CancelTask2(dataTransferTimedout);
+          cancel_task(dataTransferTimedout);
            plc_request_status = REQUIEST_STATUS_OK;
           //reset dataTransfer time out 
            Mode  = *(RecivedMessage.Payload++);
@@ -606,7 +606,7 @@ void ProcessRecivedPLCMessage()
              #ifdef MONITOR_HP_COM
               printf("Attach Confirm");
              #endif 
-             CancelTask2(AttachTimedOut);
+              cancel_task(AttachTimedOut);
              
              temp = *(RecivedMessage.Payload++);
              confirm.status = temp;
@@ -640,7 +640,7 @@ void ProcessRecivedPLCMessage()
       }
       else 
       {
-          CancelTask2(otherPLCRequestsTimeOut);
+          cancel_task(otherPLCRequestsTimeOut);
           
           if(RecivedMessage.header.Message_Type == PLC_GET_SYSTEM_INFO)
           {

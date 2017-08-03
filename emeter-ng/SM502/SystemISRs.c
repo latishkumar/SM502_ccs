@@ -4,8 +4,8 @@
 #include "Logger.h"
 #include "Tamper.h"
 #include "UI.h"
-#include "Schaduler.h"
 #include <stdio.h>
+#include <Scheduler.h>
 #include "iec62056_uart.h"
 #include "PLC/PLC_UART.h"
 
@@ -186,7 +186,7 @@ __interrupt void Port_1(void)
         if(LCTamperSchaduled == 0)
         {
             LCTamperSchaduled =1;
-            ScaduleTask(ProcessTamperLC,100,PROCESS_TAMPER_LC_TASK);//SchaduleTask(&ProcessTamperLC,100);
+            schedule_task(ProcessTamperLC,100,PROCESS_TAMPER_LC_TASK);//SchaduleTask(&ProcessTamperLC,100);
         }
       }
 
@@ -219,7 +219,7 @@ __interrupt void Port_1(void)
         if(UCTamperSchaduled == 0)
         {
             UCTamperSchaduled =1;
-            ScaduleTask(ProcessTamperUC,100,PROCESS_TAMPER_UC_TASK);//SchaduleTask(&ProcessTamperUC,100);
+            schedule_task(ProcessTamperUC,100,PROCESS_TAMPER_UC_TASK);//SchaduleTask(&ProcessTamperUC,100);
         }
       }
       
@@ -259,7 +259,7 @@ void custom_power_fail_handler() {
         BuzzerOff();
         
         //stop the scaduler from executing any scaduled tasks 
-        stopSchaduler();
+        stop_scheduler();
         
 
         

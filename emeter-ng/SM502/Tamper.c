@@ -7,10 +7,10 @@
 //#include "RTCC.h"
 #include "Logger.h" 
 #include <stdint.h>
+#include <Scheduler.h>
 #include "errors.h"
 
 #include "PLC/PLC.h"
-#include "Schaduler.h"
 
 extern MeterStatus status;
 extern rtc_t rtcc;
@@ -78,7 +78,7 @@ void initTamper()
 void initTampperSwitchs()
 {
                                             
-    ScaduleTask(initTamper,init_tamper_time,GENERAL_TASK);
+    schedule_task(initTamper,init_tamper_time,GENERAL_TASK);
     
 }
 /**
@@ -239,7 +239,7 @@ void UpdateTamperIndicators()
    {     
     #ifdef ALARM_ON_TAMPER     
          SecondBeeps();//initial beep when the tamper happens
-         ScaduleTask(ToggleBuzzer2,MINUTE,TOOGLE_BUZZER_TASK); 
+         schedule_task(ToggleBuzzer2,MINUTE,TOOGLE_BUZZER_TASK);
     #endif     
    }   
   
@@ -251,7 +251,7 @@ void UpdateTamperIndicators()
    else
    {
      status.TamperDetectedStatus = 0;
-     CancelTask2(ToggleBuzzer2);
+     cancel_task(ToggleBuzzer2);
      BuzzerOff();
    }
 }

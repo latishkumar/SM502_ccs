@@ -83,7 +83,8 @@
 #include <io.h>
 #include <emeter-toolkit.h>
 #include "emeter-structs.h"
-
+#include "configuration_defaults.h"
+#include "manufacturer_specific_objects.h"
 int32_t xxx;
 int32_t yyy;
 
@@ -160,7 +161,7 @@ static int32_t test_phase_balance(int64_t live_signal, int64_t neutral_signal, i
     if (live_signal <= threshold  &&  neutral_signal <= threshold)
         permitted_imbalance_fraction = RELAXED_IMBALANCE_FRACTION;
     else
-        permitted_imbalance_fraction = PERMITTED_IMBALANCE_FRACTION;
+        permitted_imbalance_fraction = permitted_power_imbalance_fraction;
     /* We have a signal strong enough for proper assessment. */
     if ((phase->status & PHASE_UNBALANCED))
     {
@@ -219,7 +220,7 @@ static int32_t test_phase_balance(int64_t live_signal, int64_t neutral_signal, i
        imbalance. */
     if (live_signal <= threshold  &&  neutral_signal <= threshold)
         phase->status &= ~PHASE_UNBALANCED;
-    if ((phase->status & CURRENT_FROM_NEUTRAL))
+    if ((phase->status & CURRENT_FROM_NEUTRAL) && (neutral_signal > MIN_ACTIVE_POWER_CONSIDERED_ZERO))
         return  neutral_signal;
     return  live_signal;
 }
