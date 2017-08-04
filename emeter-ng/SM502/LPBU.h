@@ -19,7 +19,7 @@ struct INFOA_BACK_UP
       uint32_t active_energy_counter_QI;
       uint32_t active_energy_counter_QII;
       uint32_t active_energy_counter_QIII; // must be removed
-      uint32_t active_energy_counter_QIV; // must be removed
+      uint32_t active_energy_counter_QIV;  // must be removed
       
       
       uint32_t active_energy_import_counter;

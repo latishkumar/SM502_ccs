@@ -1118,7 +1118,7 @@ uint8_t updateNextLogAddress(uint8_t type)
     else if(type == 3) //standard event log
 	{
         LastEventLogAddress += EventLogSize;
-		if(LastEventLogAddress > EventLog_End)
+		if(LastEventLogAddress >= EventLog_End)
 		{
             tmp2 = 1;
 			uint8_t z = setEventOverlapFlag(&tmp2,&type);
@@ -1134,7 +1134,7 @@ uint8_t updateNextLogAddress(uint8_t type)
     {
 		last_fraud_event_log_address += EVENT_LOG_TYPE_SIZE;
 
-        if(last_fraud_event_log_address >  FRAUD_EVENT_LOG_ADDRESS_END)
+        if(last_fraud_event_log_address >=  FRAUD_EVENT_LOG_ADDRESS_END)
         {
         	tmp2 = 1;
 			uint8_t z = setEventOverlapFlag(&tmp2,&type);
@@ -1149,7 +1149,7 @@ uint8_t updateNextLogAddress(uint8_t type)
     {
 		last_power_qual_event_log_address += EVENT_LOG_TYPE_SIZE;
 
-        if(last_power_qual_event_log_address >  POWER_QUAL_LOG_ADDRESS_END)
+        if(last_power_qual_event_log_address >=  POWER_QUAL_LOG_ADDRESS_END)
         {
         	tmp2 = 1;
 			uint8_t z = setEventOverlapFlag(&tmp2,&type);
@@ -1164,7 +1164,7 @@ uint8_t updateNextLogAddress(uint8_t type)
     {
 		last_common_event_log_address += EVENT_LOG_TYPE_SIZE;
 
-        if(last_common_event_log_address >  COMMON_LOG_ADDRESS_END)
+        if(last_common_event_log_address >=  COMMON_LOG_ADDRESS_END)
         {
         	tmp2 = 1;
 			uint8_t z = setEventOverlapFlag(&tmp2,&type);
@@ -1179,7 +1179,7 @@ uint8_t updateNextLogAddress(uint8_t type)
     {
 		last_firmware_event_log_address += FIRMWARE_EVENT_LOG_TYPE_SIZE;
 
-        if(last_firmware_event_log_address >  FIRMWARE_LOG_ADDRESS_END)
+        if(last_firmware_event_log_address >=  FIRMWARE_LOG_ADDRESS_END)
         {
         	tmp2 = 1;
 			uint8_t z = setEventOverlapFlag(&tmp2,&type);
@@ -1194,7 +1194,7 @@ uint8_t updateNextLogAddress(uint8_t type)
     {
 		last_synchronization_event_log_address += TIME_BOUND_EVENT_LOG_TYPE_SIZE;
 
-        if(last_synchronization_event_log_address >  SYNCHRONIZATION_LOG_ADDRESS_END)
+        if(last_synchronization_event_log_address >=  SYNCHRONIZATION_LOG_ADDRESS_END)
         {
         	tmp2 = 1;
 			uint8_t z = setEventOverlapFlag(&tmp2,&type);
@@ -1209,7 +1209,7 @@ uint8_t updateNextLogAddress(uint8_t type)
     {
 		last_disconnect_event_log_address += DISCONNECT_EVENT_LOG_TYPE_SIZE;
 
-        if(last_disconnect_event_log_address >  DISCONNECT_LOG_ADDRESS_END)
+        if(last_disconnect_event_log_address >=  DISCONNECT_LOG_ADDRESS_END)
         {
         	tmp2 = 1;
 			uint8_t z =	setEventOverlapFlag(&tmp2,&type);
@@ -1878,9 +1878,9 @@ int8_t get_daily_snapshot_energy_profile(void *lt,uint32_t EntryNumber)
        if(status.daily_snapshot_energy_overlapped == 1)//handle cirular buffer
        {
           uint32_t val = (DAILY_SNAPSHOT_LOG_SIZE*EntryNumber);
-          if(last_daily_snapshot_log_address + val > DAILY_SNAPSHOT_LOG_ADDRESS_END)
+          if(last_daily_snapshot_log_address + val >= DAILY_SNAPSHOT_LOG_ADDRESS_END)
           {
-              StartAddress = last_daily_snapshot_log_address + val - (DAILY_SNAPSHOT_LOG_ADDRESS_END);
+              StartAddress = (DAILY_SNAPSHOT_LOG_ADDRESS_START + last_daily_snapshot_log_address + val) - (DAILY_SNAPSHOT_LOG_ADDRESS_END);
              //StartAddress = val + DAILY_SNAPSHOT_LOG_ADDRESS_START - EventLog_End;
           }
           else{
@@ -1903,12 +1903,13 @@ int8_t getEvent2(void *lt,uint32_t EntryNumber)
        if(status.standard_event_log_overlapped == 1)//handle cirular buffer
        {
           uint32_t val = (EventLogSize*EntryNumber);
-          if(val + LastEventLogAddress > EventLog_End)
+          if((LastEventLogAddress + val) >=EventLog_End)
           {
-             StartAddress = val + LastEventLogAddress - EventLog_End;
+             StartAddress = (EventLogAddress_Start + val + LastEventLogAddress) - (EventLog_End);
           }
-          else{
-             StartAddress = (LastEventLogAddress + val); //TODO it jumps the first entry
+          else
+          {
+             StartAddress = (LastEventLogAddress + val);
           }
        }
        else       
@@ -1962,12 +1963,13 @@ int8_t get_fraud_event(void *lt,uint32_t EntryNumber)
        if(status.fraud_event_log_overlapped == 1)//handle cirular buffer
        {
           uint32_t val = (EVENT_LOG_TYPE_SIZE*EntryNumber);
-          if(val + last_fraud_event_log_address > FRAUD_EVENT_LOG_ADDRESS_END)
+          if((last_fraud_event_log_address + val) >= FRAUD_EVENT_LOG_ADDRESS_END)
           {
-             StartAddress = val + last_fraud_event_log_address - FRAUD_EVENT_LOG_ADDRESS_END;
+             StartAddress = (FRAUD_EVENT_LOG_ADDRESS_START + val + last_fraud_event_log_address) - (FRAUD_EVENT_LOG_ADDRESS_END);
           }
-          else{
-             StartAddress = (last_fraud_event_log_address + val); //TODO it jumps the first entry
+          else
+          {
+             StartAddress = (last_fraud_event_log_address + val);
           }
        }
        else
@@ -2009,12 +2011,13 @@ int8_t get_power_qual_event(void *lt,uint32_t EntryNumber)
        if(status.power_qual_event_log_overlapped == 1)//handle cirular buffer
        {
           uint32_t val = (EVENT_LOG_TYPE_SIZE*EntryNumber);
-          if(val + last_power_qual_event_log_address > POWER_QUAL_LOG_ADDRESS_END)
+          if((last_power_qual_event_log_address + val)  >= POWER_QUAL_LOG_ADDRESS_END)
           {
-             StartAddress = val + last_power_qual_event_log_address - POWER_QUAL_LOG_ADDRESS_END;
+             StartAddress = (POWER_QUAL_LOG_ADDRESS_START + val + last_power_qual_event_log_address) - (POWER_QUAL_LOG_ADDRESS_END);
           }
-          else{
-             StartAddress = (last_power_qual_event_log_address + val); //TODO it jumps the first entry
+          else
+          {
+             StartAddress = (last_power_qual_event_log_address + val);
           }
        }
        else
@@ -2056,12 +2059,13 @@ int8_t get_common_event(void *lt,uint32_t EntryNumber)
        if(status.common_event_log_overlapped == 1)//handle cirular buffer
        {
           uint32_t val = (EVENT_LOG_TYPE_SIZE*EntryNumber);
-          if(val + last_common_event_log_address > COMMON_LOG_ADDRESS_END)
+          if((last_common_event_log_address + val) >= COMMON_LOG_ADDRESS_END)
           {
-             StartAddress = val + last_common_event_log_address - COMMON_LOG_ADDRESS_END;
+             StartAddress = (COMMON_LOG_ADDRESS_START + val + last_common_event_log_address) - (COMMON_LOG_ADDRESS_END);
           }
-          else{
-             StartAddress = (last_common_event_log_address + val); //TODO it jumps the first entry
+          else
+          {
+             StartAddress = (last_common_event_log_address + val);
           }
        }
        else
@@ -2128,12 +2132,13 @@ int8_t get_firmware_event(void *lt,uint32_t EntryNumber)
        if(status.firmware_event_log_overlapped == 1)//handle cirular buffer
        {
           uint32_t val = (FIRMWARE_EVENT_LOG_TYPE_SIZE * EntryNumber);
-          if(val + last_firmware_event_log_address > FIRMWARE_LOG_ADDRESS_END)
+          if((last_firmware_event_log_address + val) >= FIRMWARE_LOG_ADDRESS_END)
           {
-             StartAddress = val + last_firmware_event_log_address - FIRMWARE_LOG_ADDRESS_END;
+             StartAddress = (FIRMWARE_LOG_ADDRESS_START + val + last_firmware_event_log_address) - (FIRMWARE_LOG_ADDRESS_END);
           }
-          else{
-             StartAddress = (last_firmware_event_log_address + val); //TODO it jumps the first entry
+          else
+          {
+             StartAddress = (last_firmware_event_log_address + val);
           }
        }
        else
@@ -2191,12 +2196,13 @@ int8_t get_synchronization_event(void *lt,uint32_t EntryNumber)
        if(status.synchronization_event_log_overlapped == 1)//handle cirular buffer
        {
           uint32_t val = (TIME_BOUND_EVENT_LOG_TYPE_SIZE * EntryNumber);
-          if(val + last_synchronization_event_log_address > SYNCHRONIZATION_LOG_ADDRESS_END)
+          if((last_synchronization_event_log_address + val) >= SYNCHRONIZATION_LOG_ADDRESS_END)
           {
-             StartAddress = val + last_synchronization_event_log_address - SYNCHRONIZATION_LOG_ADDRESS_END;
+             StartAddress = (SYNCHRONIZATION_LOG_ADDRESS_START + val + last_synchronization_event_log_address) - (SYNCHRONIZATION_LOG_ADDRESS_END);
           }
-          else{
-             StartAddress = (last_synchronization_event_log_address + val); //TODO it jumps the first entry
+          else
+          {
+             StartAddress = (last_synchronization_event_log_address + val);
           }
        }
        else
@@ -2250,12 +2256,13 @@ int8_t get_disconnect_event(void *lt,uint32_t EntryNumber)
        if(status.disconnect_event_log_overlapped == 1)//handle cirular buffer
        {
           uint32_t val = (DISCONNECT_EVENT_LOG_TYPE_SIZE * EntryNumber);
-          if(val + last_disconnect_event_log_address > DISCONNECT_LOG_ADDRESS_END)
+          if((last_disconnect_event_log_address + val) >= DISCONNECT_LOG_ADDRESS_END)
           {
-             StartAddress = val + last_disconnect_event_log_address - DISCONNECT_LOG_ADDRESS_END;
+             StartAddress = (DISCONNECT_LOG_ADDRESS_START + val + last_disconnect_event_log_address) - (DISCONNECT_LOG_ADDRESS_END);
           }
-          else{
-             StartAddress = (last_disconnect_event_log_address + val); //TODO it jumps the first entry
+          else
+          {
+             StartAddress = (last_disconnect_event_log_address + val);
           }
        }
        else

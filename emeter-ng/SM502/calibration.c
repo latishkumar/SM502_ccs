@@ -36,7 +36,7 @@ const struct info_mem_s nv_parms =
         {
             //(IRMS_SUPPORT)
             DEFAULT_I_RMS_SCALE_FACTOR_NEUTRAL,
-            0,
+            10000,
 
             DEFAULT_P_SCALE_FACTOR_NEUTRAL,
             DEFAULT_I_DC_ESTIMATE << 16,

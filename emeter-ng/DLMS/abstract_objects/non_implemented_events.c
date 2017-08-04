@@ -56,9 +56,9 @@ void capture_demand_event_log(void *data, int direction)
    // interpret_template(data, direction, Load_Profile_Buffer_Template, sizeof(Load_Profile_Buffer_Template));
    msg_info.template = demand_event_log_template;
    msg_info.sz_template = sizeof(demand_event_log_template);
-   msg_info.num_entries = 1;
-   msg_info.start_entry=1;
-   msg_info.column_szs = demand_event_log_column_szs;
+   msg_info.num_entries = 0;
+   msg_info.start_entry = 0;
+   msg_info.column_szs  = demand_event_log_column_szs;
 }
 const uint16_t finished_qual_event_log_column_szs[] = {16,18};
 /*
@@ -105,9 +105,9 @@ void capture_finished_qual_event_log(void *data, int direction)
    // interpret_template(data, direction, Load_Profile_Buffer_Template, sizeof(Load_Profile_Buffer_Template));
    msg_info.template = finished_qual_event_log_template;
    msg_info.sz_template = sizeof(finished_qual_event_log_template);
-   msg_info.num_entries = 1;
-   msg_info.start_entry = 1;
-   msg_info.column_szs = finished_qual_event_log_column_szs;
+   msg_info.num_entries = 0;
+   msg_info.start_entry = 0;
+   msg_info.column_szs  = finished_qual_event_log_column_szs;
 }
 const uint16_t import_event_log_column_szs[] = {16,18};
 /*
@@ -149,9 +149,9 @@ void capture_import_event_log(void *data, int direction)
    // interpret_template(data, direction, Load_Profile_Buffer_Template, sizeof(Load_Profile_Buffer_Template));
    msg_info.template = import_event_log_template;
    msg_info.sz_template = sizeof(import_event_log_template);
-   msg_info.num_entries = 1;
-   msg_info.start_entry=1;
-   msg_info.column_szs = import_event_log_column_szs;
+   msg_info.num_entries = 0;
+   msg_info.start_entry = 0;
+   msg_info.column_szs  = import_event_log_column_szs;
 }
 /*
  * Reset method for event log
