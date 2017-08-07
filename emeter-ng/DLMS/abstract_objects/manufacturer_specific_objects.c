@@ -247,10 +247,10 @@ void decrement_balance(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_
  * Method for BOR reset
  */
 void Reset_System();
-void perform_low_battry_backup();
+void perform_flash_backup(uint8_t backup_type);
 void bor_reset(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
-    perform_low_battry_backup();
+    perform_flash_backup(0x04); //low battery backup
 	Reset_System();
 	*response_len = 0;
 }
@@ -332,7 +332,7 @@ void configure_permitted_power_imbalance_fraction(void *data, int data_direction
       uint8_t nv_2 = 0;
       uint8_t *ptr2 = data;
       nv_2 = *ptr2;
-      permitted_power_imbalance_fraction = nv_2;
+      permitted_power_imbalance_fraction = nv_2; //requires to be written in eeprom
     }
     else if(data_direction == ATTR_READ)
     {

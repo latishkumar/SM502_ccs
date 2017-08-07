@@ -198,8 +198,8 @@ void obj_load_profile_reset(uint8_t *data,uint16_t data_len,uint8_t *response,ui
 void obj_load_profile_capture(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
     hourly_energy_log_t tmp;
-    tmp.inc_active_import_energy = (uint16_t) chan1.inc_active_import_energy;
-    tmp.inc_active_export_energy = (uint16_t) chan1.inc_active_export_energy;
+    tmp.inc_active_import_energy = (uint16_t) chan1.inc_import_active_energy;
+    tmp.inc_active_export_energy = (uint16_t) chan1.inc_export_active_energy;
     tmp.inc_reactive_energy_QI   = (uint16_t) chan1.inc_reactive_energy_QI;
     tmp.inc_reactive_energy_QII  = (uint16_t) chan1.inc_reactive_energy_QII;
     tmp.inc_reactive_energy_QIII = (uint16_t) chan1.inc_reactive_energy_QIII;
@@ -209,8 +209,8 @@ void obj_load_profile_capture(uint8_t *data,uint16_t data_len,uint8_t *response,
     write_to_eeprom(&tmp,(uint8_t *)0,log_hourly_energy_profile);
 
     //reset hourly energy registers
-    chan1.inc_active_import_energy = 0;
-    chan1.inc_active_export_energy = 0;
+    chan1.inc_import_active_energy = 0;
+    chan1.inc_export_active_energy = 0;
     chan1.inc_reactive_energy_QI = 0;
     chan1.inc_reactive_energy_QII = 0;
     chan1.inc_reactive_energy_QIII = 0;

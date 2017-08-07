@@ -544,7 +544,7 @@ int64_t get_numeric_item(int item)
     case ITEM_TAG_KVAR_TOTAL:   break;       //   val = P_Apparent; changed by E.E need to be implemented
     
     case ITEM_TAG_CUM_KWH_TOTAL:  //instantanious profile , done test 
-      val = phase->active_energy_import;        
+      val = phase->import_active_energy_QI_QIV;
     break;
     
     case ITEM_TAG_RI_PLUS:
@@ -561,10 +561,10 @@ int64_t get_numeric_item(int item)
       break;
     
     case ITEM_TAG_ACTIVE_ENERGY_PLUS:
-      val = phase->active_energy_import;
+      val = phase->import_active_energy_QI_QIV;
       break;
     case ITEM_TAG_ACTIVE_ENERGY_MINUS:
-      val = phase->active_energy_export;
+      val = phase->export_active_energy_QII_QIII;
       break;
     
     case ITEM_TAG_ACTIVE_POWER_IMPORT:

@@ -365,7 +365,7 @@ void UpdateDisplay_c() {
                            AM_Energy(1);
                         }
                         
-                        WriteFloat_c(chan1.active_energy_import,3);
+                        WriteFloat_c(chan1.import_active_energy_QI_QIV,3);
 			UINT_KWH;
                         
 			break;

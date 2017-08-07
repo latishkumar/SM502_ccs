@@ -13,26 +13,26 @@
 struct INFOA_BACK_UP
 {
       //Energy Registers  
-      int32_t active_power_counter; // must be removed
-      int32_t active_energy_counter;// must be removed
+      int32_t active_power_counter;
+      //int32_t active_energy_counter;// must be removed
       
-      uint32_t active_energy_counter_QI;
-      uint32_t active_energy_counter_QII;
-      uint32_t active_energy_counter_QIII; // must be removed
-      uint32_t active_energy_counter_QIV;  // must be removed
+      uint32_t import_active_energy_counter_QI_QIV;
+      uint32_t export_active_energy_counter_QII_QIII;
+      //uint32_t active_energy_counter_QIII; // must be removed
+      //uint32_t active_energy_counter_QIV;  // must be removed
       
       
       uint32_t active_energy_import_counter;
       uint32_t active_energy_export_counter;
       
       
-      uint32_t consumed_active_energy_QI;
-      uint32_t consumed_active_energy_QII;
-      uint32_t consumed_active_energy_QIII; // must be removed
-      uint32_t consumed_active_energy_QIV;  // must be removed
+      uint32_t import_active_energy_QI_QIV;
+      uint32_t export_active_energy_QII_QIII;
+      //uint32_t consumed_active_energy_QIII; // must be removed
+      //uint32_t consumed_active_energy_QIV;  // must be removed
         
       
-      int32_t reactive_power_counter;       // must be removed
+      //int32_t reactive_power_counter;       // must be removed
       uint32_t reactive_energy_counter_QI;
       uint32_t reactive_energy_counter_QII;
       uint32_t reactive_energy_counter_QIII;
@@ -44,8 +44,8 @@ struct INFOA_BACK_UP
       uint32_t consumed_reactive_energy_QIV;
       
       //Hourly energy Registers
-      uint32_t inc_active_import_energy;
-      uint32_t inc_active_export_energy;
+      uint32_t inc_import_active_energy;
+      uint32_t inc_export_active_energy;
       uint32_t inc_reactive_energy_QI;
       uint32_t inc_reactive_energy_QII;
       uint32_t inc_reactive_energy_QIII;

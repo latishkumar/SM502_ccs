@@ -87,9 +87,9 @@ void CalculateBilling()
 #ifndef KIT
       
    if(billingSchema == POST_PAID)
-      CalculateTariff_New(&Balance_PostPaid.balance,&TempLastEnergyValue,phase->active_energy_import,&ConsumptionSinceLastBilling);
+      CalculateTariff_New(&Balance_PostPaid.balance,&TempLastEnergyValue,phase->import_active_energy_QI_QIV,&ConsumptionSinceLastBilling);
    else        
-      CalculateTariff_New(&Current_balance.balance,&TempLastEnergyValue,phase->active_energy_import,&ConsumptionSinceLastBilling);
+      CalculateTariff_New(&Current_balance.balance,&TempLastEnergyValue,phase->import_active_energy_QI_QIV,&ConsumptionSinceLastBilling);
 #endif 
        
 }

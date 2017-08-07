@@ -325,7 +325,7 @@ int read_from_eeprom(void *readArgument_1,void *readArgument_2,int8_t(*read)(voi
 
 
 
-#define MemoryFormattedIndicatorCode {0x2f,0x2f,0x2f,0x2f,0x2f} //0x2F
+#define MemoryFormattedIndicatorCode {0x2a,0x2a,0x2a,0x2a,0x2a} //0x2F
 
 #define CONFIGURATION_BASE_ADDRESS 128ul //leave Address 0 out
 
@@ -858,6 +858,17 @@ int8_t log_hourly_energy_profile(void *l2,void *dummy);
  * Get hourly energy profile
  */
 int8_t get_hourly_energy_profile(void *lt,uint32_t EntryNumber);
+
+/*
+ * restores the last backup data from eeprom
+ */
+int8_t restore_eeprom_backup(void *phase_temp2,void *dummy);
+
+/*
+ * Backups current energy registers and counters to eeprom
+ */
+int8_t perform_eeprom_backup(void *phase_temp2,void *dummy);
+
 /**
 * Id2: pointer to the array to copy the id to
 * type: the type of id to get 

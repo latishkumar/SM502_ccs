@@ -2087,7 +2087,7 @@ const struct object_desc_s object_list[] =
                                      ,(const struct attribute_desc_s[]) {
 
                                              {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[ENERGY_REG_START].instance_id, NULL},
-                                             {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &phase->active_energy_import, NULL},
+                                             {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &phase->import_active_energy_QI_QIV, NULL},
                                              {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_total_active_energy_import, NULL}
 
                                      }
@@ -2133,7 +2133,7 @@ const struct object_desc_s object_list[] =
                                      ,(const struct attribute_desc_s[]) {
 
                                               {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[ENERGY_REG_START + 1].instance_id, NULL},
-                                              {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &phase->active_energy_import, NULL},
+                                              {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &phase->inc_import_active_energy, NULL},
                                               {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_total_active_energy_import, NULL}
 
                                      }
@@ -2151,7 +2151,7 @@ const struct object_desc_s object_list[] =
                                      ,(const struct attribute_desc_s[]) {
 
                                               {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[ENERGY_REG_START + 2].instance_id, NULL},
-                                              {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &phase->active_energy_export, NULL},
+                                              {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &phase->export_active_energy_QII_QIII, NULL},
                                               {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_total_active_energy_import, NULL}
 
                                      }
@@ -2197,7 +2197,7 @@ const struct object_desc_s object_list[] =
                                      ,(const struct attribute_desc_s[]) {
 
                                              {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[ENERGY_REG_START + 3].instance_id, NULL},
-                                             {2, ACCESS_PC___MRR__USR_, TAG_UINT32,           (void *) &phase->active_energy_export, NULL},
+                                             {2, ACCESS_PC___MRR__USR_, TAG_UINT32,           (void *) &phase->inc_export_active_energy, NULL},
                                              {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_total_active_energy_import, NULL}
 
                                      }
@@ -2261,7 +2261,7 @@ const struct object_desc_s object_list[] =
                                      ,(const struct attribute_desc_s[]) {
 
                                               {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[ENERGY_REG_START + 5].instance_id, NULL},
-                                              {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &phase->readings.reactive_energy_Q1, NULL},
+                                              {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &phase->inc_reactive_energy_QI, NULL},
                                               {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_reactive_energy, NULL}
 
                                      }
@@ -2325,7 +2325,7 @@ const struct object_desc_s object_list[] =
                                      ,(const struct attribute_desc_s[]) {
 
                                              {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[ENERGY_REG_START + 7].instance_id, NULL},
-                                             {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &phase->readings.reactive_energy_Q2, NULL},
+                                             {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &phase->inc_reactive_energy_QII, NULL},
                                              {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_reactive_energy, NULL}
 
                                      }
@@ -2389,7 +2389,7 @@ const struct object_desc_s object_list[] =
                                      ,(const struct attribute_desc_s[]) {
 
                                               {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[ENERGY_REG_START + 9].instance_id, NULL},
-                                              {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &phase->readings.reactive_energy_Q3, NULL},
+                                              {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &phase->inc_reactive_energy_QIII, NULL},
                                               {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_reactive_energy, NULL}
 
                                      }
@@ -2453,7 +2453,7 @@ const struct object_desc_s object_list[] =
                                      ,(const struct attribute_desc_s[]) {
 
                                               {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[ENERGY_REG_START + 11].instance_id, NULL},
-                                              {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &phase->readings.reactive_energy_Q4, NULL},
+                                              {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &phase->inc_reactive_energy_QIV, NULL},
                                               {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_reactive_energy, NULL}
 
                                      }
@@ -3263,7 +3263,7 @@ const struct object_desc_s object_list[] =
                                      ,(const struct attribute_desc_s[]) {
 
                                               {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[REFERENCE_OBIS_START + 7].instance_id, NULL},
-                                              {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) Data_Buffer, calibrate_neutral_power_scaler},
+                                              {2, ACCESS_PC___MRRW_USRW, TAG_UINT32,          (void *) Data_Buffer, calibrate_neutral_power_scaler},
                                               {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_PF, NULL}
 
                                      }
@@ -3271,7 +3271,7 @@ const struct object_desc_s object_list[] =
                                      ,NULL
        },
 
-      /* Shunt power scaler calibration
+      /* Shunt current scaler calibration
        * Class id-3,
        * 0-0:145.0.0.255
        */
@@ -3280,7 +3280,7 @@ const struct object_desc_s object_list[] =
                                      ,(const struct attribute_desc_s[]) {
 
                                               {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[REFERENCE_OBIS_START + 8].instance_id, NULL},
-                                              {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) Data_Buffer, calibrate_neutral_current_scaler},
+                                              {2, ACCESS_PC___MRRW_USRW, TAG_UINT32,          (void *) Data_Buffer, calibrate_neutral_current_scaler},
                                               {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_PF, NULL}
 
                                      }

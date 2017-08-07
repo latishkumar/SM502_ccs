@@ -310,7 +310,7 @@ void obj_daily_load_profile_reset(uint8_t *data,uint16_t data_len,uint8_t *respo
 void capture_daily_snapshot()
 {
 	EnergyLog daily_snapshot;
-	daily_snapshot.active_energy =chan1.active_energy_import;// chan1.consumed_active_energy;
+	daily_snapshot.active_energy = chan1.import_active_energy_QI_QIV;// chan1.consumed_active_energy;
 	daily_snapshot.reactive_energy_QI = chan1.consumed_reactive_energy_QI;//chan1.readings.reactive_power;
 	daily_snapshot.active_power = chan1.readings.active_power;
 	daily_snapshot.reactive_energy_QIV = chan1.consumed_reactive_energy_QIV;//chan1.readings.V_rms;

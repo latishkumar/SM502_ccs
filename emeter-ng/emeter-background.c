@@ -372,15 +372,13 @@ ISR(SD24B, adc_interrupt)
 
     if (phase->active_energy_pulse_remaining_time  &&  --phase->active_energy_pulse_remaining_time == 0)
     {
-
-    phase_active_energy_pulse_end();
-
+        phase_active_energy_pulse_end();
     }
 
     F_Count ++;
     if(F_Count > Max_F_Power_Faile && status.LogEnergyLogged == 0 )
     {
-        perform_low_battry_backup();   //Power Failed
+        perform_low_battery_backup();   //Power Failed
     }
 
     /* Do the power cycle start detection */

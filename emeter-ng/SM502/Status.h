@@ -117,7 +117,7 @@ typedef struct
   
   volatile uint8_t energy_reverse_flow_tamper:1;
   volatile uint8_t energy_reverse_flow_logged_status:1;
-  volatile uint8_t LogEnergy:1;
+  //volatile uint8_t LogEnergy:1;
   volatile uint8_t LogEnergyLogged:1;
   
   volatile uint8_t SecondElapsed:1;

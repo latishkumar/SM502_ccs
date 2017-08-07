@@ -136,8 +136,27 @@ void reset_firmware_upgrate_parameters();
 void restoreBackup();
 extern EnergyLog LastTxEnergyCopy;
 int local_comm_exchange_mode_flag=0; //optical:0; USB:1
+/*
+ * Backup parameters and functions
+ */
+uint32_t eeprom_backup_energy_counter;
+uint8_t flash_backup_energy_counter;
+#define BACKUP_TIME 180000 //msec
+#define ENERGY_THRESHOLD_FOR_FLASH_BACKUP 35 //KWH
+#define NORMAL_BACK_UP 0x02
+#define LOW_BATTERY_BACKUP 0x04
+const uint32_t ENERGY_KWATT_HOUT_THRESHOLD = ENERGY_WATT_HOUR_THRESHOLD_CUSTOME*1000;
+void check_for_backup();
+void backup_energy_parameters();
+void perform_flash_backup(uint8_t backup_type);
+extern uint8_t firtstBoot;
+void log_standard_events(uint8_t event_code);
+/*******************************
+ * test parameters
+ */
 void test_circular_buffer();
 uint16_t overflowsamples, second_counter;
+/******************************/
 void main(void)
 {
     static int32_t x;
@@ -185,17 +204,43 @@ void main(void)
 
     if(SystemStatus == SYSTEM_RUNNING)
     {
-       restoreBackup(); 
+       /* Restore backup
+        * first check for valid low battery backup (on flash)
+        * second check for valid normal backup on eeprom
+        * last check for valid normal backup on flash
+        */
+        if(backup.seg_a.s.valid_backup == LOW_BATTERY_BACKUP)
+        {
+            restoreBackup();
+            log_standard_events(50); //backup restored from LOW_BATTERY_BACKUP flash
+        }
+        else if(restore_eeprom_backup(phase,(void *)0))
+        {
+            perform_flash_backup(LOW_BATTERY_BACKUP);
+            log_standard_events(51); //backup restored from eeprom
+        }
+        else if(backup.seg_a.s.valid_backup == NORMAL_BACK_UP)
+        {
+            restoreBackup();
+            log_standard_events(52); //backup restored from NORMAL_BACKUP flash
+        }
+        else
+        {
+            // Either it is first time boot or neither the flash nor eeprom backup restoration is succeeded
+            if(!firtstBoot)
+            {
+                log_standard_events(53); //neither the flash nor eeprom backup restoration is succeeded
+            }
+        }
+
        LoadConfigurations();
        
-       #if defined(DLMS) || defined(DLMS_IEC_21)
-         init_dlms();
-       #endif 
+       init_dlms();
        status.LogEnergyLogged  = 1;  
-       status.LogEnergy = 0;
+      // status.LogEnergy = 0;
        status.task_exec_finished = 1;
       //wait for rtc to finish initializing      
-      while(rtc_init ==0)
+      while(rtc_init == 0)
       {
          #if defined(USE_WATCHDOG)
             kick_watchdog();
@@ -217,7 +262,6 @@ void main(void)
       status.DisplayState = 0;
       InitPLC();
       
-      
     }
     else if(SystemStatus == SYSTEM_IN_CRITICAL_ERROR)
     {
@@ -228,7 +272,7 @@ void main(void)
     set_sd16_phase_correction(&phase->metrology.current.in_phase_correction[0], 0, phase_nv->current.phase_correction[0]);
     set_sd16_phase_correction(&phase->metrology.neutral.in_phase_correction[0], 1, nv_parms.seg_a.s.neutral.phase_correction[0]);
 
-
+    schedule_task(backup_energy_parameters,BACKUP_TIME,BACKUP_TASK); //schedule backup process
     for (;;)
     {
             #if defined(USE_WATCHDOG)
@@ -368,15 +412,15 @@ void main(void)
 						      else
 						      {
                                     phase->active_energy_import_counter += phase->readings.active_power;// variable used for pulse generation purpose
-                                    phase->active_energy_counter_QI += phase->readings.active_power;
+                                    phase->import_active_energy_counter_QI_QIV += phase->readings.active_power;
                                    // overflowsamples += (phase->metrology.dot_prod_logged.sample_count-4096);
                                    // second_counter++;
                                     //phase->active_energy_counter_QI += mul_32_32(phase->readings.active_power, phase->metrology.dot_prod_logged.sample_count);
-                                    while (phase->active_energy_counter_QI >= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)//ENERGY_WATT_HOUR_THRESHOLD)//
+                                    while (phase->import_active_energy_counter_QI_QIV >= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)//ENERGY_WATT_HOUR_THRESHOLD)//
                                     {
-                                        phase->active_energy_counter_QI -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;//ENERGY_WATT_HOUR_THRESHOLD;//
-                                        phase->consumed_active_energy_QI++;
-                                        phase->inc_active_import_energy++; //hourly energy
+                                        phase->import_active_energy_counter_QI_QIV -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;//ENERGY_WATT_HOUR_THRESHOLD;//
+                                        phase->import_active_energy_QI_QIV++;
+                                        phase->inc_import_active_energy++; //hourly energy
                                     }
 
                                     phase->reactive_energy_counter_QI += phase->readings.reactive_power;
@@ -393,12 +437,12 @@ void main(void)
 						{
 							 phase->readings.active_power = labs(phase->readings.active_power);
 							 phase->active_energy_export_counter +=phase->readings.active_power;
-                             phase->active_energy_counter_QII += phase->readings.active_power;
-                             while (phase->active_energy_counter_QII > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
+                             phase->export_active_energy_counter_QII_QIII += phase->readings.active_power;
+                             while (phase->export_active_energy_counter_QII_QIII > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
 							  {
-								  phase->active_energy_counter_QII -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
-								  phase->consumed_active_energy_QII++;
-								  phase->inc_active_export_energy++; //hourly energy
+								  phase->export_active_energy_counter_QII_QIII -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
+								  phase->export_active_energy_QII_QIII++;
+								  phase->inc_export_active_energy++; //hourly energy
 							  }
 
 							 phase->reactive_energy_counter_QII += phase->readings.reactive_power;
@@ -416,12 +460,12 @@ void main(void)
 							 phase->readings.reactive_power = labs(phase->readings.reactive_power);
 
 							 phase->active_energy_export_counter +=phase->readings.active_power;
-							 phase->active_energy_counter_QIII += phase->readings.active_power;
-							 while (phase->active_energy_counter_QIII >= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
+							 phase->export_active_energy_counter_QII_QIII += phase->readings.active_power;
+							 while (phase->export_active_energy_counter_QII_QIII >= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
 							 {
-								 phase->active_energy_counter_QIII -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
-								 phase->consumed_active_energy_QIII++;
-								 phase->inc_active_export_energy++; //hourly energy
+								 phase->export_active_energy_counter_QII_QIII -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;
+								 phase->export_active_energy_QII_QIII++;
+								 phase->inc_export_active_energy++; //hourly energy
 							 }
 
 							 phase->reactive_energy_counter_QIII += phase->readings.reactive_power;
@@ -439,15 +483,15 @@ void main(void)
 							 phase->readings.reactive_power = labs(phase->readings.reactive_power);
 
 							 phase->active_energy_import_counter +=phase->readings.active_power;// * phase->metrology.dot_prod_logged.sample_count;
-							 phase->active_energy_counter_QI += phase->readings.active_power;
+							 phase->import_active_energy_counter_QI_QIV += phase->readings.active_power;
 							 //overflowsamples += (phase->metrology.dot_prod_logged.sample_count-4096);
 							 //second_counter++;
 							 //phase->active_energy_counter_QI += mul_32_32(phase->readings.active_power, phase->metrology.dot_prod_logged.sample_count);
-							  while (phase->active_energy_counter_QI >= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)//ENERGY_WATT_HOUR_THRESHOLD)//
+							  while (phase->import_active_energy_counter_QI_QIV >= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)//ENERGY_WATT_HOUR_THRESHOLD)//
 							  {
-								  phase->active_energy_counter_QI -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;//ENERGY_WATT_HOUR_THRESHOLD;//
-								  phase->consumed_active_energy_QI++;
-								  phase->inc_active_import_energy++; //hourly energy
+								  phase->import_active_energy_counter_QI_QIV -= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME;//ENERGY_WATT_HOUR_THRESHOLD;//
+								  phase->import_active_energy_QI_QIV++;
+								  phase->inc_import_active_energy++; //hourly energy
 							  }
 							 /*phase->active_energy_counter_QIV += phase->readings.active_power;
 							 while (phase->active_energy_counter_QIV > ENERGY_WATT_HOUR_THRESHOLD_CUSTOME)
@@ -466,12 +510,13 @@ void main(void)
 							 }
   //                           ActiveQuadrant = 4;
 						}
-                                                        
-                             
-						phase->active_energy_import = phase->consumed_active_energy_QI; //+ phase->consumed_active_energy_QIV ;
-						phase->active_energy_export = phase->consumed_active_energy_QII + phase->consumed_active_energy_QIII;
+
+						phase->import_reactive_energy_QI_QII   = phase->consumed_reactive_energy_QI + phase->consumed_reactive_energy_QII;
+						phase->export_reactive_energy_QIII_QIV = phase->consumed_reactive_energy_QIII + phase->consumed_reactive_energy_QIV;
 
 						/*End of update for 4 quadrant energy measurement */
+
+						check_for_backup(); //check if accumulated energy reaches to energy backup threshold
 
 						if(phase->readings.V_rms < 25)
 						  phase->readings.frequency = 0;
@@ -551,73 +596,72 @@ void main(void)
 * writes low power mode entering backup data to Flash
 */
 volatile uint8_t __backingUp=0;
-void perform_low_battry_backup() //was __monitor function
+void perform_low_battery_backup() //was __monitor function
 {
-        // back up for no battery conditions
-        if(__backingUp == 0)
-        {
-            __backingUp=1;
-            
-            
-          struct info_mem_a_s backup2;
-          
-          backup2.seg_a.s.active_power_counter      = phase->active_power_counter;
-          backup2.seg_a.s.active_energy_counter     = phase->active_energy_counter;
-          backup2.seg_a.s.active_energy_counter_QI  = phase->active_energy_counter_QI;
-          backup2.seg_a.s.active_energy_counter_QII = phase->active_energy_counter_QII;
-          
-          backup2.seg_a.s.active_energy_counter_QIII   = phase->active_energy_counter_QIII;
-          backup2.seg_a.s.active_energy_counter_QIV    = phase->active_energy_counter_QIV;
-          backup2.seg_a.s.active_energy_export_counter = phase->active_energy_export_counter;
-          backup2.seg_a.s.active_energy_import_counter = phase->active_energy_import_counter;
-         
-          backup2.seg_a.s.consumed_active_energy_QI   = phase->consumed_active_energy_QI;
-          backup2.seg_a.s.consumed_active_energy_QII  = phase->consumed_active_energy_QII;
-          backup2.seg_a.s.consumed_active_energy_QIII = phase->consumed_active_energy_QIII;
-          backup2.seg_a.s.consumed_active_energy_QIV  = phase->consumed_active_energy_QIV;
-          
-          backup2.seg_a.s.reactive_power_counter        = phase->reactive_power_counter;
-          backup2.seg_a.s.consumed_reactive_energy_QI   = phase->consumed_reactive_energy_QI;
-          backup2.seg_a.s.consumed_reactive_energy_QII  = phase->consumed_reactive_energy_QII;
-          backup2.seg_a.s.consumed_reactive_energy_QIII = phase->consumed_reactive_energy_QIII;
-          
-          backup2.seg_a.s.consumed_reactive_energy_QIV = phase->consumed_reactive_energy_QIV;       
-          backup2.seg_a.s.reactive_energy_counter_QI   = phase->reactive_energy_counter_QI;
-          backup2.seg_a.s.reactive_energy_counter_QII  = phase->reactive_energy_counter_QII;
-          backup2.seg_a.s.reactive_energy_counter_QIII = phase->reactive_energy_counter_QIII;
-          backup2.seg_a.s.reactive_energy_counter_QIV  = phase->reactive_energy_counter_QIV;
-          
-          backup2.seg_a.s.inc_active_import_energy = chan1.inc_active_import_energy;
-          backup2.seg_a.s.inc_active_export_energy = chan1.inc_active_export_energy;
-          backup2.seg_a.s.inc_reactive_energy_QI   = chan1.inc_reactive_energy_QI;
-          backup2.seg_a.s.inc_reactive_energy_QII  = chan1.inc_reactive_energy_QII;
-          backup2.seg_a.s.inc_reactive_energy_QIII = chan1.inc_reactive_energy_QIII;
-          backup2.seg_a.s.inc_reactive_energy_QIV  = chan1.inc_reactive_energy_QIV;
-          
-          //TODO. Change this to get the Time From hardware, 
-          //getHardwareTime(&rtcc);
-          TimeStump ts = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
-          
-          //Log this to EEPROM when power weak up
-          backup2.seg_a.s.RTCHigh = ts.TimestampUp & 0x000000ff;
-          backup2.seg_a.s.RTCLow  = ts.TimestampLow;
-          //Also Log Power down and Power Up Event
-          
-//          backup2.seg_a.s.TempLastEnergyValue = TempLastEnergyValue;
-//          backup2.seg_a.s.CurrentBalance      = Current_balance.balance;
-//          backup2.seg_a.s.ConsumptionSinceLastBilling = ConsumptionSinceLastBilling;
-
-          backup2.seg_a.s.valid_backup = 1;
-          
-          void *x = &backup2;
-          int32_t * y = (int32_t *)x;
-          flashBackup(y,30);
-                                                                              
-          status.LogEnergy = 0;
+      // back up for no battery conditions
+      perform_flash_backup(LOW_BATTERY_BACKUP);
+      if(__backingUp == 0)
+      {
+          //status.LogEnergy = 0;
           status.LogEnergyLogged = 1;
-            __backingUp =0;
-        }
+      }
       //end of back up for no battery conditions
+}
+void perform_flash_backup(uint8_t backup_type)
+{
+    if(__backingUp == 0)
+    {
+        __backingUp = 1;
+        struct info_mem_a_s backup2;
+
+        backup2.seg_a.s.active_power_counter                  = phase->active_power_counter;
+        backup2.seg_a.s.import_active_energy_counter_QI_QIV   = phase->import_active_energy_counter_QI_QIV;
+        backup2.seg_a.s.export_active_energy_counter_QII_QIII = phase->export_active_energy_counter_QII_QIII;
+
+        backup2.seg_a.s.active_energy_export_counter = phase->active_energy_export_counter;
+        backup2.seg_a.s.active_energy_import_counter = phase->active_energy_import_counter;
+
+        backup2.seg_a.s.import_active_energy_QI_QIV   = phase->import_active_energy_QI_QIV;
+        backup2.seg_a.s.export_active_energy_QII_QIII = phase->export_active_energy_QII_QIII;
+
+        backup2.seg_a.s.consumed_reactive_energy_QI   = phase->consumed_reactive_energy_QI;
+        backup2.seg_a.s.consumed_reactive_energy_QII  = phase->consumed_reactive_energy_QII;
+        backup2.seg_a.s.consumed_reactive_energy_QIII = phase->consumed_reactive_energy_QIII;
+
+        backup2.seg_a.s.consumed_reactive_energy_QIV = phase->consumed_reactive_energy_QIV;
+        backup2.seg_a.s.reactive_energy_counter_QI   = phase->reactive_energy_counter_QI;
+        backup2.seg_a.s.reactive_energy_counter_QII  = phase->reactive_energy_counter_QII;
+        backup2.seg_a.s.reactive_energy_counter_QIII = phase->reactive_energy_counter_QIII;
+        backup2.seg_a.s.reactive_energy_counter_QIV  = phase->reactive_energy_counter_QIV;
+
+        backup2.seg_a.s.inc_import_active_energy = chan1.inc_import_active_energy;
+        backup2.seg_a.s.inc_export_active_energy = chan1.inc_export_active_energy;
+        backup2.seg_a.s.inc_reactive_energy_QI   = chan1.inc_reactive_energy_QI;
+        backup2.seg_a.s.inc_reactive_energy_QII  = chan1.inc_reactive_energy_QII;
+        backup2.seg_a.s.inc_reactive_energy_QIII = chan1.inc_reactive_energy_QIII;
+        backup2.seg_a.s.inc_reactive_energy_QIV  = chan1.inc_reactive_energy_QIV;
+
+        //TODO. Change this to get the Time From hardware,
+        //getHardwareTime(&rtcc);
+        TimeStump ts = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
+
+        //Log this to EEPROM when power weak up
+        backup2.seg_a.s.RTCHigh = ts.TimestampUp & 0x000000ff;
+        backup2.seg_a.s.RTCLow  = ts.TimestampLow;
+        //Also Log Power down and Power Up Event
+
+        //backup2.seg_a.s.TempLastEnergyValue = TempLastEnergyValue;
+        //backup2.seg_a.s.CurrentBalance      = Current_balance.balance;
+        //backup2.seg_a.s.ConsumptionSinceLastBilling = ConsumptionSinceLastBilling;
+
+        backup2.seg_a.s.valid_backup = backup_type;
+
+        void *x = &backup2;
+        int32_t * y = (int32_t *)x;
+        flashBackup(y,24);
+
+        __backingUp = 0;
+    }
 }
 /**
 * Processes Diagnosis results. Adds Errors to the system error list
@@ -852,7 +896,7 @@ void performPowerQualityMessurement()
 */
 void verify_normal_operations()
 {
-    if(status.RelayStatus == 0 && phase->active_energy_import != lastEnergyReadingDuringDisconnect )
+    if(status.RelayStatus == 0 && phase->import_active_energy_QI_QIV != lastEnergyReadingDuringDisconnect )
     {
       //error there is something wrong 
     }
@@ -864,138 +908,157 @@ void verify_normal_operations()
 *  this routine reads the last event log address from EEPROM. So EEPROM ports have to be 
 *  initialized before calling this method.  
 *
-*  writes back up parameters from falsh to EEPROM and to the current working variables
+*  writes back up parameters from flash to EEPROM and to the current working variables
 *
 *
 */
 #include <string.h>
-extern uint8_t firtstBoot;
+
 void restoreBackup()
 {
-  if(backup.seg_a.s.valid_backup == 1)
-  //if(firtstBoot == 0)
-  {
-            TimeStump t = {backup.seg_a.s.RTCLow,(uint8_t)backup.seg_a.s.RTCHigh};
-            rtc_t time =  getTime(&t);  
-            uint64_t td = labs(getTimeDifferenceInMinutes(&rtcc,&time));
-            if(time.isValid)
+    TimeStump t = {backup.seg_a.s.RTCLow,(uint8_t)backup.seg_a.s.RTCHigh};
+    rtc_t time =  getTime(&t);
+    uint64_t td = labs(getTimeDifferenceInMinutes(&rtcc,&time));
+    if(time.isValid)
+    {
+        if(compare_time(&rtcc,&time) < 0)
+        {
+            hardware_status.RTC_Status = 0; //rtc is not ok
+            //set it to the last saved rtc time
+            adjust_rtc(&time,0);
+        }
+        else //if(labs(getTimeDifferenceInMinutes(&rtcc,&time)) > MAX_EXPECTED_METER_OFF_TIME_MINUTES) //check whether time has moved too long  to the future or to the past
+        {
+            if(td > MAX_EXPECTED_METER_OFF_TIME_MINUTES)
             {
-                if(compare_time(&rtcc,&time) < 0)
-                {
-                   hardware_status.RTC_Status = 0; //rtc is not ok  
-                   //set it to the last saved rtc time
-                   adjust_rtc(&time,0);
-                }
-                else //if(labs(getTimeDifferenceInMinutes(&rtcc,&time)) > MAX_EXPECTED_METER_OFF_TIME_MINUTES) //check whether time has moved too long  to the future or to the past 
-                {
-                   if(td > MAX_EXPECTED_METER_OFF_TIME_MINUTES)
-                   {
-                      hardware_status.RTC_Status = 0; //rtc is not ok  
-                      adjust_rtc(&time,0);
-                   }
-                } 
+                hardware_status.RTC_Status = 0; //rtc is not ok
+                adjust_rtc(&time,0);
             }
+        }
+    }
 
-            uint8_t temp_did = 3;
-            validation_arg_t noValidation = validation_arg_t_default;
-            read_from_eeprom(&LastEventLogAddress,&temp_did,getLastLogAddress,&noValidation);  
-            temp_did = 3;
-            //log power is out event
-            EventLog l;
-            l.EventCode = PowerOut;
-            l.timeStump = getTimeStamp(time.year, time.month, time.day, time.hour, time.minute, time.second);
-            l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow + l.timeStump.TimestampUp);
-            l.value = (uint32_t)td;
-            write_to_eeprom(&l,&temp_did,log_events);
-            temp_did = 3;
-            //log power is back event
-            l.EventCode = PowerUp;
-            l.timeStump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-            l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow  + l.timeStump.TimestampUp);
-            l.value = 0;
-            write_to_eeprom(&l,&temp_did,log_events);
-            
-            
-//            Current_balance.balance = backup.seg_a.s.CurrentBalance;
-//            TempLastEnergyValue = backup.seg_a.s.TempLastEnergyValue;
-//            ConsumptionSinceLastBilling = backup.seg_a.s.ConsumptionSinceLastBilling;
-            
-            
-            
-            phase->active_power_counter      = backup.seg_a.s.active_power_counter ;
-            phase->active_energy_counter     = backup.seg_a.s.active_energy_counter ;
-            phase->active_energy_counter_QI  = backup.seg_a.s.active_energy_counter_QI ;
-            phase->active_energy_counter_QII = backup.seg_a.s.active_energy_counter_QII ;
-            
-            phase->active_energy_counter_QIII   = backup.seg_a.s.active_energy_counter_QIII ;
-            phase->active_energy_counter_QIV    = backup.seg_a.s.active_energy_counter_QIV ;
-            phase->active_energy_export_counter = backup.seg_a.s.active_energy_export_counter ;
-            phase->active_energy_import_counter = backup.seg_a.s.active_energy_import_counter ;
-           
-            phase->consumed_active_energy_QI   = backup.seg_a.s.consumed_active_energy_QI ;
-            phase->consumed_active_energy_QII  = backup.seg_a.s.consumed_active_energy_QII;
-            phase->consumed_active_energy_QIII = backup.seg_a.s.consumed_active_energy_QIII ;
-            phase->consumed_active_energy_QIV  = backup.seg_a.s.consumed_active_energy_QIV ;
-            
-            phase->reactive_power_counter        = backup.seg_a.s.reactive_power_counter ;
-            phase->consumed_reactive_energy_QI   = backup.seg_a.s.consumed_reactive_energy_QI ;
-            phase->consumed_reactive_energy_QII  = backup.seg_a.s.consumed_reactive_energy_QII ;
-            phase->consumed_reactive_energy_QIII = backup.seg_a.s.consumed_reactive_energy_QIII ;
-            
-            phase->consumed_reactive_energy_QIV = backup.seg_a.s.consumed_reactive_energy_QIV ;       
-            phase->reactive_energy_counter_QI   = backup.seg_a.s.reactive_energy_counter_QI ;
-            phase->reactive_energy_counter_QII  = backup.seg_a.s.reactive_energy_counter_QII ;
-            phase->reactive_energy_counter_QIII = backup.seg_a.s.reactive_energy_counter_QIII ;
-            phase->reactive_energy_counter_QIV  = backup.seg_a.s.reactive_energy_counter_QIV ;
+    uint8_t temp_did = 3;
+    validation_arg_t noValidation = validation_arg_t_default;
+    read_from_eeprom(&LastEventLogAddress,&temp_did,getLastLogAddress,&noValidation);
+    temp_did = 3;
+    //log power is out event
+    EventLog l;
+    l.EventCode = PowerOut;
+    l.timeStump = getTimeStamp(time.year, time.month, time.day, time.hour, time.minute, time.second);
+    l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow + l.timeStump.TimestampUp);
+    l.value = (uint32_t)td;
+    write_to_eeprom(&l,&temp_did,log_events);
+    temp_did = 3;
+    //log power is back event
+    l.EventCode = PowerUp;
+    l.timeStump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
+    l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow  + l.timeStump.TimestampUp);
+    l.value = 0;
+    write_to_eeprom(&l,&temp_did,log_events);
 
-            chan1.inc_active_import_energy = backup.seg_a.s.inc_active_import_energy ;
-            chan1.inc_active_export_energy = backup.seg_a.s.inc_active_export_energy;
-            chan1.inc_reactive_energy_QI   = backup.seg_a.s.inc_reactive_energy_QI;
-            chan1.inc_reactive_energy_QII = backup.seg_a.s.inc_reactive_energy_QII;
-            chan1.inc_reactive_energy_QIII = backup.seg_a.s.inc_reactive_energy_QIII;
-            chan1.inc_reactive_energy_QIV  = backup.seg_a.s.inc_reactive_energy_QIV;
-            
-            write_to_eeprom(phase,(uint8_t *)0,logPowerFailEnergy);
-                                                                       
-            //make this value invalid
-             struct info_mem_a_s backup2;
-         
-             void *x = &backup2;
-             const void *y = &backup;             
-             memcpy(x,y,sizeof(backup));
-             
-             backup2.seg_a.s.valid_backup = 0;             
-             flashBackup(x,30);
-                            
-               #if defined(USE_WATCHDOG)
-                 kick_watchdog();
-               #endif
-            write_to_eeprom(&rtcc,(uint8_t *)0,setRTCCheck);
-  }
+
+    //Current_balance.balance = backup.seg_a.s.CurrentBalance;
+    //TempLastEnergyValue = backup.seg_a.s.TempLastEnergyValue;
+    //ConsumptionSinceLastBilling = backup.seg_a.s.ConsumptionSinceLastBilling;
+
+    phase->active_power_counter                  = backup.seg_a.s.active_power_counter ;
+    phase->import_active_energy_counter_QI_QIV   = backup.seg_a.s.import_active_energy_counter_QI_QIV ;
+    phase->export_active_energy_counter_QII_QIII = backup.seg_a.s.export_active_energy_counter_QII_QIII ;
+    //            phase->active_energy_counter     = backup.seg_a.s.active_energy_counter ;
+    //            phase->active_energy_counter_QI  = backup.seg_a.s.active_energy_counter_QI ;
+    //            phase->active_energy_counter_QII = backup.seg_a.s.active_energy_counter_QII ;
+    //            phase->active_energy_counter_QIII   = backup.seg_a.s.active_energy_counter_QIII ;
+    //            phase->active_energy_counter_QIV    = backup.seg_a.s.active_energy_counter_QIV ;
+    phase->active_energy_export_counter = backup.seg_a.s.active_energy_export_counter ;
+    phase->active_energy_import_counter = backup.seg_a.s.active_energy_import_counter ;
+
+    phase->import_active_energy_QI_QIV = backup.seg_a.s.import_active_energy_QI_QIV ;
+    phase->export_active_energy_QII_QIII = backup.seg_a.s.export_active_energy_QII_QIII;
+    //            phase->consumed_active_energy_QI   = backup.seg_a.s.consumed_active_energy_QI ;
+    //            phase->consumed_active_energy_QII  = backup.seg_a.s.consumed_active_energy_QII;
+    //            phase->consumed_active_energy_QIII = backup.seg_a.s.consumed_active_energy_QIII ;
+    //            phase->consumed_active_energy_QIV  = backup.seg_a.s.consumed_active_energy_QIV ;
+
+    //            phase->reactive_power_counter        = backup.seg_a.s.reactive_power_counter ;
+    phase->consumed_reactive_energy_QI   = backup.seg_a.s.consumed_reactive_energy_QI ;
+    phase->consumed_reactive_energy_QII  = backup.seg_a.s.consumed_reactive_energy_QII ;
+    phase->consumed_reactive_energy_QIII = backup.seg_a.s.consumed_reactive_energy_QIII ;
+
+    phase->consumed_reactive_energy_QIV = backup.seg_a.s.consumed_reactive_energy_QIV ;
+    phase->reactive_energy_counter_QI   = backup.seg_a.s.reactive_energy_counter_QI ;
+    phase->reactive_energy_counter_QII  = backup.seg_a.s.reactive_energy_counter_QII ;
+    phase->reactive_energy_counter_QIII = backup.seg_a.s.reactive_energy_counter_QIII ;
+    phase->reactive_energy_counter_QIV  = backup.seg_a.s.reactive_energy_counter_QIV ;
+
+    chan1.inc_import_active_energy = backup.seg_a.s.inc_import_active_energy ;
+    chan1.inc_export_active_energy = backup.seg_a.s.inc_export_active_energy;
+    chan1.inc_reactive_energy_QI   = backup.seg_a.s.inc_reactive_energy_QI;
+    chan1.inc_reactive_energy_QII  = backup.seg_a.s.inc_reactive_energy_QII;
+    chan1.inc_reactive_energy_QIII = backup.seg_a.s.inc_reactive_energy_QIII;
+    chan1.inc_reactive_energy_QIV  = backup.seg_a.s.inc_reactive_energy_QIV;
+
+    write_to_eeprom(phase,(uint8_t *)0,perform_eeprom_backup);
+
+    //make this value invalid
+    struct info_mem_a_s backup2;
+
+    void *x = &backup2;
+    const void *y = &backup;
+    memcpy(x,y,sizeof(backup));
+
+    backup2.seg_a.s.valid_backup = NORMAL_BACK_UP;
+    flashBackup(x,24);
+
+    #if defined(USE_WATCHDOG)
+    kick_watchdog();
+    #endif
+    write_to_eeprom(&rtcc,(uint8_t *)0,setRTCCheck);
 }
-uint32_t epprom_backup_energy_counter;
-uint8_t flash_backup_energy_counter;
-#define BACKUP_TIME 180000 //msec
-void backup_energy_parameters();
+
+/*
+ * This function checks for 1KWh energy accumulation
+ */
 void check_for_backup()
 {
-    epprom_backup_energy_counter += phase->readings.active_power;
-    if(epprom_backup_energy_counter >= ENERGY_WATT_HOUR_THRESHOLD_CUSTOME*1000)//1kwh
+    eeprom_backup_energy_counter += phase->readings.active_power;
+    if(eeprom_backup_energy_counter >= ENERGY_KWATT_HOUT_THRESHOLD) //1kwh
     {
         cancel_task(backup_energy_parameters);
-        schedule_task(backup_energy_parameters,BACKUP_TIME,BACKUP_TASK);
+        backup_energy_parameters();
     }
 
 }
+/*
+ * Backups the current energy registers and counters
+ * either on flash or eeprom or on both depending on their threshold
+ */
 void backup_energy_parameters()
 {
     //back up to eeprom
+
     flash_backup_energy_counter++;
-    epprom_backup_energy_counter -=ENERGY_WATT_HOUR_THRESHOLD_CUSTOME*1000;
-    if(flash_backup_energy_counter >= 35)
+    eeprom_backup_energy_counter -=ENERGY_KWATT_HOUT_THRESHOLD;
+    if(flash_backup_energy_counter >= ENERGY_THRESHOLD_FOR_FLASH_BACKUP)
     {
         //backup to flash memory
+        perform_flash_backup(NORMAL_BACK_UP);
         flash_backup_energy_counter = 0;
     }
     schedule_task(backup_energy_parameters,BACKUP_TIME,BACKUP_TASK);
+}
+
+/*
+ * Logs Standard events to eeprom
+ */
+void log_standard_events(uint8_t event_code)
+{
+    uint8_t temp_did = 3; //event type
+    rtc_t time;
+    EventLog l;
+    l.EventCode = event_code;
+    getHardwareTime(&time);
+    l.timeStump = getTimeStamp(time.year, time.month, time.day, time.hour, time.minute, time.second);
+    l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow + l.timeStump.TimestampUp);
+    l.value = 0;
+    write_to_eeprom(&l,&temp_did,log_events);
 }

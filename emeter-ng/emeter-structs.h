@@ -802,12 +802,12 @@ struct phase_parms_s
     struct phase_metrology_s metrology;
 #if defined(PER_PHASE_ACTIVE_ENERGY_SUPPORT)
     int32_t active_power_counter;
-    int32_t active_energy_counter;
+    //int32_t active_energy_counter;
     
-    uint32_t active_energy_counter_QI;
-    uint32_t active_energy_counter_QII;
-    uint32_t active_energy_counter_QIII;
-    uint32_t active_energy_counter_QIV;
+    uint32_t import_active_energy_counter_QI_QIV;//active_energy_counter_QI;
+    uint32_t export_active_energy_counter_QII_QIII;//active_energy_counter_QII;
+   // uint32_t active_energy_counter_QIII;
+   // uint32_t active_energy_counter_QIV;
     
     //uint32_t consumed_active_energy;
     
@@ -815,25 +815,26 @@ struct phase_parms_s
     uint32_t active_energy_export_counter;
     
     
-    uint32_t active_energy_import;
-    uint32_t active_energy_export;
+    uint32_t import_active_energy_QI_QIV;
+    uint32_t export_active_energy_QII_QIII;
     
     
-    uint32_t consumed_active_energy_QI;
-    uint32_t consumed_active_energy_QII;
-    uint32_t consumed_active_energy_QIII;
-    uint32_t consumed_active_energy_QIV;
+    //uint32_t consumed_active_energy_QI;
+    //uint32_t consumed_active_energy_QII;
+    //uint32_t consumed_active_energy_QIII;
+    //uint32_t consumed_active_energy_QIV;
       
 #endif
 #if defined(PER_PHASE_ACTIVE_ENERGY_SUPPORT)
-    int32_t reactive_power_counter;
+    //int32_t reactive_power_counter;
     
     uint32_t reactive_energy_counter_QI;
     uint32_t reactive_energy_counter_QII;
     uint32_t reactive_energy_counter_QIII;
     uint32_t reactive_energy_counter_QIV;
     
-    uint32_t consumed_reactive_energy;
+    uint32_t import_reactive_energy_QI_QII;
+    uint32_t export_reactive_energy_QIII_QIV;
     
     uint32_t consumed_reactive_energy_QI;
     uint32_t consumed_reactive_energy_QII;
@@ -854,8 +855,8 @@ struct phase_parms_s
     uint16_t /*volatile*/ status;
 
     /*! \brief Hourly energy registers */
-    uint32_t inc_active_import_energy;
-    uint32_t inc_active_export_energy;
+    uint32_t inc_import_active_energy;
+    uint32_t inc_export_active_energy;
     uint32_t inc_reactive_energy_QI;
     uint32_t inc_reactive_energy_QII;
     uint32_t inc_reactive_energy_QIII;

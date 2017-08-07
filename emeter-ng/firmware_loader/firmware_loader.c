@@ -144,7 +144,7 @@ void init_firmware_loader()
 }
 void InitI2C();
 volatile int download_finished;
-void perform_low_battry_backup();
+void perform_flash_backup(uint8_t backup_type);
 
 void receive_firmware_image()
 {
@@ -186,7 +186,7 @@ void receive_firmware_image()
 				PMM_set_vcore(0);
 				AUXCTL0 = AUXKEY;
 				AUXCTL2 |= AUX0LVL_1 * 5 + AUX1LVL_1 * 0 + AUX2LVL_1 * 0;*/
-				perform_low_battry_backup();
+				perform_flash_backup(0x04); //Low battery backup
 				InitI2C();
 				init_loader();
 				return;

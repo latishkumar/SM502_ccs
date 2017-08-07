@@ -35,12 +35,12 @@ void init_scheduler()
 * the task will be executed exactly at the specified time, but the task will not be executed before the specified time.
 * the minimum schedule time is 5msec
 * @param Task: the callback to execute after the time has elapsed 
-* @param time_in_ms: the amount of time in milisecond to wait before executing this task
+* @param time_in_ms: the amount of time in millisecond to wait before executing this task
 * @param task_slot: where to put the task, use the TASKS_SLOTS definition here
 * @return -1 if the task is not scheduled
 *          xx: if the task is scheduled successfully, returns the task slot number
 */
-__monitor int8_t schedule_task(void(*Task)(),uint16_t time_in_ms,uint8_t task_slot)
+__monitor int8_t schedule_task(void(*Task)(),uint32_t time_in_ms,uint8_t task_slot)
 {
   
   if(task_slot < MaxScheduledTasks)

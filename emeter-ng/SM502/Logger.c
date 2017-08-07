@@ -545,28 +545,24 @@ void InitLogg()
             }
             //write EEPROM
 
-            phase->active_energy_counter_QI = 0;
-            phase->active_energy_counter_QII = 0;
-            phase->active_energy_counter_QIII = 0;
-            phase->active_energy_counter_QIV = 0;
+            phase->import_active_energy_counter_QI_QIV = 0;//phase->active_energy_counter_QI = 0;
+            phase->export_active_energy_counter_QII_QIII = 0;//phase->active_energy_counter_QII = 0;
 
-            phase->reactive_energy_counter_QI = 0;
-            phase->reactive_energy_counter_QII = 0;
+            phase->reactive_energy_counter_QI   = 0;
+            phase->reactive_energy_counter_QII  = 0;
             phase->reactive_energy_counter_QIII = 0;
-            phase->reactive_energy_counter_QIV = 0;
+            phase->reactive_energy_counter_QIV  = 0;
 
 
-            phase->consumed_active_energy_QI = 0;
-            phase->consumed_active_energy_QII = 0;
-            phase->consumed_active_energy_QIII = 0;
-            phase->consumed_active_energy_QIV = 0;
+            phase->import_active_energy_QI_QIV   = 0;//phase->consumed_active_energy_QI = 0;
+            phase->export_active_energy_QII_QIII = 0;//phase->consumed_active_energy_QII = 0;
 
-            phase->consumed_reactive_energy_QI =0;
-            phase->consumed_reactive_energy_QII =0;
-            phase->consumed_reactive_energy_QIII =0;
-            phase->consumed_reactive_energy_QIV = 0;
+            phase->consumed_reactive_energy_QI   = 0;
+            phase->consumed_reactive_energy_QII  = 0;
+            phase->consumed_reactive_energy_QIII = 0;
+            phase->consumed_reactive_energy_QIV  = 0;
 
-            write_to_eeprom(phase,(uint8_t *)0,logPowerFailEnergy);
+            write_to_eeprom(phase,(uint8_t *)0,perform_eeprom_backup);
 
             //initialize rates
             for(i=0,j=0;i<120;i++,j++)
@@ -3771,11 +3767,237 @@ uint8_t getManufacturer_DateTime(rtc_t *value){ //test this
         return 1;
   
 }
+/*
+ * Backups current energy registers and counters to eeprom
+ */
+int8_t perform_eeprom_backup(void *phase_temp2,void *dummy) //test this method
+{
+    struct phase_parms_s *phase_temp = (struct phase_parms_s *)phase_temp2;
+    uint8_t x = 0, i = 0;
+    uint32_t CRC = 0;
+    rtc_t rtc_tmp;
+    TimeStump ts;
+
+    for(;i<MAX_LOG_RETRAY;i++)
+    {
+        CRC = 0;
+        x = EEPROM2_WriteLong(phase_temp->import_active_energy_QI_QIV,PowerFaileEnergyLogStart,0);
+        if(x == 0)
+            continue;
+        CRC += phase_temp->import_active_energy_QI_QIV;
+
+        x = EEPROM2_WriteNextLong(phase_temp->export_active_energy_QII_QIII, 0);
+        if(x == 0)
+            continue;
+//        CRC += phase_temp->export_active_energy_QII_QIII;
+
+        x = EEPROM2_WriteNextLong(phase_temp->consumed_reactive_energy_QI,0);
+        if(x == 0)
+            continue;
+//        CRC += phase_temp->consumed_reactive_energy_QI;
+
+        x = EEPROM2_WriteNextLong(phase_temp->consumed_reactive_energy_QII, 0);
+        if(x == 0)
+            continue;
+//        CRC += phase_temp->consumed_reactive_energy_QII;
+
+        x = EEPROM2_WriteNextLong(phase_temp->consumed_reactive_energy_QIII, 0);
+        if(x == 0)
+            continue;
+//        CRC += phase_temp->consumed_reactive_energy_QIII;
+
+        x = EEPROM2_WriteNextLong(phase_temp->consumed_reactive_energy_QIV, 0);
+        if(x == 0)
+            continue;
+//        CRC += phase_temp->consumed_reactive_energy_QIV;
+
+        x = EEPROM2_WriteNextLong(phase_temp->import_active_energy_counter_QI_QIV, 0);
+        if(x == 0)
+            continue;
+        CRC += phase_temp->import_active_energy_counter_QI_QIV;
+
+        x = EEPROM2_WriteNextLong(phase_temp->export_active_energy_counter_QII_QIII, 0);
+        if(x == 0)
+            continue;
+//        CRC += phase_temp->export_active_energy_counter_QII_QIII;
+
+        x = EEPROM2_WriteNextLong(phase_temp->reactive_energy_counter_QI, 0);
+        if(x == 0)
+            continue;
+//        CRC += phase_temp->reactive_energy_counter_QI;
+
+        x = EEPROM2_WriteNextLong(phase_temp->reactive_energy_counter_QII, 0);
+        if(x == 0)
+            continue;
+//        CRC += phase_temp->reactive_energy_counter_QII;
+
+        x = EEPROM2_WriteNextLong(phase_temp->reactive_energy_counter_QIII, 0);
+        if(x == 0)
+            continue;
+//        CRC += phase_temp->reactive_energy_counter_QIII;
+
+        x = EEPROM2_WriteNextLong(phase_temp->reactive_energy_counter_QIV, 0);
+        if(x==0)
+            continue;
+//        CRC += phase_temp->reactive_energy_counter_QIV;
+
+        //log current time
+
+        getHardwareTime(&rtc_tmp);
+        ts = getTimeStamp(rtc_tmp.year,rtc_tmp.month,rtc_tmp.day,rtc_tmp.hour,rtc_tmp.minute,rtc_tmp.second);
+
+        x = EEPROM2_WriteNextLong((ts.TimestampUp & 0x000000ff), 0);
+        if(x==0)
+            continue;
+
+        x = EEPROM2_WriteNextLong(ts.TimestampLow, 0);
+        if(x==0)
+            continue;
+
+        x = EEPROM2_WriteNextLong(CRC,1);
+        if(x == 0)
+            continue;
+
+        break;
+    }
+
+    if(i >= MAX_LOG_RETRAY) //the logging was not successfull
+        return 0;
+
+    return 1;
+}
+/*
+ * restores the last backup data from eeprom
+ */
+int8_t restore_eeprom_backup(void *phase_temp2,void *dummy) //test this method
+{
+    uint8_t x = 0, i = 0;
+    uint32_t tempCRC ,CRC;
+    uint32_t temp32 = 0;
+    for(;i<MAX_LOG_RETRAY;i++)
+    {
+        x = EEPROM2_ReadLong(PowerFaileEnergyLogStart,0,&temp32);
+        if(x==0)
+            continue;
+        tempCRC += temp32;
+        x = EEPROM2_ReadLong((PowerFaileEnergyLogStart + 24),0,&temp32);
+        if(x==0)
+            continue;
+        tempCRC += temp32;
+        x = EEPROM2_ReadLong((PowerFaileEnergyLogStart + 52),0,&CRC);
+        if(x==0)
+            continue;
+        break;
+    }
+    if(CRC != tempCRC || x==0)
+        return FALSE;
+    struct phase_parms_s *phase_temp = (struct phase_parms_s*)phase_temp2;
+
+    for(i = 0;i < MAX_LOG_RETRAY; i++)
+    {
+        temp32 = 0;
+        x = EEPROM2_ReadLong(PowerFaileEnergyLogStart,0,&temp32);
+        if(x == 0)
+            continue;
+         phase_temp->import_active_energy_QI_QIV = temp32;
+
+        x = EEPROM2_ReadNextLong(0,&(temp32));
+        if(x == 0)
+            continue;
+        phase_temp->export_active_energy_QII_QIII = temp32;
+
+        x = EEPROM2_ReadNextLong(0,&(temp32));
+        if(x == 0)
+            continue;
+        phase_temp->consumed_reactive_energy_QI = temp32;
+
+        x = EEPROM2_ReadNextLong(0,&(temp32));
+        if(x == 0)
+            continue;
+        phase_temp->consumed_reactive_energy_QII = temp32;
+
+        x = EEPROM2_ReadNextLong(0,&(temp32));
+        if(x == 0)
+            continue;
+        phase_temp->consumed_reactive_energy_QIII = temp32;
+
+        x = EEPROM2_ReadNextLong(0,&(temp32));
+        if(x == 0)
+            continue;
+        phase_temp->consumed_reactive_energy_QIV = temp32;
+
+        x = EEPROM2_ReadNextLong(0,&(temp32));
+        if(x == 0)
+            continue;
+        phase_temp->import_active_energy_counter_QI_QIV = temp32;
+
+        x = EEPROM2_ReadNextLong(0,&(temp32));
+        if(x == 0)
+            continue;
+        phase_temp->export_active_energy_counter_QII_QIII = temp32;
+
+        x = EEPROM2_ReadNextLong(0,&(temp32));
+        if(x == 0)
+            continue;
+        phase_temp->reactive_energy_counter_QI = temp32;
+
+        x = EEPROM2_ReadNextLong(0,&(temp32));
+        if(x == 0)
+            continue;
+        phase_temp->reactive_energy_counter_QII = temp32;
+
+        x = EEPROM2_ReadNextLong(0,&(temp32));
+        if(x == 0)
+            continue;
+        phase_temp->reactive_energy_counter_QIII = temp32;
+
+        x = EEPROM2_ReadNextLong(0,&(temp32));
+        if(x == 0)
+            continue;
+        phase_temp->reactive_energy_counter_QIV = temp32;
+
+        x = EEPROM2_ReadNextLong(0,&(temp32));
+        if(x == 0)
+            continue;
+
+         x = EEPROM2_ReadNextLong(1,&(tempCRC));
+        if(x == 0)
+            continue;
+
+        break;
+    }
+
+    if(i >= MAX_LOG_RETRAY) //the logging was not successfull
+        return 0;
+
+    TimeStump t = {tempCRC,(uint8_t)temp32};
+    rtc_t time =  getTime(&t);
+    uint64_t td = labs(getTimeDifferenceInMinutes(&rtcc,&time));
+    if(time.isValid)
+    {
+        if(compare_time(&rtcc,&time) < 0)
+        {
+            hardware_status.RTC_Status = 0; //rtc is not ok
+            //set it to the last saved rtc time
+            adjust_rtc(&time,0);
+        }
+        else //if(labs(getTimeDifferenceInMinutes(&rtcc,&time)) > MAX_EXPECTED_METER_OFF_TIME_MINUTES) //check whether time has moved too long  to the future or to the past
+        {
+            if(td > MAX_EXPECTED_METER_OFF_TIME_MINUTES)
+            {
+                hardware_status.RTC_Status = 0; //rtc is not ok
+                adjust_rtc(&time,0);
+            }
+        }
+    }
+
+    return 1; //the restoring was successfull
+}
 
 //uint8_t logPowerFailEnergy(phase_parms_s *phase_temp) //test this method
 int8_t logPowerFailEnergy(void *phase_temp2,void *dummy) //test this method 
 {
-        struct phase_parms_s *phase_temp = (struct phase_parms_s *)phase_temp2;
+ /*       struct phase_parms_s *phase_temp = (struct phase_parms_s *)phase_temp2;
         uint8_t x=0;//,i=0;
         uint32_t CRC=0;
 //        for(;i<MAX_LOG_RETRAY;i++)
@@ -3879,17 +4101,17 @@ int8_t logPowerFailEnergy(void *phase_temp2,void *dummy) //test this method
 //        
 //        if(i>=MAX_LOG_RETRAY) //the logging was not successfull 
 //          return 0;
-        
+        */
         
         return 1;
 }
 int8_t restorePowerFailEnergyLog(void *phase_temp2,void *dummy) //test this method
 {
-        uint8_t x=0;//,i=0;
-        uint32_t tempCRC ,CRC;
-        uint32_t temp32 =0;
+//        uint8_t x=0;//,i=0;
+//        uint32_t tempCRC ,CRC;
+//        uint32_t temp32 =0;
         
-        struct phase_parms_s *phase_temp = (struct phase_parms_s*)phase_temp2; 
+ /*       struct phase_parms_s *phase_temp = (struct phase_parms_s*)phase_temp2;
 //        
 //        for(;i<MAX_LOG_RETRAY;i++)
 //        {
@@ -4017,7 +4239,7 @@ int8_t restorePowerFailEnergyLog(void *phase_temp2,void *dummy) //test this meth
         
 //        if(i>=MAX_LOG_RETRAY) //the logging was not successfull 
 //          return 0;
-                
+    */
         return TRUE;
         
 }

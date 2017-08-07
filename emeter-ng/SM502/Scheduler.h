@@ -13,7 +13,7 @@
 typedef struct 
 {
   void (*fp)(void);
-   uint16_t time_in_ms;
+   uint32_t time_in_ms;
    uint16_t counter;
 }funcPointers;
 
@@ -50,7 +50,7 @@ void init_scheduler();
 * @return -1 if the task is not scaduled 
 *          xx: if the task is schaduled succfully, returns the task slot number 
 */
-__monitor int8_t schedule_task(void(*Task)(),uint16_t time_in_ms,uint8_t task_slot);
+__monitor int8_t schedule_task(void(*Task)(),uint32_t time_in_ms,uint8_t task_slot);
 
 /**
 *  cancels a shaduled task 
