@@ -35,9 +35,9 @@ extern volatile uint8_t IEC_Tx_Done;
 extern __monitor void perform_low_battry_backup();
 
 /**
-* auxilary power supplay switching interrupt service routine 
+* Auxiliary power supply switching interrupt service routine
 * when DVCC is available use dvcc 
-* otherwise use auxilary 2 i.e battery 
+* otherwise use auxiliary 2 i.e battery
 */
 #pragma vector=AUX_VECTOR
 __interrupt void AUX_ISR(void)
@@ -150,7 +150,7 @@ void Reset_System()
 * Tamper ports interrupt service routine
 *  if the processor is in low power mode store them in backup memory and 
 *  log them when power is back
-*  othrewise schedule logger and log them to eerpom 
+*  Otherwise schedule logger and log them to eerpom
 */
 uint8_t temp_pfm=0;
 #pragma vector=PORT1_VECTOR
@@ -363,7 +363,7 @@ void custom_power_restore_handler()
        
        #endif
 
-       //check if tamper happend during low power mode and process them 
+       //check if tamper happened during low power mode and process them
         uint16_t test_temp = BAKMEM0;
         test_temp +=BAKMEM1;
 
@@ -410,9 +410,6 @@ void custom_power_restore_handler()
             
         operating_mode = OPERATING_MODE_NORMAL;
         Reset_System();
-  
-    
- 
 }
 
 

@@ -14,7 +14,7 @@ typedef struct
 {
   void (*fp)(void);
    uint32_t time_in_ms;
-   uint16_t counter;
+   uint32_t counter;
 }funcPointers;
 
 enum TASK_SLOTS 

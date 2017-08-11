@@ -39,121 +39,100 @@ const uint8_t daily_load_profile_buffer_template[] =
 
 };
 
-uint8_t find_num_daily_energy_log_entries_between(const sSA_Range *startRange,const sSA_Range *endRange,
-                                                   uint16_t *startEntryNumber,uint16_t *numOfEntries)
+/*
+ * Get daily captured energy log by time range
+ */
+uint8_t get_daily_energy_captured_log_by_time_range(const sSA_Range *startRange,const sSA_Range *endRange,uint16_t *startEntryNumber,uint16_t *numOfEntries)
 {
      rtc_t temp_sRange ={startRange->Year,startRange->Month,startRange->Date,startRange->Hr,startRange->Min,0,0};
      rtc_t temp_eRange ={endRange->Year,endRange->Month,endRange->Date,endRange->Hr,endRange->Min,0,0};
-     int8_t temp1 = compare_time(&temp_eRange,&temp_sRange); // if the end time specified comes before the first time requested, then abort
-     if(temp1 < 0)
+     int8_t temp1 = compare_time(&temp_eRange,&temp_sRange);
+     int8_t temp2 = 0;
+     if(temp1 < 0)     // if the end time specified comes before the first time requested, then abort
      {
        *startEntryNumber = 0;
        *numOfEntries = 0;
        return 1;
      }
+
      uint16_t MAX_Entries = 0;
      uint32_t add_start = DAILY_SNAPSHOT_LOG_ADDRESS_START;
-     //confirm this with the number of entries we have
-     if(last_daily_snapshot_log_address > DAILY_SNAPSHOT_LOG_ADDRESS_START)//if we have entries
+     if(status.daily_snapshot_energy_overlapped == 1) // if the circular buffer is full
      {
-         if(status.daily_snapshot_energy_overlapped == 1) // if the cirular buffer is full
-         {
-        	 MAX_Entries = DAILY_SNAPSHOT_MAX_LOGS;
-         }
-         else
-         {
-            MAX_Entries = (last_daily_snapshot_log_address - add_start)/DAILY_SNAPSHOT_LOG_SIZE;
-         }
-         EnergyLog firstEntery,lastEntry;
-         uint8_t z = get_daily_snapshot_energy_profile(&firstEntery,1); //get our first entry
-         if(z == 0)
-         {
-           //error abort
-         }
-          rtc_t time_first = getTime(&firstEntery.timeStump);
-          temp1 = compare_time(&temp_eRange,&time_first);//if the first entry we have is is after the last entry requested then we don't have the data
-          if(temp1 < 0)
-          {
-             *startEntryNumber = 0;
-             *numOfEntries = 0;
-             return 1;
-          }
-          int8_t com2 = compare_time(&time_first,&temp_sRange);
-          if(com2 < 0)//if time_first comes before temp_sRange
-          {
-        	  //search for the entry number for temp_sRange;
-                //Search_t search_item;
-                search_item.start_entry = 0;
-                search_item.end_entry = MAX_Entries;
-                EnergyLog l;
-                EnergyLog l2;
-                l2.timeStump = getTimeStamp(temp_sRange.year,temp_sRange.month,temp_sRange.day,temp_sRange.hour,temp_sRange.minute,temp_sRange.second);
-                search_item.current_data = &l;
-                search_item.PeakItem = &get_daily_snapshot_energy_profile;
-                search_item.Compare = &compare_energy;
-                search_item.search_data = &l2;//&temp_sRange;
-                uint32_t sa =  search_nearest_log(&search_item);
-                // find the actual last entry
-				// check if this entry is with in the start and end range
-                if(sa ==0)
-                {
-                	*startEntryNumber = search_item.last_entry_no;
-                }
-                else
-                {
-                	*startEntryNumber = sa;
-                }
-          }
-          else
-          {
-             *startEntryNumber = 1;
-          }
-          z = get_daily_snapshot_energy_profile(&lastEntry,MAX_Entries);//get the last entry
-          if(z == 0)
-          {
-                //error abort
-          }
-          rtc_t time_last = getTime(&lastEntry.timeStump);
-          int8_t com3 = compare_time(&time_last,&temp_eRange);
-          if(com3 >= 0)//temp_eRange comes before  time_last
-          {
-			    //search for temp_eRange
-				void *t1 = &required_last_entry_time;
-				void *t2 = &temp_eRange;
-				memcpy(t1,t2,sizeof(required_last_entry_time));
-				if(com2 <= 0)
-				  *numOfEntries = (uint32_t)(getTimeDifferenceInMinutes(&temp_eRange,&temp_sRange)/daily_load_profile_capture_period_min);
-				else
-				*numOfEntries = (uint32_t)(getTimeDifferenceInMinutes(&temp_eRange,&time_first)/daily_load_profile_capture_period_min);
-          }
-          else
-          {
-				//last entry is the last number of entry
-				void *t1 = &required_last_entry_time;
-				void *t2 = &time_last;
-				memcpy(t1,t2,sizeof(time_last));
-				if(com2 <= 0)
-				{
-					*numOfEntries = (uint32_t)(getTimeDifferenceInMinutes(&time_last,&time_first)/daily_load_profile_capture_period_min);
-				}
-				else
-				{
-					*numOfEntries = (uint32_t)(getTimeDifferenceInMinutes(&time_last,&temp_sRange)/daily_load_profile_capture_period_min);
-				}
-          }
-          if((*startEntryNumber * DAILY_SNAPSHOT_LOG_SIZE) + DAILY_SNAPSHOT_LOG_ADDRESS_START  > last_daily_snapshot_log_address)
-             *numOfEntries = 0;
-          else
-          {
-             *numOfEntries = *numOfEntries>MAX_Entries?MAX_Entries:*numOfEntries;
-          }
+         MAX_Entries = DAILY_SNAPSHOT_MAX_LOGS;
      }
      else
      {
-       *startEntryNumber =0;
-       *numOfEntries = 0;
+        MAX_Entries = (last_daily_snapshot_log_address - add_start)/DAILY_SNAPSHOT_LOG_SIZE;
+        if(MAX_Entries == 0)
+        {
+            *startEntryNumber =0;
+            *numOfEntries = 0;
+            return 1;
+        }
      }
-      return 1;//success
+
+    rtc_t time_first;
+    rtc_t time_last ;
+    uint8_t z = get_daily_energy_log_time_stamp(&time_first,1); //get our first entry
+    if(z == 0)
+    {
+        //error abort
+    }
+    z = get_daily_energy_log_time_stamp(&time_last,MAX_Entries);//get the last entry
+    if(z == 0)
+    {
+        //error abort
+    }
+
+    temp1 = compare_time(&temp_eRange,&time_first);
+    temp2 = compare_time(&time_last,&temp_sRange);
+    if(temp1 < 0 || temp2 < 0) // if the first entry we have is after the last entry requested or
+    {                          // last entry we have is before the first entry requested then we don't have the data.
+        *startEntryNumber = 0;
+        *numOfEntries = 0;
+        return 1;
+    }
+    temp1 = compare_time(&temp_sRange,&time_first);
+    temp2 = compare_time(&time_last,&temp_eRange);
+    // if the first entry we have comes after the first entry requested and the the last entry we have comes before the last entry requested
+    // then return all data.
+    if(temp1 <= 0 && temp2 <= 0) // if the first entry we have is after the last entry requested or
+    {                            // last entry we have is before the first entry requested then we don't have the data.
+        *startEntryNumber = 1;
+        *numOfEntries = MAX_Entries;
+        return 1;
+    }
+    //search for start entry and number of entries
+    uint16_t index = 1;
+    uint16_t number_of_entries = 0;
+    for(;;)
+    {
+        z = get_daily_energy_log_time_stamp(&time_first,index);//get the last entry
+        if(z == 0)
+        {
+            //error abort
+        }
+        temp1 = compare_time(&temp_sRange,&time_first);
+        temp2 = compare_time(&time_first,&temp_eRange);
+        if(temp1 <= 0 && temp2 <= 0 && index <= MAX_Entries) // we get an entry within the range
+        {
+            index++;
+            number_of_entries++;
+        }
+        else if(index > MAX_Entries || temp2 > 0)
+        {
+            break; // reached last entry
+        }
+        else
+        {
+            index++;
+        }
+    }
+    *startEntryNumber = index - number_of_entries ;
+    *numOfEntries = number_of_entries;
+
+    return 1;//success
 }
 
 uint8_t find_num_total_daily_energy_log_entries(uint16_t *num_entries,uint16_t *start_entry)
@@ -163,65 +142,64 @@ uint8_t find_num_total_daily_energy_log_entries(uint16_t *num_entries,uint16_t *
          divide it by the size of energy log struct
           return this number
        */
-   *start_entry = 0;
-   *num_entries = 0;
-   int32_t x=0;
-   if(status.daily_snapshot_energy_overlapped == 1)
-   {
-     *num_entries = DAILY_SNAPSHOT_MAX_LOGS; // the buffer is full, so return all Logs
-   }
-   else{
+    *start_entry = 0;
+    *num_entries = 0;
+    int32_t x=0;
+    if(status.daily_snapshot_energy_overlapped == 1)
+    {
+        *num_entries = DAILY_SNAPSHOT_MAX_LOGS; // the buffer is full, so return all Logs
+    }
+    else
+    {
+        uint32_t add_start = DAILY_SNAPSHOT_LOG_ADDRESS_START;
+        if(last_daily_snapshot_log_address > add_start)
+        x = last_daily_snapshot_log_address - add_start;
 
-     uint32_t add_start = DAILY_SNAPSHOT_LOG_ADDRESS_START;
-     if(last_daily_snapshot_log_address > add_start)
-       x = last_daily_snapshot_log_address - add_start;
-
-     while(x > 0)
-     {
+        while(x > 0)
+        {
             x -= DAILY_SNAPSHOT_LOG_SIZE;
             *num_entries= *num_entries + 1;
-     }
-   }
-   if(*num_entries > 0)
-     *start_entry = 1;
+        }
+    }
+    if(*num_entries > 0)
+    *start_entry = 1;
 
-  return 1;//success
+    return 1;//success
 }
 
 /*
- * Hourly Load profile
+ * Daily Load profile
  * buffer-callback function
  */
 void capture_daily_load_profile_data(void *data, int direction)
 {
     /* Load Template for Load Profile 2*/
-   msg_info.template=daily_load_profile_buffer_template;
-   msg_info.sz_template=sizeof(daily_load_profile_buffer_template);
+   msg_info.template = daily_load_profile_buffer_template;
+   msg_info.sz_template = sizeof(daily_load_profile_buffer_template);
 
-   if(access_selector == 1) //range_descriptor specifically by date range
-   {
-     if(SA_Range[1].Year>4095 || SA_Range[0].Year>4095 )
-         msg_info.num_entries=0x0;
-     else
-         find_num_daily_energy_log_entries_between(&SA_Range[0],&SA_Range[1],&msg_info.start_entry,&msg_info.num_entries);/*msg_info.num_entries=5*/
-   }
-   else if(access_selector == 2) //entry descriptor
-   {
-//       SA_From_Entry;
-//       SA_To_Entry;
-       find_num_total_daily_energy_log_entries(&msg_info.num_entries,&msg_info.start_entry);
-       if(SA_From_Entry <= SA_To_Entry)
-       {
-          msg_info.start_entry = msg_info.start_entry > SA_From_Entry? msg_info.start_entry :SA_From_Entry;
-          SA_To_Entry -=  SA_From_Entry;
-          msg_info.num_entries = msg_info.num_entries > SA_To_Entry? (SA_To_Entry):msg_info.num_entries;
-       }
-       else
-       {
-
-       }
-   }
-   else//   if(access_selector == 0)
+    if(access_selector == 1) //range_descriptor specifically by date range
+    {
+        if(SA_Range[1].Year>4095 || SA_Range[0].Year>4095 )
+        msg_info.num_entries = 0x0;
+        else
+        get_daily_energy_captured_log_by_time_range(&SA_Range[0],&SA_Range[1],&msg_info.start_entry,&msg_info.num_entries);/*msg_info.num_entries=5*/
+    }
+    else if(access_selector == 2) //entry descriptor
+    {
+        find_num_total_daily_energy_log_entries(&msg_info.num_entries,&msg_info.start_entry);
+        if(SA_From_Entry <= SA_To_Entry)
+        {
+            msg_info.start_entry = msg_info.start_entry > SA_From_Entry? msg_info.start_entry :SA_From_Entry;
+            SA_To_Entry = SA_To_Entry > msg_info.num_entries? msg_info.num_entries : SA_To_Entry;
+            SA_To_Entry -=  SA_From_Entry;
+            msg_info.num_entries = SA_To_Entry + 1;
+        }
+        else
+        {
+            msg_info.num_entries = 0x0;
+        }
+    }
+   else //access_selector == 0
    {
       find_num_total_daily_energy_log_entries(&msg_info.num_entries,&msg_info.start_entry);
    }
@@ -279,7 +257,7 @@ const uint8_t daily_load_profile_capture_objects[] =
 };
 
 /*
- * Callback function for houlry load profile capture period
+ * Callback function for hourly load profile capture period
  */
 void change_daily_load_profile_capture_period(void *data,int data_direction)
 {
@@ -309,13 +287,15 @@ void obj_daily_load_profile_reset(uint8_t *data,uint16_t data_len,uint8_t *respo
 }
 void capture_daily_snapshot()
 {
-	EnergyLog daily_snapshot;
-	daily_snapshot.active_energy = chan1.import_active_energy_QI_QIV;// chan1.consumed_active_energy;
-	daily_snapshot.reactive_energy_QI = chan1.consumed_reactive_energy_QI;//chan1.readings.reactive_power;
-	daily_snapshot.active_power = chan1.readings.active_power;
-	daily_snapshot.reactive_energy_QIV = chan1.consumed_reactive_energy_QIV;//chan1.readings.V_rms;
-	daily_snapshot.timeStump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-	daily_snapshot.CRC = daily_snapshot.active_energy + daily_snapshot.reactive_energy_QI + daily_snapshot.timeStump.TimestampLow+ daily_snapshot.timeStump.TimestampUp;
+	daily_energy_log_t daily_snapshot;
+	daily_snapshot.active_import_energy = chan1.import_active_energy_QI_QIV;
+	daily_snapshot.active_export_energy = chan1.export_active_energy_QII_QIII;
+	daily_snapshot.reactive_energy_QI   = chan1.consumed_reactive_energy_QI;
+	daily_snapshot.reactive_energy_QII  = chan1.consumed_reactive_energy_QII;
+	daily_snapshot.reactive_energy_QIII = chan1.consumed_reactive_energy_QIII;
+	daily_snapshot.reactive_energy_QIV  = chan1.consumed_reactive_energy_QIV;
+	daily_snapshot.timestamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
+	daily_snapshot.crc = daily_snapshot.active_import_energy + daily_snapshot.reactive_energy_QI + daily_snapshot.timestamp.TimestampLow+ daily_snapshot.timestamp.TimestampUp;
 	write_to_eeprom(&daily_snapshot,(uint8_t *)0,log_daily_energy_snapshot);
 }
 /*
@@ -328,4 +308,44 @@ void obj_daily_load_profile_capture(uint8_t *data,uint16_t data_len,uint8_t *res
 }
 
 
+/*
+void test_circular_buffer()
+{
+    uint32_t add_start = DAILY_SNAPSHOT_LOG_ADDRESS_START;
+    uint16_t tmp2 = 0;
+    uint8_t day = 6;
+    uint8_t hour = 0;
+    uint8_t minute = 0;
+    daily_energy_log_t tmp;
 
+    while(tmp2 < 89)//EnergyLog_SIZE-1)
+    {
+
+        tmp.active_import_energy = 1000 + adderr;
+        tmp.active_export_energy = 2000 + adderr;
+        tmp.reactive_energy_QI   = 3000 + adderr;
+        tmp.reactive_energy_QII  = 4000 + adderr;
+        tmp.reactive_energy_QIII = 5000 + adderr;
+        tmp.reactive_energy_QIV  = 6000 + adderr;
+        tmp.timestamp = getTimeStamp(rtcc.year, rtcc.month, day, hour, minute, 0);
+        tmp.crc = tmp.active_export_energy + tmp.reactive_energy_QI + tmp.timestamp.TimestampLow+ tmp.timestamp.TimestampUp;
+        write_to_eeprom(&tmp,(uint8_t *)0,log_daily_energy_snapshot);
+        tmp2 = (last_daily_snapshot_log_address - add_start)/DAILY_SNAPSHOT_LOG_SIZE;
+        minute+=30;
+        if (minute == 60)
+        {
+            minute = 0;
+            hour++;
+            if(hour == 24)
+            {
+                hour = 0;
+                day++;
+            }
+        }
+        adderr++;
+    }
+
+    tmp2 = (LastEnergyLogAddress - add_start)/INCREMENTAL_ENERGY_LOG_SIZE;
+}
+
+*/

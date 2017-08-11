@@ -7,9 +7,11 @@
 
 #include <msp430.h>
 #include <stdint.h>
+#include "EventTypes.h"
 uint8_t BOR_flag;
-
- void RESET_ISR(void)
+void log_standard_events(uint8_t event_type);
+#pragma vector = RESET_VECTOR,SYSNMI_VECTOR,UNMI_VECTOR
+__interrupt void RESET_ISR(void)
 {
 	 switch (__even_in_range(SYSRSTIV, SYSRSTIV_PMMKEY))
 	    {
@@ -17,6 +19,7 @@ uint8_t BOR_flag;
 	                                __no_operation();
 	                                break;
 	        case SYSRSTIV_BOR:                        // SYSRSTIV : BOR
+	                                log_standard_events(BOR_RESET_EVENT);
 	                                __no_operation();
 	                                break;
 	        case SYSRSTIV_RSTNMI:                     // SYSRSTIV : RST/NMI
@@ -71,7 +74,7 @@ uint8_t BOR_flag;
  void one_second_ticker(void);//RTC_VECTOR
 #pragma vector=LCD_C_VECTOR,TIMER3_A1_VECTOR,TIMER3_A0_VECTOR,PORT2_VECTOR,TIMER2_A0_VECTOR, \
 		       TIMER1_A1_VECTOR,TIMER1_A0_VECTOR,DMA_VECTOR,USCI_A2_VECTOR,					 \
-			   ADC10_VECTOR,USCI_B0_VECTOR,WDT_VECTOR,UNMI_VECTOR,SYSNMI_VECTOR,RESET_VECTOR
+			   ADC10_VECTOR,USCI_B0_VECTOR,WDT_VECTOR//,UNMI_VECTOR//,SYSNMI_VECTOR,//RESET_VECTOR
 __interrupt void ISR_trap(void)
 {
 //	one_second_ticker();

@@ -111,7 +111,7 @@ uint8_t temp_SC_Counter=0;
 __interrupt void TIMER2_A1_ISR(void)
 {
   uint8_t temp=0;
-  uint16_t temp2=0;
+  uint32_t temp2=0;
    switch (__even_in_range(TA2IV, TA2IV_TA2IFG))
     {
        case TA2IV_TA2IFG:

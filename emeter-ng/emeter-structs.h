@@ -811,8 +811,8 @@ struct phase_parms_s
     
     //uint32_t consumed_active_energy;
     
-    uint32_t active_energy_import_counter;
-    uint32_t active_energy_export_counter;
+    //uint32_t active_energy_import_counter;
+   // uint32_t active_energy_export_counter;
     
     
     uint32_t import_active_energy_QI_QIV;

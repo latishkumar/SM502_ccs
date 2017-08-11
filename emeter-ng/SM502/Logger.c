@@ -544,7 +544,7 @@ void InitLogg()
                  Passwords[i].password[j] = default_passwords[i].password[j];
             }
             //write EEPROM
-
+           /* phase->active_power_counter = 0;
             phase->import_active_energy_counter_QI_QIV = 0;//phase->active_energy_counter_QI = 0;
             phase->export_active_energy_counter_QII_QIII = 0;//phase->active_energy_counter_QII = 0;
 
@@ -561,6 +561,11 @@ void InitLogg()
             phase->consumed_reactive_energy_QII  = 0;
             phase->consumed_reactive_energy_QIII = 0;
             phase->consumed_reactive_energy_QIV  = 0;
+
+            phase->inc_export_active_energy = 0;
+            phase->inc_import_active_energy = 0;
+            phase->inc_reactive_energy_QI = 0;
+           */
 
             write_to_eeprom(phase,(uint8_t *)0,perform_eeprom_backup);
 
@@ -1453,10 +1458,10 @@ int8_t log_hourly_energy_profile(void *l2,void *dummy)
     //      if(x==0)
     //      continue;
 
-    x= EEPROM2_WriteNextLong(l->time_stump.TimestampLow,0);
+    x= EEPROM2_WriteNextLong(l->timestamp.TimestampLow,0);
     //        if(x==0)
     //          continue;
-    x = EEPROM2_WriteNextInt8(l->time_stump.TimestampUp,0);
+    x = EEPROM2_WriteNextInt8(l->timestamp.TimestampUp,0);
     //        if(x==0)
     //          continue;
     x= EEPROM2_WriteNextInt8(l->crc,1);
@@ -1477,42 +1482,57 @@ int8_t log_hourly_energy_profile(void *l2,void *dummy)
  */
 int8_t log_daily_energy_snapshot(void *l2,void *dummy)
 {
-        EnergyLog *l = (EnergyLog *)l2;
+        daily_energy_log_t *l = (daily_energy_log_t *)l2;
         uint8_t x=0;//,i=0;
-        if(last_daily_snapshot_log_address<DAILY_SNAPSHOT_LOG_ADDRESS_START || last_daily_snapshot_log_address>DAILY_SNAPSHOT_LOG_ADDRESS_END)
+        if(last_daily_snapshot_log_address < DAILY_SNAPSHOT_LOG_ADDRESS_START || last_daily_snapshot_log_address > DAILY_SNAPSHOT_LOG_ADDRESS_END)
             last_daily_snapshot_log_address = DAILY_SNAPSHOT_LOG_ADDRESS_START;
 
-        x=EEPROM2_WriteLong(l->active_energy,last_daily_snapshot_log_address,0);
-        x= EEPROM2_WriteNextLong(l->reactive_energy_QI, 0);
-        x= EEPROM2_WriteNextLong(l->active_power, 0);
-        x= EEPROM2_WriteNextLong(l->reactive_energy_QIV, 0);
-        x= EEPROM2_WriteNextLong(l->timeStump.TimestampLow,0);
-        x = EEPROM2_WriteNextInt8(l->timeStump.TimestampUp,0);
-        x= EEPROM2_WriteNextInt8(l->CRC,1);
+        x = EEPROM2_WriteLong(l->active_import_energy,last_daily_snapshot_log_address,0);
+        x = EEPROM2_WriteNextLong(l->active_export_energy,0);
+        x = EEPROM2_WriteNextLong(l->reactive_energy_QI,0);
+        x = EEPROM2_WriteNextLong(l->reactive_energy_QII,0);
+        x = EEPROM2_WriteNextLong(l->reactive_energy_QIII,0);
+        x = EEPROM2_WriteNextLong(l->reactive_energy_QIV,0);
+        x = EEPROM2_WriteNextLong(l->timestamp.TimestampLow,0);
+        x = EEPROM2_WriteNextInt8(l->timestamp.TimestampUp,0);
+        x = EEPROM2_WriteNextInt8(l->crc,1);
+
         if(x==0)
           return 0;
         updateNextLogAddress(1);//1 for energy daily snaphot log
         return 1;
 }
-uint8_t get_daily_snapshot_energy(EnergyLog *l,unsigned long StartAddress)
+uint8_t get_daily_snapshot_energy(daily_energy_log_t *l,unsigned long StartAddress)
 {
     uint8_t x=0,i=0;
 
     for(;i<MAX_LOG_RETRAY;i++)
     {
-        x=EEPROM2_ReadLong(StartAddress,0,&(l->active_energy));
+        x = EEPROM2_ReadLong(StartAddress,0,&(l->active_import_energy));
         if(x==0)
         {
             continue;
         }
 
-        x= EEPROM2_ReadNextLong(0,&(l->reactive_energy_QI));
+        x = EEPROM2_ReadNextLong(0,&(l->active_export_energy));
         if(x==0)
         {
             continue;
         }
 
-        x= EEPROM2_ReadNextLong(0,&(l->active_power));
+        x = EEPROM2_ReadNextLong(0,&(l->reactive_energy_QI));
+        if(x==0)
+        {
+            continue;
+        }
+
+        x = EEPROM2_ReadNextLong(0,&(l->reactive_energy_QII));
+        if(x==0)
+        {
+            continue;
+        }
+
+        x = EEPROM2_ReadNextLong(0,&(l->reactive_energy_QIII));
         if(x==0)
         {
             continue;
@@ -1523,19 +1543,19 @@ uint8_t get_daily_snapshot_energy(EnergyLog *l,unsigned long StartAddress)
         {
             continue;
         }
-        x= EEPROM2_ReadNextLong(0,&(l->timeStump.TimestampLow));
+        x= EEPROM2_ReadNextLong(0,&(l->timestamp.TimestampLow));
         if(x==0)
         {
             continue;
         }
 
-        x = EEPROM2_ReadNextInt8(0,&(l->timeStump.TimestampUp));
+        x = EEPROM2_ReadNextInt8(0,&(l->timestamp.TimestampUp));
         if(x==0)
         {
             continue;
         }
 
-        x= EEPROM2_ReadNextInt8(1,&(l->CRC));
+        x= EEPROM2_ReadNextInt8(1,&(l->crc));
         if(x==0)
         {
             continue;
@@ -1660,6 +1680,11 @@ int8_t logEvent2(void *lt,void *StartAddress)
         return 1;
 }
 */
+
+/*
+ * returns time stamp of hourly energy log
+ * with the given start address and offset
+ */
 uint8_t get_hourly_energy_log_ts(rtc_t *l,unsigned long StartAddress, uint8_t offset)
 {
     uint8_t x=0,i=0;
@@ -1685,6 +1710,10 @@ uint8_t get_hourly_energy_log_ts(rtc_t *l,unsigned long StartAddress, uint8_t of
     return 1;
 }
 
+/*
+ * get the time stamp of hourly energy log
+ * of the given entry
+ */
 uint8_t get_hourly_energy_log_time_stamp(void *lt,uint32_t EntryNumber)
 {
     int32_t en = --EntryNumber;
@@ -1714,6 +1743,70 @@ uint8_t get_hourly_energy_log_time_stamp(void *lt,uint32_t EntryNumber)
 
     return 1;
 }
+
+/*
+ * returns time stump of daily energy log
+ * with the given start address and offset
+ */
+uint8_t get_daily_energy_log_ts(rtc_t *l,unsigned long StartAddress, uint8_t offset)
+{
+    uint8_t x=0,i=0;
+    TimeStump tmp;
+
+    for(;i<MAX_LOG_RETRAY;i++)
+    {
+        x = EEPROM2_ReadLong(StartAddress + offset,0,&(tmp.TimestampLow));
+        if(x==0)
+            continue;
+        x = EEPROM2_ReadNextInt8(1,&(tmp.TimestampUp));
+        if(x==0)
+            continue;
+        else
+            break;
+    }
+
+    *l = getTime(&tmp);
+
+    if(i >= MAX_LOG_RETRAY)
+        return 0;
+
+    return 1;
+}
+
+/*
+ * get the time stump of daily energy log
+ * of the given entry
+ */
+uint8_t get_daily_energy_log_time_stamp(void *lt,uint32_t EntryNumber)
+{
+    int32_t en = --EntryNumber;
+    if(en < 0)
+        EntryNumber = 0;
+
+    //--EntryNumber;//handle zero based index
+    rtc_t *l = (rtc_t*)lt;
+    uint32_t StartAddress;
+    if(status.daily_snapshot_energy_overlapped == 1)//handle cirular buffer
+    {
+        uint32_t val = DAILY_SNAPSHOT_LOG_SIZE*EntryNumber;
+        if((last_daily_snapshot_log_address + val) >= (DAILY_SNAPSHOT_LOG_ADDRESS_END))
+        {
+            StartAddress = (DAILY_SNAPSHOT_LOG_ADDRESS_START + last_daily_snapshot_log_address + val) - (DAILY_SNAPSHOT_LOG_ADDRESS_END);
+        }
+        else
+        {
+            StartAddress = (last_daily_snapshot_log_address + val);
+        }
+    }
+    else
+    StartAddress = DAILY_SNAPSHOT_LOG_ADDRESS_START + (DAILY_SNAPSHOT_LOG_SIZE*EntryNumber);
+
+    if(get_daily_energy_log_ts(l,StartAddress,24) == 0)
+        return 0;
+
+    return 1;
+}
+
 int8_t logEnergy2(void *lt,uint32_t StartAddress)
 {
         EnergyLog *l = (EnergyLog*)lt;
@@ -1805,11 +1898,11 @@ uint8_t get_hourly_energy(hourly_energy_log_t *l,unsigned long StartAddress)
         l->inc_reactive_energy_QIV  =  0xFFFF & tmp;
         l->inc_reactive_energy_QIII = (uint16_t) (tmp >> 16);
 
-        x= EEPROM2_ReadNextLong(0,&(l->time_stump.TimestampLow));
+        x= EEPROM2_ReadNextLong(0,&(l->timestamp.TimestampLow));
         if(x==0)
             continue;
 
-        x = EEPROM2_ReadNextInt8(0,&(l->time_stump.TimestampUp));
+        x = EEPROM2_ReadNextInt8(0,&(l->timestamp.TimestampUp));
         if(x==0)
             continue;
 
@@ -1860,7 +1953,7 @@ int8_t get_hourly_energy_profile(void *lt,uint32_t EntryNumber)
         return 1;
 }
 /*
- * Get daily snapshot profile
+ * Get daily snapshot profile with the given entry number
  */
 int8_t get_daily_snapshot_energy_profile(void *lt,uint32_t EntryNumber)
 {
@@ -1869,7 +1962,7 @@ int8_t get_daily_snapshot_energy_profile(void *lt,uint32_t EntryNumber)
        {
            EntryNumber = 0;
        }
-       EnergyLog *l = (EnergyLog*)lt;
+       daily_energy_log_t *l = (daily_energy_log_t*)lt;
        uint32_t StartAddress;
        if(status.daily_snapshot_energy_overlapped == 1)//handle cirular buffer
        {
@@ -1877,15 +1970,15 @@ int8_t get_daily_snapshot_energy_profile(void *lt,uint32_t EntryNumber)
           if(last_daily_snapshot_log_address + val >= DAILY_SNAPSHOT_LOG_ADDRESS_END)
           {
               StartAddress = (DAILY_SNAPSHOT_LOG_ADDRESS_START + last_daily_snapshot_log_address + val) - (DAILY_SNAPSHOT_LOG_ADDRESS_END);
-             //StartAddress = val + DAILY_SNAPSHOT_LOG_ADDRESS_START - EventLog_End;
           }
-          else{
+          else
+          {
              StartAddress = (last_daily_snapshot_log_address + val);
           }
        }
        else
           StartAddress = DAILY_SNAPSHOT_LOG_ADDRESS_START + (DAILY_SNAPSHOT_LOG_SIZE * EntryNumber);
-       if( get_daily_snapshot_energy(l,StartAddress) == 0 )
+       if(get_daily_snapshot_energy(l,StartAddress) == 0 )
          return 0;
        return 1;
 }
@@ -3839,10 +3932,36 @@ int8_t perform_eeprom_backup(void *phase_temp2,void *dummy) //test this method
         x = EEPROM2_WriteNextLong(phase_temp->reactive_energy_counter_QIV, 0);
         if(x==0)
             continue;
-//        CRC += phase_temp->reactive_energy_counter_QIV;
+
+        x = EEPROM2_WriteNextLong(phase_temp->active_power_counter, 0);
+        if(x==0)
+            continue;
+
+        x = EEPROM2_WriteNextLong(phase_temp->inc_import_active_energy, 0);
+        if(x==0)
+            continue;
+
+        x = EEPROM2_WriteNextLong(phase_temp->inc_export_active_energy, 0);
+        if(x==0)
+            continue;
+
+        x = EEPROM2_WriteNextLong(phase_temp->inc_reactive_energy_QI, 0);
+        if(x==0)
+            continue;
+
+        x = EEPROM2_WriteNextLong(phase_temp->inc_reactive_energy_QII, 0);
+        if(x==0)
+            continue;
+
+        x = EEPROM2_WriteNextLong(phase_temp->inc_reactive_energy_QIII, 0);
+        if(x==0)
+            continue;
+
+         x = EEPROM2_WriteNextLong(phase_temp->inc_reactive_energy_QIV, 0);
+        if(x==0)
+            continue;
 
         //log current time
-
         getHardwareTime(&rtc_tmp);
         ts = getTimeStamp(rtc_tmp.year,rtc_tmp.month,rtc_tmp.day,rtc_tmp.hour,rtc_tmp.minute,rtc_tmp.second);
 
@@ -3866,13 +3985,16 @@ int8_t perform_eeprom_backup(void *phase_temp2,void *dummy) //test this method
 
     return 1;
 }
+
+void time_validity_checker_and_corrector(TimeStump t);
+
 /*
  * restores the last backup data from eeprom
  */
 int8_t restore_eeprom_backup(void *phase_temp2,void *dummy) //test this method
 {
     uint8_t x = 0, i = 0;
-    uint32_t tempCRC ,CRC;
+    uint32_t tempCRC = 0 ,CRC = 0;
     uint32_t temp32 = 0;
     for(;i<MAX_LOG_RETRAY;i++)
     {
@@ -3884,7 +4006,7 @@ int8_t restore_eeprom_backup(void *phase_temp2,void *dummy) //test this method
         if(x==0)
             continue;
         tempCRC += temp32;
-        x = EEPROM2_ReadLong((PowerFaileEnergyLogStart + 52),0,&CRC);
+        x = EEPROM2_ReadLong((PowerFaileEnergyLogStart + 84),0,&CRC);
         if(x==0)
             continue;
         break;
@@ -3959,6 +4081,41 @@ int8_t restore_eeprom_backup(void *phase_temp2,void *dummy) //test this method
         x = EEPROM2_ReadNextLong(0,&(temp32));
         if(x == 0)
             continue;
+        phase_temp->active_power_counter = temp32;
+
+        x = EEPROM2_ReadNextLong(0,&(temp32));
+        if(x == 0)
+            continue;
+        phase_temp->inc_import_active_energy = temp32;
+
+        x = EEPROM2_ReadNextLong(0,&(temp32));
+        if(x == 0)
+            continue;
+        phase_temp->inc_export_active_energy = temp32;
+
+        x = EEPROM2_ReadNextLong(0,&(temp32));
+        if(x == 0)
+            continue;
+        phase_temp->inc_reactive_energy_QI = temp32;
+
+        x = EEPROM2_ReadNextLong(0,&(temp32));
+        if(x == 0)
+            continue;
+        phase_temp->inc_reactive_energy_QII = temp32;
+
+        x = EEPROM2_ReadNextLong(0,&(temp32));
+        if(x == 0)
+            continue;
+        phase_temp->inc_reactive_energy_QIII = temp32;
+
+         x = EEPROM2_ReadNextLong(0,&(temp32));
+        if(x == 0)
+            continue;
+        phase_temp->inc_reactive_energy_QIV = temp32;
+
+        x = EEPROM2_ReadNextLong(0,&(temp32));
+        if(x == 0)
+            continue;
 
          x = EEPROM2_ReadNextLong(1,&(tempCRC));
         if(x == 0)
@@ -3971,25 +4128,19 @@ int8_t restore_eeprom_backup(void *phase_temp2,void *dummy) //test this method
         return 0;
 
     TimeStump t = {tempCRC,(uint8_t)temp32};
+    time_validity_checker_and_corrector(t);
     rtc_t time =  getTime(&t);
-    uint64_t td = labs(getTimeDifferenceInMinutes(&rtcc,&time));
-    if(time.isValid)
-    {
-        if(compare_time(&rtcc,&time) < 0)
-        {
-            hardware_status.RTC_Status = 0; //rtc is not ok
-            //set it to the last saved rtc time
-            adjust_rtc(&time,0);
-        }
-        else //if(labs(getTimeDifferenceInMinutes(&rtcc,&time)) > MAX_EXPECTED_METER_OFF_TIME_MINUTES) //check whether time has moved too long  to the future or to the past
-        {
-            if(td > MAX_EXPECTED_METER_OFF_TIME_MINUTES)
-            {
-                hardware_status.RTC_Status = 0; //rtc is not ok
-                adjust_rtc(&time,0);
-            }
-        }
-    }
+    //log power out event
+    uint8_t temp_did = 3;
+    EventLog l;
+    l.EventCode = PowerOut;
+    l.timeStump = getTimeStamp(time.year, time.month, time.day, time.hour, time.minute, time.second);
+    l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow + l.timeStump.TimestampUp);
+    l.value = 0;
+    write_to_eeprom(&l,&temp_did,log_events);
+
+    // log power up event
+    log_standard_events(PowerUp);
 
     return 1; //the restoring was successfull
 }

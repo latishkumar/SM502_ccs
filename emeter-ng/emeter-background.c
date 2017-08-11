@@ -169,7 +169,7 @@ static __inline__ void log_parameters(void)
 #endif
 }
 
-extern  void perform_low_battry_backup();
+extern  void perform_low_battery_backup();
 extern MeterStatus status;
 
 #define Max_F_Power_Faile 246

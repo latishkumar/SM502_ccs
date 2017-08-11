@@ -171,16 +171,15 @@ enum EventGroup_Types{
  * a total of 61kbyte memory is required
  */
 typedef struct
-{  
+{
     unsigned long active_energy; //4byte   // consumed active energy import
-    
     unsigned long reactive_energy_QI; //4byte // positive reactive energy ,
     unsigned long active_power;//4 byte
     unsigned long reactive_energy_QIV; //4 byte [E.E]-was Voltage and changed to support negative reactive energy
-    
+
     TimeStump timeStump; //5byte
-                    
-    uint8_t CRC; //1byte     
+
+    uint8_t CRC; //1byte
 }EnergyLog;
 #define init_EnergyLog {0, 0, 0, 0, { 0, 0}, 0}
 /*
@@ -197,11 +196,23 @@ typedef struct
     uint16_t inc_reactive_energy_QII;  //2 byte    consumed reactive energy QII
     uint16_t inc_reactive_energy_QIII; //2 byte    consumed reactive energy QIII
     uint16_t inc_reactive_energy_QIV;  //2 byte    consumed reactive energy QIV
-    TimeStump time_stump;               //5 byte
-    uint8_t crc;                       //1 byte
+    TimeStump timestamp;               //5 byte    timestamp
+    uint8_t crc;                       //1 byte    checksum
 }hourly_energy_log_t;
-
 #define init_hourly_energy_log {0, 0, 0, 0, 0, 0,{ 0, 0}, 0}
+
+typedef struct
+{
+    uint32_t active_import_energy; //4 byte    consumed active energy import
+    uint32_t active_export_energy; //4 byte    consumed active energy export
+    uint32_t reactive_energy_QI;   //4 byte    consumed reactive energy QI
+    uint32_t reactive_energy_QII;  //4 byte    consumed reactive energy QII
+    uint32_t reactive_energy_QIII; //4 byte    consumed reactive energy QIII
+    uint32_t reactive_energy_QIV;  //4 byte    consumed reactive energy QIV
+    TimeStump timestamp;           //5 byte    time stump
+    uint8_t crc;                   //1 byte
+} daily_energy_log_t;
+#define init_daily_energy_log {0, 0, 0, 0, 0, 0,{ 0, 0}, 0}
 
 #define EnergyBillingCutoffDayLogSize 47
 
@@ -325,7 +336,7 @@ int read_from_eeprom(void *readArgument_1,void *readArgument_2,int8_t(*read)(voi
 
 
 
-#define MemoryFormattedIndicatorCode {0x2a,0x2a,0x2a,0x2a,0x2a} //0x2F
+#define MemoryFormattedIndicatorCode {0x2f,0x2f,0x2f,0x2f,0x2f} //0x2F
 
 #define CONFIGURATION_BASE_ADDRESS 128ul //leave Address 0 out
 
@@ -725,21 +736,21 @@ int read_from_eeprom(void *readArgument_1,void *readArgument_2,int8_t(*read)(voi
 
 
 
-
+//Hourly load profile
 #define EnergyLogAddress_Start 131072ul  //   262143 - 131072 / 18  = 7157 logs, log is every 15 minute,  74.5 days
 #define EnergyLog_SIZE   7157ul//
-#define EnergyLog_SIZE2  128826ul  // 128832/18 = 7157, every 15 minute 7157/(4*24)= 74.5 days //5957ul //
+#define EnergyLog_SIZE2  128358ul  // 128358/18 = 7131 logs, every 15 minute 7131/(4*24)= 74.2 days
 #define EnergyLogAddress_End EnergyLogAddress_Start + EnergyLog_SIZE2 //262126ul//((uint32_t)((EnergyLogAddress_Start)+((uint32_t)(EnergyLog_SIZE * EnergyLogSize))))
 //Daily snapshot
-#define DAILY_SNAPSHOT_LOG_SIZE 22
+#define DAILY_SNAPSHOT_LOG_SIZE 30
 #define LAST_DAILY_SNAPSHOT_LOG_ADDRESS_START   EnergyLogAddress_End
 #define LAST_DAILY_SNAPSHOT_LOG_ADDRESS_SIZE 4ul
 #define DAILY_SNAPSHOT_LOG_OVER_LAP_ADDRESS_START LAST_DAILY_SNAPSHOT_LOG_ADDRESS_START + LAST_DAILY_SNAPSHOT_LOG_ADDRESS_SIZE
 #define DAILY_SNAPSHOT_LOG_OVER_LAP_SIZE 1ul
 #define DAILY_SNAPSHOT_LOG_ADDRESS_START     DAILY_SNAPSHOT_LOG_OVER_LAP_ADDRESS_START + DAILY_SNAPSHOT_LOG_OVER_LAP_SIZE
-#define DAILY_SNAPSHOT_LOG_SIZE2 1342   // 1342/22 = 61 every single day , 61 days
-#define DAILY_SNAPSHOT_MAX_LOGS 61
-#define DAILY_SNAPSHOT_LOG_ADDRESS_END DAILY_SNAPSHOT_LOG_ADDRESS_START + DAILY_SNAPSHOT_LOG_SIZE2 - 22
+#define DAILY_SNAPSHOT_LOG_SIZE2 2700   // 2700/30 = 90logs, every single day 90 days
+#define DAILY_SNAPSHOT_MAX_LOGS 90
+#define DAILY_SNAPSHOT_LOG_ADDRESS_END DAILY_SNAPSHOT_LOG_ADDRESS_START + DAILY_SNAPSHOT_LOG_SIZE2
 
 #ifdef EEPROM_REV_2
                                                   
@@ -849,7 +860,16 @@ int8_t log_daily_energy_snapshot(void *l2,void *dummy);
 int8_t get_daily_snapshot_energy_profile(void *lt,uint32_t EntryNumber);
 uint8_t get_daily_snapshot_overlap_flag(uint8_t *flag);
 uint8_t get_hourly_energy_log_ts(rtc_t *l,unsigned long StartAddress, uint8_t offset);
+/*
+ * get the time stamp of hourly energy log
+ * of the given entry
+ */
 uint8_t get_hourly_energy_log_time_stamp(void *lt,uint32_t EntryNumber);
+/*
+ * get the time stamp of daily energy log
+ * of the given entry
+ */
+uint8_t get_daily_energy_log_time_stamp(void *lt,uint32_t EntryNumber);
 /*
  * Logs hourly energy profile
  */

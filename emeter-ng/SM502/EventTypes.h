@@ -28,12 +28,20 @@
 //Configuration and Calibration
 #define ConfigrationDetected  0x50
 #define MeterCalibrated 0x51
-
-
-
+//Standard event types
 //Power condition events
 #define PowerOut  0xA0
 #define PowerUp   0xA1
+#define FIRST_BOOT                        0xB0
+#define RTC_INVALID_TIME_AFTER_CORRECTED  0xB1
+#define INCORRECT_TIMESTAMP               0xB2
+#define RTC_INVALID_TIME_BEFORE_CORRECTED 0xB3
+#define BACKUP_RESTORED_FROM_FLASH_LB     0XB4
+#define BACKUP_RESTORED_FROM_EEPROM       0XB5
+#define BACKUP_RESTORED_FROM_FLASH_NB     0XB6
+#define BACKUP_RESTORATION_FAILED         0XB7
+#define BOR_RESET_EVENT                   0xB8
+
 //#define LowVoltage 0xA2
 //#define HighVoltage 0xA3
 //#define OverCurrent 0xA4

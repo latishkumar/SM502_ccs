@@ -67,7 +67,6 @@ uint8_t find_num_total_energy_log_entries(uint16_t *num_entries,uint16_t *start_
    }
    if(*num_entries > 0)
      *start_entry = 1;
-//   *num_entries = (LastEnergyLogAddress - EnergyLogAddress_Start) / EnergyLogSize;
 
   return 1;//success
 }
@@ -204,8 +203,8 @@ void obj_load_profile_capture(uint8_t *data,uint16_t data_len,uint8_t *response,
     tmp.inc_reactive_energy_QII  = (uint16_t) chan1.inc_reactive_energy_QII;
     tmp.inc_reactive_energy_QIII = (uint16_t) chan1.inc_reactive_energy_QIII;
     tmp.inc_reactive_energy_QIV  = (uint16_t) chan1.inc_reactive_energy_QIV;
-    tmp.time_stump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-    tmp.crc = tmp.inc_active_import_energy + tmp.inc_reactive_energy_QIV + tmp.time_stump.TimestampLow+ tmp.time_stump.TimestampUp;
+    tmp.timestamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
+    tmp.crc = tmp.inc_active_import_energy + tmp.inc_reactive_energy_QIV + tmp.timestamp.TimestampLow+ tmp.timestamp.TimestampUp;
     write_to_eeprom(&tmp,(uint8_t *)0,log_hourly_energy_profile);
 
     //reset hourly energy registers
