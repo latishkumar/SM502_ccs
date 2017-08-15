@@ -2197,7 +2197,7 @@ const struct object_desc_s object_list[] =
                                      ,(const struct attribute_desc_s[]) {
 
                                              {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[ENERGY_REG_START + 3].instance_id, NULL},
-                                             {2, ACCESS_PC___MRR__USR_, TAG_UINT32,           (void *) &phase->inc_export_active_energy, NULL},
+                                             {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &phase->inc_export_active_energy, NULL},
                                              {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_total_active_energy_import, NULL}
 
                                      }
@@ -2326,7 +2326,7 @@ const struct object_desc_s object_list[] =
 
                                              {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[ENERGY_REG_START + 7].instance_id, NULL},
                                              {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) &phase->inc_reactive_energy_QII, NULL},
-                                             {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_reactive_energy, NULL}
+                                             {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_V, NULL}//scalar_unit_reactive_energy
 
                                      }
                                      ,0

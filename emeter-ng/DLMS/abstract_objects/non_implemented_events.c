@@ -2,7 +2,7 @@
  * non_implemented_events.c
  *
  *  Created on: Jun 11, 2017
- *      Author: MedStud
+ *      Author: Eliab Erango
  */
 #include "headers.h"
 #include "event_handling.h"
@@ -16,7 +16,7 @@ uint8_t event_number;
  * events profile entries
  * Default: >100
  */
-const uint32_t event_profile_entries = 1000;
+uint32_t event_profile_entries = 1000;
 const uint16_t demand_event_log_column_szs[] = {16,18};
 /*
  * Template for demand event log profile

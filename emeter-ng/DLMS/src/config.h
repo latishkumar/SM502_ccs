@@ -266,8 +266,8 @@ enum
 // standard event
     ITEM_TAG_EVENT_CODE_SE,
     ITEM_TAG_DATETIME_SE,
-    ITEM_TAG_EVENT_GROUP_SE,
-    ITEM_TAG_EVENT_DATA, // the data associated with the event  
+   // ITEM_TAG_EVENT_GROUP_SE,
+    //ITEM_TAG_EVENT_DATA, // the data associated with the event
 // fraud event
     ITEM_TAG_EVENT_CODE_FE,
     ITEM_TAG_DATETIME_FE,
@@ -478,7 +478,8 @@ typedef struct
    uint8_t Date;
    uint8_t Day;
    uint8_t Hr;
-   uint8_t Min;  
+   uint8_t Min;
+   uint8_t Sec;
 } sSA_Range;
 
 extern sSA_Range SA_Range[2];

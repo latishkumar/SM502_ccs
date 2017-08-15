@@ -9,9 +9,10 @@
 #include "iec62056_uart.h"
 #include "PLC/PLC_UART.h"
 
+extern METER_STATES meter_state;
 extern MeterStatus status;
 extern CurrentBalance Current_balance;
-extern unsigned long LastEventLogAddress;
+extern unsigned long last_standard_event_log_address;
 extern unsigned long LastEnergyLogAddress;
 extern unsigned long LastEnergyBillingCuttOffLogAddress;
 
@@ -63,7 +64,7 @@ __interrupt void AUX_ISR(void)
       
       
       
-      
+         meter_state = RESTARTING;
          /* Take control of the EEPROM signals again. */
           enable_eeprom_port();
 
@@ -96,7 +97,7 @@ __interrupt void AUX_ISR(void)
 
           //WDTCTL |= WDTPW | WDTHOLD;
         operating_mode = OPERATING_MODE_POWERFAIL;
-
+        meter_state = HIBERNATING;
          /* Note that a power down occured */
          meter_status |= POWER_DOWN;
 
@@ -141,7 +142,7 @@ __interrupt void AUX_ISR(void)
 void Reset_System()
 {
   PMMCTL0_H = PMMPW_H;    
-  PMMCTL0|=PMMSWPOR;//PMMSWBOR;
+  PMMCTL0  |= PMMSWBOR; //PMMSWPOR;//
   PMMCTL0_H = 0;  
 }
 

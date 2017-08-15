@@ -9,9 +9,8 @@
 #define DLMS_ABSTRACT_OBJECTS_NON_IMPLEMENTED_EVENTS_H_
 extern uint8_t event_number;
 
-extern const uint32_t event_profile_entries;
+extern uint32_t event_profile_entries;
 
-extern const uint32_t event_profile_entries;
 
 extern const uint8_t demand_event_log_objects[];
 

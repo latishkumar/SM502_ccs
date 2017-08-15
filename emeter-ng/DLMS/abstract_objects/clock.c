@@ -7,7 +7,7 @@
 #include "headers.h"
 #include "clock.h"
 #include "self_diagnosis.h"
-int16_t clock_time_zone = 0x1234;    //  time zone
+int16_t clock_time_zone = 0xB4;    //  time zone
 uint8_t clock_status = 0;           //  status
 uint8_t daylights_savings_begin[] =  // daylights savings begin
 {
@@ -64,7 +64,7 @@ void get_date_time_string(void *data, int direction)
      time_bound_event_log l;
      l.event_code = CLOCK_PROGRAMMED;
      l.begin_time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second); //former clock
-     adjust_rtc(&temp,1);
+     adjust_rtc(&temp);
      l.end_time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second); //after synchronization
      l.checksum  =(getCheckSum(&(l.end_time_stamp.TimestampLow),4) + l.end_time_stamp.TimestampUp + l.event_code)&0xff;
      uint8_t tmp = 8;

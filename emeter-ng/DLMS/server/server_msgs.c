@@ -2169,11 +2169,11 @@ static void process_get_request(iec62056_46_link_t *link, const uint8_t msg[], i
               SA_Range[0].Year = msg[i+23]<<8;
               SA_Range[0].Year |=msg[i+24];
               
-              memcpy(&SA_Range[0].Month,msg+i+25,6);
+              memcpy(&SA_Range[0].Month,msg+i+25,7);
               
               SA_Range[1].Year = msg[i+37]<<8;
               SA_Range[1].Year |=msg[i+38];
-              memcpy(&SA_Range[1].Month,msg+i+39,6);
+              memcpy(&SA_Range[1].Month,msg+i+39,7);
               SA_Range_Num_Columns=msg[i+50];
               i+=50;
             }

@@ -127,7 +127,7 @@ typedef struct
   volatile uint8_t write_tamper_status:1;
   volatile uint8_t write_status:1;
   
-  volatile uint8_t energy_log_overlapped:1;
+  volatile uint8_t hourly_energy_log_overlapped:1;
   volatile uint8_t task_exec_finished:1;
   volatile uint8_t daily_snapshot_energy_overlapped:1;
   volatile uint8_t standard_event_log_overlapped:1;
@@ -150,6 +150,13 @@ typedef enum{
      SYSTEM_IN_CRITICAL_ERROR
 
 }System_Status_type;
+
+typedef enum{
+    BOOTING = 0,
+    OPERATIONAL,
+    HIBERNATING,
+    RESTARTING
+}METER_STATES;
 
 #define Absolute_MAX_VRMS   300
 #define Absolute_MAX_IRMS   70 

@@ -142,7 +142,7 @@ int local_comm_exchange_mode_flag=0; //optical:0; USB:1
 uint32_t eeprom_backup_energy_counter;
 uint8_t flash_backup_energy_counter;
 #define BACKUP_TIME 180000 //msec
-#define ENERGY_THRESHOLD_FOR_FLASH_BACKUP 35 //KWH
+#define ENERGY_THRESHOLD_FOR_FLASH_BACKUP 54//KWH
 #define NORMAL_BACK_UP 0x02
 #define LOW_BATTERY_BACKUP 0x04
 const uint32_t ENERGY_KWATT_HOUT_THRESHOLD = ENERGY_WATT_HOUR_THRESHOLD_CUSTOME*1000;
@@ -157,6 +157,9 @@ void log_standard_events(uint8_t event_code);
 void test_circular_buffer();
 uint16_t overflowsamples, second_counter;
 /******************************/
+void RESET_ISR(void);
+#pragma NOINIT(meter_state)
+METER_STATES meter_state;
 void main(void)
 {
     static int32_t x;
@@ -202,6 +205,10 @@ void main(void)
     #endif
     system_setup();
 
+    uint8_t temp_did = 3;
+    validation_arg_t noValidation = validation_arg_t_default;
+    read_from_eeprom(&last_standard_event_log_address,&temp_did,getLastLogAddress,&noValidation);
+    RESET_ISR();
     if(SystemStatus == SYSTEM_RUNNING)
     {
        /* Restore backup
@@ -632,7 +639,7 @@ void perform_flash_backup(uint8_t backup_type)
         backup2.seg_a.s.consumed_reactive_energy_QI   = phase->consumed_reactive_energy_QI;
         backup2.seg_a.s.consumed_reactive_energy_QII  = phase->consumed_reactive_energy_QII;
         backup2.seg_a.s.consumed_reactive_energy_QIII = phase->consumed_reactive_energy_QIII;
-        backup2.seg_a.s.consumed_reactive_energy_QIV = phase->consumed_reactive_energy_QIV;
+        backup2.seg_a.s.consumed_reactive_energy_QIV  = phase->consumed_reactive_energy_QIV;
 
         backup2.seg_a.s.reactive_energy_counter_QI   = phase->reactive_energy_counter_QI;
         backup2.seg_a.s.reactive_energy_counter_QII  = phase->reactive_energy_counter_QII;
@@ -696,11 +703,12 @@ void ProcessDiagnosisResult()
       AddError(RTC_Reset_Error);
    }
          
-   SystemStatus = SYSTEM_RUNNING;   
+   SystemStatus = SYSTEM_RUNNING;
+   meter_state = OPERATIONAL;
 }
 
 /**
-* Initializes the different periperials of the system
+* Initializes the different peripherals of the system
 * 
 */
 void custom_initialisation() {  
@@ -736,7 +744,7 @@ void custom_initialisation() {
         BAKMEM0  = 0;
         BAKMEM1  = 0;
         BAKMEM2  = 0;
-        //BAKMEM3  = 0; /*[M.G] Commentedout this line. to use this memory for LPM bug debugging Oct 24,2015 17:53 */
+        //BAKMEM3  = 0; /*[M.G] Commented out this line. to use this memory for LPM bug debugging Oct 24,2015 17:53 */
         
         init_ErrorList();
         InitGLCD_c();
@@ -749,15 +757,15 @@ void custom_initialisation() {
         
         
         init_scheduler();
-        initTampperSwitchs();//should be initalized after scheduler because of its dependency
-        InitUI();//should be initalized after scheduler because of its dependency
+        initTampperSwitchs();//should be initialized after scheduler because of its dependency
+        InitUI();//should be initialized after scheduler because of its dependency
         
         RedLedOn();
         EnergyLedOn();
         
         InitIECUART();
 
-         /*global interrupt is required to intialize PLC,so enable it before initizlizing PLC
+         /*global interrupt is required to initialize PLC,so enable it before initializing PLC
          enable Global Interrupt*/
 	__bis_SR_register(GIE);       
 
@@ -810,7 +818,7 @@ frequency_t under_frequency_temp=0;
 power_t over_power_temp  = 0;
 /**
 * This methods handle power quality monitoring.  
-* checkes the levels with the maximum and minimum values
+* checks the levels with the maximum and minimum values
 * and updates the system status 
 */
 void performPowerQualityMessurement() 
@@ -897,7 +905,7 @@ void performPowerQualityMessurement()
 }
 
 /**
-* method to verify that the relay is disconnectd and that the customer is not using power
+* method to verify that the relay is disconnected and that the customer is not using power
 */
 void verify_normal_operations()
 {
@@ -920,7 +928,7 @@ void time_validity_checker_and_corrector(TimeStump t)
             log_standard_events(RTC_INVALID_TIME_BEFORE_CORRECTED);
 
             //set it to the last saved rtc time
-            adjust_rtc(&time,0);
+            adjust_rtc(&time);
 
             //log invalid RTC event-after set to last saved rtc time
             log_standard_events(RTC_INVALID_TIME_AFTER_CORRECTED);
@@ -935,7 +943,7 @@ void time_validity_checker_and_corrector(TimeStump t)
                 log_standard_events(RTC_INVALID_TIME_BEFORE_CORRECTED);
 
                 //set it to the last saved rtc time
-                adjust_rtc(&time,0);
+                adjust_rtc(&time);
 
                 //log invalid RTC event-after set to last saved rtc time
                 log_standard_events(RTC_INVALID_TIME_AFTER_CORRECTED);
@@ -966,24 +974,22 @@ void restoreBackup()
     time_validity_checker_and_corrector(t);
     rtc_t time =  getTime(&t);
     uint8_t temp_did = 3;
-    validation_arg_t noValidation = validation_arg_t_default;
-    read_from_eeprom(&LastEventLogAddress,&temp_did,getLastLogAddress,&noValidation);
-    temp_did = 3;
+    //validation_arg_t noValidation = validation_arg_t_default;
+    //read_from_eeprom(&last_standard_event_log_address,&temp_did,getLastLogAddress,&noValidation);
 
+    temp_did = 3;
     //log power is out event
-    EventLog l;
-    l.EventCode = PowerOut;
-    l.timeStump = getTimeStamp(time.year, time.month, time.day, time.hour, time.minute, time.second);
-    l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow + l.timeStump.TimestampUp);
-    l.value = 0;
+    event_log l;
+    l.event_code = PowerOut;
+    l.time_stamp = getTimeStamp(time.year, time.month, time.day, time.hour, time.minute, time.second);
+    l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
     write_to_eeprom(&l,&temp_did,log_events);
     temp_did = 3;
 
     //log power is back event
-    l.EventCode = PowerUp;
-    l.timeStump = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
-    l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow  + l.timeStump.TimestampUp);
-    l.value = 0;
+    l.event_code = PowerUp;
+    l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
+    l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow  + l.time_stamp.TimestampUp);
     write_to_eeprom(&l,&temp_did,log_events);
 
 
@@ -1076,11 +1082,10 @@ void log_standard_events(uint8_t event_code)
 {
     uint8_t temp_did = 3; //event type
     rtc_t time;
-    EventLog l;
-    l.EventCode = event_code;
+    event_log l;
+    l.event_code = event_code;
     getHardwareTime(&time);
-    l.timeStump = getTimeStamp(time.year, time.month, time.day, time.hour, time.minute, time.second);
-    l.Checksum = (int) (l.EventCode + l.timeStump.TimestampLow + l.timeStump.TimestampUp);
-    l.value = 0;
+    l.time_stamp = getTimeStamp(time.year, time.month, time.day, time.hour, time.minute, time.second);
+    l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
     write_to_eeprom(&l,&temp_did,log_events);
 }

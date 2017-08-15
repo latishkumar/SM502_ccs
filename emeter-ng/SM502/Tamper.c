@@ -15,7 +15,6 @@
 extern MeterStatus status;
 extern rtc_t rtcc;
 extern Tamper_Count TamperCount;
-extern unsigned long LastEventLogAddress;
 
 extern uint16_t CoverRemovalTripDuration;
 

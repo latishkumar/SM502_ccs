@@ -12,9 +12,8 @@ void init_rtc();
 /**
 * set the rtc to new time 
 * @param time. The time to adjust the rtc to 
-* @param logEvent. unused  
 */
-void adjust_rtc(rtc_t *time,uint8_t logEvent);
+void adjust_rtc(rtc_t *time);
 
 /**
 * @return Day of the week. from 0 to 6, sunday to monday

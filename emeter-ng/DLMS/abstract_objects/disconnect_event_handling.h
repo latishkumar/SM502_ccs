@@ -10,7 +10,7 @@
 
 extern uint8_t disconnect_event_number;
 
-extern const uint32_t disconnect_event_profile_entries;
+extern uint32_t disconnect_event_profile_entries;
 
 extern const uint8_t disconnect_event_log_objects[];
 

@@ -27,87 +27,34 @@ const uint8_t load_profile_buffer_template[] = //load_hourly_energy_to_ram
 {
    STUFF_DATA | TAG_STRUCTURE, 8,
         STUFF_DATA | TAG_OCTET_STRING, 12,ITEM_TAG_DATETIME_LP_1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //Time stump
-                     TAG_UINT8, INJECT8(1),                                   //    AMR profile status
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_ACTIVE_ENERGY_IMPORT_LP_1),         //    Active Energy A+     :Ai
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_ACTIVE_ENERGY_EXPORT_LP_1),                                 //    Active Energy A-     :Ae
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_REACTIVE_ENERGY_QI_LP_1),        //    Reactive Energy QI   :R1
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_REACTIVE_ENERGY_QII_LP_1),                                 //    Reactive Energy QII  :R2
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_REACTIVE_ENERGY_QIII_LP_1),                                 //    Reactive Energy QIII :R3
-        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_REACTIVE_ENERGY_QIV_LP_1),                    //    Reactive Energy QIV  :R4 //originally this was for voltage
+                     TAG_UINT8, INJECT8(1),                                      //    AMR profile status
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_ACTIVE_ENERGY_IMPORT_LP_1),   //    Active Energy A+     :Ai
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_ACTIVE_ENERGY_EXPORT_LP_1),   //    Active Energy A-     :Ae
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_REACTIVE_ENERGY_QI_LP_1),     //    Reactive Energy QI   :R1
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_REACTIVE_ENERGY_QII_LP_1),    //    Reactive Energy QII  :R2
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_REACTIVE_ENERGY_QIII_LP_1),   //    Reactive Energy QIII :R3
+        STUFF_DATA | TAG_UINT32, INJECT32(ITEM_TAG_REACTIVE_ENERGY_QIV_LP_1),    //    Reactive Energy QIV  :R4 //originally this was for voltage
 
 };
 
-uint8_t find_num_total_energy_log_entries(uint16_t *num_entries,uint16_t *start_entry)
-{
-   //count the total number of entries we have
-       /*get the last energy log address
-         divide it by the size of energy log struct
-          return this number
-       */
-
-   *start_entry = 0;
-   *num_entries = 0;
-   int32_t x=0;
-
-   if(status.energy_log_overlapped == 1)
-   {
-     *num_entries = EnergyLog_SIZE; // the buffer is full, so return all Logs
-   }
-   else{
-
-     uint32_t add_start = EnergyLogAddress_Start;
-     if(LastEnergyLogAddress > add_start)
-       x = LastEnergyLogAddress - add_start;
-
-     while(x > 0)
-     {
-            x -= EnergyLogSize;
-            *num_entries= *num_entries + 1;
-     }
-   }
-   if(*num_entries > 0)
-     *start_entry = 1;
-
-  return 1;//success
-}
-uint8_t get_captured_log_by_time_range(const sSA_Range *startRange,const sSA_Range *endRange,uint16_t *startEntryNumber,uint16_t *numOfEntries);
 /*
  * Hourly Load profile
  * buffer-callback function
  */
 void capture_load_profile_data(void *data, int direction)
 {
-    /* Load Template for Load Profile */
-   msg_info.template=load_profile_buffer_template;
-   msg_info.sz_template=sizeof(load_profile_buffer_template);
+    log_search_params.start_log_address  = HOURLY_ENERGY_LOG_ADDRESS_START;
+    log_search_params.end_log_address    = HOURLY_ENERGY_LOG_ADDRESS_END;
+    log_search_params.last_log_address   = last_hourly_energy_log_address;
+    log_search_params.log_size           = INCREMENTAL_ENERGY_LOG_TYPE_SIZE;
+    log_search_params.maximum_event_logs = HOURLY_ENERGY_MAX_LOGS;
+    log_search_params.offset             = 12;
+    log_search_params.overlap_status     = status.hourly_energy_log_overlapped;
+    log_search_params.template           = load_profile_buffer_template;
+    log_search_params.sz_template        = sizeof(load_profile_buffer_template);
+    log_search_params.log_column_size    = load_profile_column_szs;
 
-   if(access_selector == 1) //range_descriptor specifically by date range
-   {
-     if(SA_Range[1].Year>4095 || SA_Range[0].Year>4095 )
-         msg_info.num_entries = 0x0;
-     else
-        get_captured_log_by_time_range(&SA_Range[0],&SA_Range[1],&msg_info.start_entry,&msg_info.num_entries);
-   }
-   else if(access_selector == 2) //entry descriptor
-   {
-       find_num_total_energy_log_entries(&msg_info.num_entries,&msg_info.start_entry);
-       if(SA_From_Entry <= SA_To_Entry)
-       {
-          msg_info.start_entry = msg_info.start_entry > SA_From_Entry? msg_info.start_entry :SA_From_Entry;
-          SA_To_Entry = SA_To_Entry > msg_info.num_entries? msg_info.num_entries : SA_To_Entry;
-          SA_To_Entry -=  SA_From_Entry;
-          msg_info.num_entries = SA_To_Entry + 1;
-       }
-       else
-       {
-           msg_info.num_entries = 0x0;
-       }
-   }
-   else//   if(access_selector == 0)
-   {
-      find_num_total_energy_log_entries(&msg_info.num_entries,&msg_info.start_entry);
-   }
-   msg_info.column_szs=load_profile_column_szs;
+    get_captured_logs(&log_search_params);
 }
 
 /*
@@ -161,7 +108,7 @@ const uint8_t load_profile_capture_objects[] =
 };
 
 /*
- * Callback function for houlry load profile capture period
+ * Callback function for hourly load profile capture period
  */
 void change_hourly_load_profile_capture_period(void *data,int data_direction)
 {
@@ -182,9 +129,9 @@ void change_hourly_load_profile_capture_period(void *data,int data_direction)
  */
 void obj_load_profile_reset(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
-      uint32_t tmp32 = EnergyLogAddress_Start;
+      uint32_t tmp32 = HOURLY_ENERGY_LOG_ADDRESS_START;
       uint8_t temp1=0;
-      LastEnergyLogAddress = tmp32;
+      last_hourly_energy_log_address = tmp32;
       write_to_eeprom(&tmp32,&temp1,setLastLogAddress);
       write_to_eeprom(&temp1,&temp1,setEnergyOverlapFlag);
       *response_len = 0;
@@ -198,10 +145,10 @@ void obj_load_profile_capture(uint8_t *data,uint16_t data_len,uint8_t *response,
 {
     hourly_energy_log_t tmp;
     tmp.inc_active_import_energy = (uint16_t) chan1.inc_import_active_energy;
-    tmp.inc_active_export_energy = (uint16_t) chan1.inc_export_active_energy;
+    tmp.inc_active_export_energy = (uint16_t) (chan1.readings.active_power/100);//Active power //chan1.inc_export_active_energy;
     tmp.inc_reactive_energy_QI   = (uint16_t) chan1.inc_reactive_energy_QI;
-    tmp.inc_reactive_energy_QII  = (uint16_t) chan1.inc_reactive_energy_QII;
-    tmp.inc_reactive_energy_QIII = (uint16_t) chan1.inc_reactive_energy_QIII;
+    tmp.inc_reactive_energy_QII  = (uint16_t) chan1.readings.V_rms;//Instant. Voltage//chan1.inc_reactive_energy_QII;
+    tmp.inc_reactive_energy_QIII = (uint16_t) (chan1.readings.I_rms/1000);//Instant. Current //chan1.inc_reactive_energy_QIII;
     tmp.inc_reactive_energy_QIV  = (uint16_t) chan1.inc_reactive_energy_QIV;
     tmp.timestamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
     tmp.crc = tmp.inc_active_import_energy + tmp.inc_reactive_energy_QIV + tmp.timestamp.TimestampLow+ tmp.timestamp.TimestampUp;
@@ -215,99 +162,6 @@ void obj_load_profile_capture(uint8_t *data,uint16_t data_len,uint8_t *response,
     chan1.inc_reactive_energy_QIII = 0;
     chan1.inc_reactive_energy_QIV = 0;
     *response_len = 0;
-}
-
-uint8_t get_captured_log_by_time_range(const sSA_Range *startRange,const sSA_Range *endRange,uint16_t *startEntryNumber,uint16_t *numOfEntries)
-{
-     rtc_t temp_sRange ={startRange->Year,startRange->Month,startRange->Date,startRange->Hr,startRange->Min,0,0};
-     rtc_t temp_eRange ={endRange->Year,endRange->Month,endRange->Date,endRange->Hr,endRange->Min,0,0};
-     int8_t temp1 = compare_time(&temp_eRange,&temp_sRange);
-     int8_t temp2 = 0;
-     if(temp1 < 0)     // if the end time specified comes before the first time requested, then abort
-     {
-       *startEntryNumber = 0;
-       *numOfEntries = 0;
-       return 1;
-     }
-
-     uint16_t MAX_Entries = 0;
-     uint32_t add_start = EnergyLogAddress_Start;
-     if(status.energy_log_overlapped == 1) // if the circular buffer is full
-     {
-         MAX_Entries = EnergyLog_SIZE;
-     }
-     else
-     {
-        MAX_Entries = (LastEnergyLogAddress - add_start)/INCREMENTAL_ENERGY_LOG_SIZE;
-        if(MAX_Entries == 0)
-        {
-            *startEntryNumber =0;
-            *numOfEntries = 0;
-            return 1;
-        }
-     }
-
-    rtc_t time_first;
-    rtc_t time_last ;
-    uint8_t z = get_hourly_energy_log_time_stamp(&time_first,1); //get our first entry
-    if(z == 0)
-    {
-        //error abort
-    }
-    z = get_hourly_energy_log_time_stamp(&time_last,MAX_Entries);//get the last entry
-    if(z == 0)
-    {
-        //error abort
-    }
-
-    temp1 = compare_time(&temp_eRange,&time_first);
-    temp2 = compare_time(&time_last,&temp_sRange);
-    if(temp1 < 0 || temp2 < 0) // if the first entry we have is after the last entry requested or
-    {                          // last entry we have is before the first entry requested then we don't have the data.
-        *startEntryNumber = 0;
-        *numOfEntries = 0;
-        return 1;
-    }
-    temp1 = compare_time(&temp_sRange,&time_first);
-    temp2 = compare_time(&time_last,&temp_eRange);
-    // if the first entry we have comes after the first entry requested and the the last entry we have comes before the last entry requested
-    // then return all data.
-    if(temp1 <= 0 && temp2 <= 0) // if the first entry we have is after the last entry requested or
-    {                            // last entry we have is before the first entry requested then we don't have the data.
-        *startEntryNumber = 1;
-        *numOfEntries = MAX_Entries;
-        return 1;
-    }
-    //search for start entry and number of entries
-    uint16_t index = 1;
-    uint16_t number_of_entries = 0;
-    for(;;)
-    {
-        z = get_hourly_energy_log_time_stamp(&time_first,index);//get the last entry
-        if(z == 0)
-        {
-            //error abort
-        }
-        temp1 = compare_time(&temp_sRange,&time_first);
-        temp2 = compare_time(&time_first,&temp_eRange);
-        if(temp1 <= 0 && temp2 <= 0 && index <= MAX_Entries) // we get an entry within the range
-        {
-            index++;
-            number_of_entries++;
-        }
-        else if(index > MAX_Entries || temp2 > 0)
-        {
-            break; // reached last entry
-        }
-        else
-        {
-            index++;
-        }
-    }
-    *startEntryNumber = index - number_of_entries ;
-    *numOfEntries = number_of_entries;
-
-    return 1;//success
 }
 
 /*

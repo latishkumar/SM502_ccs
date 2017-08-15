@@ -18,7 +18,7 @@
 //#include <emeter-toolkit.h>
 #include "I2C2EEPROM.h"   
 #include "emeter-structs.h"
-   
+#include "config.h"
 #include "Status.h"
 #include "errors.h"
 #include "EventTypes.h"
@@ -80,8 +80,8 @@ static const Password_128 default_keys[4] = {
 
 extern unsigned long FirmwareVersion; // 4 byte
 
-extern unsigned long LastEnergyLogAddress ;
-extern unsigned long LastEventLogAddress  ;
+extern unsigned long last_hourly_energy_log_address;
+extern unsigned long last_standard_event_log_address;
 extern unsigned long LastEnergyBillingCuttOffLogAddress;
 extern unsigned long last_daily_snapshot_log_address;
 extern unsigned long last_fraud_event_log_address;
@@ -90,7 +90,7 @@ extern unsigned long last_common_event_log_address;
 extern unsigned long last_firmware_event_log_address;
 extern unsigned long last_synchronization_event_log_address;
 extern unsigned long last_disconnect_event_log_address;
-#define EventLogSize 12
+
 /*
  *	EventCode:-  will have 1byte length, 
  * ==> A total of 128 events will be supported
@@ -107,7 +107,7 @@ typedef struct
    //unsigned long EventData;//4byte 
    //unsigned long StartAddress;
 }EventLog;
-
+#define EventLogSize 12
 typedef struct
 {
 	uint8_t event_code;   // 1 byte
@@ -187,7 +187,7 @@ typedef struct
  * Incremental energy
  * 18 bytes
  */
-#define INCREMENTAL_ENERGY_LOG_SIZE 18
+#define INCREMENTAL_ENERGY_LOG_TYPE_SIZE 18
 typedef struct
 {
     uint16_t inc_active_import_energy; //2 byte    consumed active energy import
@@ -213,9 +213,23 @@ typedef struct
     uint8_t crc;                   //1 byte
 } daily_energy_log_t;
 #define init_daily_energy_log {0, 0, 0, 0, 0, 0,{ 0, 0}, 0}
+#define DAILY_SNAPSHOT_LOG_TYPE_SIZE 30
+typedef struct
+{
+    const uint8_t *template;
+    const uint16_t *log_column_size;
+    uint16_t sz_template;
+    uint32_t start_log_address;
+    unsigned long last_log_address;
+    unsigned long end_log_address;
+    uint16_t maximum_event_logs;
+    uint8_t overlap_status;
+    uint8_t log_size;
+    uint8_t offset;
+}log_search_params_t;
 
+log_search_params_t log_search_params;
 #define EnergyBillingCutoffDayLogSize 47
-
 typedef struct
 {
     TimeStump BillingPeriodStart; //5byte
@@ -650,16 +664,16 @@ int read_from_eeprom(void *readArgument_1,void *readArgument_2,int8_t(*read)(voi
 
 
 
-#define EventLogAddress_Start EnergyBillingCuttOffLogAddress_start + EnergyBillingCuttOffLogAddress_SIZE //12622 //starts from page 77, the billing cutoff energy log can be used for 5 years without overflow
+#define STANDARD_EVENT_LOG_ADDRESS_START EnergyBillingCuttOffLogAddress_start + EnergyBillingCuttOffLogAddress_SIZE //12622 //starts from page 77, the billing cutoff energy log can be used for 5 years without overflow
                                                 /*
                                                     Total Events = (131070  - 12622) / (11) ==> (EEPROM1_END - EVENT_Start) / EVENT_SIZE = 10,770
                                                 */
 #define MAX_STANDARD_EVENT_LOGS 5701ul
 
-#define EventLog_SIZE 68412 //5701 LOGS * 12 BYTES //10768ul
-#define EventLog_End 							EventLogAddress_Start + EventLog_SIZE //+ EventLogSize * 10000ul //131071
+#define STANDARD_EVENT_LOG_SIZE 68412 //5701 LOGS * 12 BYTES //10768ul
+#define STANDARD_EVENT_LOG_ADDRESS_END			STANDARD_EVENT_LOG_ADDRESS_START + STANDARD_EVENT_LOG_SIZE //+ EventLogSize * 10000ul //131071
 
-#define LAST_FRAUD_EVENT_ADDRESS_START 			EventLog_End
+#define LAST_FRAUD_EVENT_ADDRESS_START 			STANDARD_EVENT_LOG_ADDRESS_END
 #define LAST_FRAUD_EVENT_SIZE 4ul
 
 #define FRAUD_EVENT_OVERLAP_ADDRESS_START  		LAST_FRAUD_EVENT_ADDRESS_START + LAST_FRAUD_EVENT_SIZE
@@ -734,23 +748,25 @@ int read_from_eeprom(void *readArgument_1,void *readArgument_2,int8_t(*read)(voi
 #endif 
 
 
-
-
+//EnergyLogAddress_Start
+//EnergyLog_SIZE
+//EnergyLog_SIZE2
+//EnergyLogAddress_End
 //Hourly load profile
-#define EnergyLogAddress_Start 131072ul  //   262143 - 131072 / 18  = 7157 logs, log is every 15 minute,  74.5 days
-#define EnergyLog_SIZE   7157ul//
-#define EnergyLog_SIZE2  128358ul  // 128358/18 = 7131 logs, every 15 minute 7131/(4*24)= 74.2 days
-#define EnergyLogAddress_End EnergyLogAddress_Start + EnergyLog_SIZE2 //262126ul//((uint32_t)((EnergyLogAddress_Start)+((uint32_t)(EnergyLog_SIZE * EnergyLogSize))))
+#define HOURLY_ENERGY_LOG_ADDRESS_START 131072ul  //   262143 - 131072 / 18  = 7157 logs, log is every 15 minute,  74.5 days
+#define HOURLY_ENERGY_MAX_LOGS   7157ul//
+#define HOURLY_ENERGY_SIZE  128358ul  // 128358/18 = 7131 logs, every 15 minute 7131/(4*24)= 74.2 days
+#define HOURLY_ENERGY_LOG_ADDRESS_END HOURLY_ENERGY_LOG_ADDRESS_START + HOURLY_ENERGY_SIZE //262126ul//((uint32_t)((EnergyLogAddress_Start)+((uint32_t)(EnergyLog_SIZE * EnergyLogSize))))
+
 //Daily snapshot
-#define DAILY_SNAPSHOT_LOG_SIZE 30
-#define LAST_DAILY_SNAPSHOT_LOG_ADDRESS_START   EnergyLogAddress_End
+#define LAST_DAILY_SNAPSHOT_LOG_ADDRESS_START   HOURLY_ENERGY_LOG_ADDRESS_END
 #define LAST_DAILY_SNAPSHOT_LOG_ADDRESS_SIZE 4ul
 #define DAILY_SNAPSHOT_LOG_OVER_LAP_ADDRESS_START LAST_DAILY_SNAPSHOT_LOG_ADDRESS_START + LAST_DAILY_SNAPSHOT_LOG_ADDRESS_SIZE
 #define DAILY_SNAPSHOT_LOG_OVER_LAP_SIZE 1ul
 #define DAILY_SNAPSHOT_LOG_ADDRESS_START     DAILY_SNAPSHOT_LOG_OVER_LAP_ADDRESS_START + DAILY_SNAPSHOT_LOG_OVER_LAP_SIZE
-#define DAILY_SNAPSHOT_LOG_SIZE2 2700   // 2700/30 = 90logs, every single day 90 days
+#define DAILY_SNAPSHOT_LOG_SIZE 2700   // 2700/30 = 90logs, every single day 90 days
 #define DAILY_SNAPSHOT_MAX_LOGS 90
-#define DAILY_SNAPSHOT_LOG_ADDRESS_END DAILY_SNAPSHOT_LOG_ADDRESS_START + DAILY_SNAPSHOT_LOG_SIZE2
+#define DAILY_SNAPSHOT_LOG_ADDRESS_END DAILY_SNAPSHOT_LOG_ADDRESS_START + DAILY_SNAPSHOT_LOG_SIZE
 
 #ifdef EEPROM_REV_2
                                                   
@@ -831,9 +847,6 @@ int8_t logEvent(void *l,void *dummy);
 */
 uint8_t getEvent(EventLog *l,unsigned long StartAddress);
 
-//uint8_t logEnergy(EnergyLog *l);
-int8_t logEnergy(void *l,void *dummy);
-uint8_t getEnergy(EnergyLog *l,unsigned long StartAddress);
 
 /**
 * @param l(EventLog type) the event to log
@@ -843,28 +856,11 @@ uint8_t getEnergy(EnergyLog *l,unsigned long StartAddress);
 /**
 * @see logEvent2
 */
-int8_t getEvent2(void *l,uint32_t StartAddress);
-/**
-* writes energy values to the EEPROM at a give address
-* @param l(EnergyLog type) the Enrgy log 
-* @param StartAddress: where to log the energy  
-*/
-int8_t logEnergy2(void *l,uint32_t StartAddress);
-/**
-* reads the energy log from the EEPROM
-* @param l: energy log 
-* @param EntryNumber: log entry number from 0 -> size of log (45*15*64) 
-*/
-int8_t getEnergy2(void *l,uint32_t EntryNumber);
+int8_t get_standard_event(void *l,uint32_t StartAddress);
+
 int8_t log_daily_energy_snapshot(void *l2,void *dummy);
 int8_t get_daily_snapshot_energy_profile(void *lt,uint32_t EntryNumber);
 uint8_t get_daily_snapshot_overlap_flag(uint8_t *flag);
-uint8_t get_hourly_energy_log_ts(rtc_t *l,unsigned long StartAddress, uint8_t offset);
-/*
- * get the time stamp of hourly energy log
- * of the given entry
- */
-uint8_t get_hourly_energy_log_time_stamp(void *lt,uint32_t EntryNumber);
 /*
  * get the time stamp of daily energy log
  * of the given entry
@@ -888,7 +884,20 @@ int8_t restore_eeprom_backup(void *phase_temp2,void *dummy);
  * Backups current energy registers and counters to eeprom
  */
 int8_t perform_eeprom_backup(void *phase_temp2,void *dummy);
+/*
+ * get the time stamp of log
+ * of the given entry
+ */
+uint8_t get_log_time_stamp(void *lt,uint32_t EntryNumber,log_search_params_t *search_params);
 
+uint8_t get_captured_log_by_time_range(const sSA_Range *startRange,const sSA_Range *endRange,uint16_t *startEntryNumber,
+                                              uint16_t *numOfEntries,log_search_params_t *search_items);
+
+/*
+ * function returns logs based on the
+ * access selector specified in the request
+ */
+void get_captured_logs(log_search_params_t *log_search_items);
 /**
 * Id2: pointer to the array to copy the id to
 * type: the type of id to get 

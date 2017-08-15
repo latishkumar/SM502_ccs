@@ -369,7 +369,7 @@ void per_second_activity()
    }
    
    
-   //long power failer 
+   //long power failure
    if(status.LongPowerFailStatus == 1)
    {
      LongPowerFailTimer++;

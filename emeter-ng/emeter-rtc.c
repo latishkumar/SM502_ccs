@@ -135,7 +135,7 @@ int get_weekday(rtc_t *datetime)
 
 //Set the Current System Time to time. this method handles the hardware and all software timers that need to be corrected with the hardware
 extern uint8_t day_of_week;
-void adjust_rtc(rtc_t *time,uint8_t logEvent1)
+void adjust_rtc(rtc_t *time)
 {
     RTCCTL0_H = RTCKEY_H;                       // Unlock RTC
     RTCCTL13 = RTCBCD+RTCHOLD+RTCMODE+RTCTEV_0; // Init RTC
@@ -268,7 +268,8 @@ __interrupt void one_second_ticker(void)
 				{                                 //this will be replaced by the RTC diagnosis if the last time stored in the EEPROM is valid
 
 					hardware_status.RTCResetToDefaultStatus = 1;
-					adjust_rtc(&default_time,0);
+					adjust_rtc(&default_time);
+					//TODO. //log event to synchronization
 				}
 				else
 				{

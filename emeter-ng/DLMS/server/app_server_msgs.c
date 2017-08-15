@@ -148,7 +148,7 @@ hourly_current_entry_to_tx current_hourly_energy_log_entry = {init_hourly_energy
 daily_current_entry_to_tx current_daily_energy_log_entry = {init_daily_energy_log};
 uint8_t currentEnergyLogEntryData[12];
 
-currentEventToTX currentEventLogEntry = {init_EventLog,0};
+//currentEventToTX currentEventLogEntry = {init_EventLog,0};
 uint8_t currentEventLogEntryData[12];
 current_event_to_tx current_event_log = {init_common_event_logs,0};
 current_time_bound_event_to_tx current_time_bound_event_log = {init_time_bounded_event_logs,0};
@@ -207,27 +207,27 @@ void load_daily_energy_to_ram(unsigned int entry_no)
 	};
 	memcpy(currentEnergyLogEntryData,currentEnergyLogEntryData2,12);
 }
-void loadEventToRam(unsigned int entry_no)
+void load_standard_event_to_ram(unsigned int entry_no)
 {
-          getEvent2(&currentEventLogEntry.l,entry_no);
-          currentEventLogEntry.logEntryNo = entry_no;
+    get_standard_event(&current_event_log.l,entry_no);
+          current_event_log.logEntryNo = entry_no;
            
            if(access_selector == 1) //if this is selective access by range
            {
-             rtc_t time_last = getTime(&currentEventLogEntry.l.timeStump);
+             rtc_t time_last = getTime(&current_event_log.l.time_stamp);
              if(time_last.isValid==0)
              {
                msg_info.entries_remaining = 1;
                return;
              }
-             int8_t com3 = compare_time(&required_last_entry_time,&time_last);
-             if(com3<0)//time_last comes after required_last_entry_time
-              {
-                   msg_info.entries_remaining = 1;
-              }
+//             int8_t com3 = compare_time(&required_last_entry_time,&time_last);
+//             if(com3<0)//time_last comes after required_last_entry_time
+//              {
+//                   msg_info.entries_remaining = 1;
+//              }
            }
           //formate the timestump and copy it to the buffer
-          rtc_t time = getTime(&currentEventLogEntry.l.timeStump);
+          rtc_t time = getTime(&current_event_log.l.time_stamp);
           uint8_t currentEventLogEntryData2[] = {
             INJECT16(time.year), time.month, time.day, ((time.day - 1) > 0)?(time.day - 1):0,time.hour, time.minute,time.second, 0xFF, INJECT16(120), 0x00,
           };
@@ -603,43 +603,17 @@ int64_t get_numeric_item(int item)
     case ITEM_TAG_KW_MAX_DEMAND:          val = 42;        break;
     case ITEM_TAG_KVA_MAX_DEMAND:         val = 42;        break;
         
-    case ITEM_TAG_EVENT_GROUP_SE:
-         entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
-          if(currentEventLogEntry.logEntryNo == entry_no)
-          {
-            
-          }
-          else
-          {
-              loadEventToRam(entry_no);
-          }
-          val = currentEventLogEntry.l.EventGroup;
-      
-      break;
-    case ITEM_TAG_EVENT_DATA:
-        entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
-          if(currentEventLogEntry.logEntryNo == entry_no)
-          {
-            
-          }
-          else
-          {
-              loadEventToRam(entry_no);
-          }
-          val = currentEventLogEntry.l.value;      
-      break;
-    
     case ITEM_TAG_EVENT_CODE_SE://standard event
           entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
-          if(currentEventLogEntry.logEntryNo == entry_no)
+          if(current_event_log.logEntryNo == entry_no)
           {
             val = 0;
           }
           else
           {
-              loadEventToRam(entry_no);
+              load_standard_event_to_ram(entry_no);
           }
-          val = currentEventLogEntry.l.EventCode;
+          val = current_event_log.l.event_code;
     break;
     case ITEM_TAG_EVENT_CODE_FE: // fraud event
         entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
@@ -1071,12 +1045,12 @@ int get_string_item(uint8_t *buf, int len, int item)
 
     case ITEM_TAG_DATETIME_SE: // standard event
       entry_no = msg_info.start_entry+(msg_info.num_entries-msg_info.entries_remaining);
-      if(currentEventLogEntry.logEntryNo == entry_no)
+      if(current_event_log.logEntryNo == entry_no)
       {
       }
       else
       {
-          loadEventToRam(entry_no);
+          load_standard_event_to_ram(entry_no);
       }
       memcpy(buf, currentEventLogEntryData, len);
       return len;
@@ -1250,7 +1224,7 @@ void adjust_to_quarter(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_
     }
     
     rtc_t time = {rtcc.year,rtcc.month,rtcc.day,rtcc.hour,temp,rtcc.second,0 };
-    adjust_rtc(&time,0);    
+    adjust_rtc(&time);
 }
 /*- End of function --------------------------------------------------------*/
 
@@ -1298,7 +1272,7 @@ void adjust_to_minute(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t
        }
      }
 
-      adjust_rtc(&time,0);
+      adjust_rtc(&time);
 
   
 }
@@ -1311,7 +1285,7 @@ void adjust_to_preset_time(uint8_t *data,uint16_t data_len,uint8_t *response,uin
       compare_time(&preset_adj_time.preset_time,&preset_adj_time.validity_interval_end)>=0)
    {
        //adjust the rtc to the preset_time 
-       adjust_rtc(&preset_adj_time.preset_time,1);
+       adjust_rtc(&preset_adj_time.preset_time);
         
    }
 }
@@ -1478,7 +1452,7 @@ void shift_time(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *resp
        }
     }
          
-     adjust_rtc(&time,0);    
+     adjust_rtc(&time);
 }
        
 
