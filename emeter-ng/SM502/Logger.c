@@ -1299,7 +1299,7 @@ int8_t log_hourly_energy_profile(void *l2,void *dummy)
     hourly_energy_log_t *l = (hourly_energy_log_t *)l2;
     uint8_t x=0;//,i=0;
     uint32_t tmp = 0;
-    if(last_hourly_energy_log_address < HOURLY_ENERGY_LOG_ADDRESS_START || last_hourly_energy_log_address > HOURLY_ENERGY_LOG_ADDRESS_START)
+    if(last_hourly_energy_log_address < HOURLY_ENERGY_LOG_ADDRESS_START || last_hourly_energy_log_address > HOURLY_ENERGY_LOG_ADDRESS_END)
         last_hourly_energy_log_address = HOURLY_ENERGY_LOG_ADDRESS_START;
 
     //        for(;i<MAX_LOG_RETRAY;i++)
