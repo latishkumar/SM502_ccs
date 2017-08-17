@@ -8,7 +8,8 @@
 #include <msp430.h>
 #include <stdint.h>
 #include "EventTypes.h"
-uint8_t BOR_flag;
+#include "Status.h"
+extern METER_STATES meter_state;
 void log_standard_events(uint8_t event_type);
 
 void RESET_ISR(void)
@@ -19,7 +20,11 @@ void RESET_ISR(void)
 	                                __no_operation();
 	                                break;
 	        case SYSRSTIV_BOR:                        // SYSRSTIV : BOR
+	                                if(meter_state == RESTARTING){
 	                                log_standard_events(SYSRSTIV_BOR_RESET_EVENT);
+	                                }
+	                                else
+                                    log_standard_events(SYSRSTIV_BOR_RESET_EVENT_SW);
 	                                break;
 	        case SYSRSTIV_RSTNMI:                     // SYSRSTIV : RST/NMI
 	                                log_standard_events(SYSRSTIV_RSTNMI_RESET_EVENT);
@@ -27,7 +32,7 @@ void RESET_ISR(void)
 	        case SYSRSTIV_DOBOR:                      // SYSRSTIV : Do BOR
 	                                log_standard_events(SYSRSTIV_DOBOR_RESET_EVENT);
 	                                break;
-	        case SYSRSTIV_LPM5WU:    BOR_flag=1;      // SYSRSTIV : Port LPM5 Wake Up
+	        case SYSRSTIV_LPM5WU:          // SYSRSTIV : Port LPM5 Wake Up
 	                                log_standard_events(SYSRSTIV_LPM5WU_RESET_EVENT);
 	                                break;
 	        case SYSRSTIV_SECYV:                      // SYSRSTIV : Security violation

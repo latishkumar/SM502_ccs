@@ -2,7 +2,7 @@
  * prime_plc_setup.h
  *
  *  Created on: May 17, 2017
- *      Author: abi
+ *      Author: Eliab Erango
  */
 
 #ifndef DLMS_ABSTRACT_OBJECTS_PRIME_PLC_SETUP_H_

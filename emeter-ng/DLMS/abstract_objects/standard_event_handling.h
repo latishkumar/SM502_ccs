@@ -2,11 +2,11 @@
  * event_handling.h
  *
  *  Created on: May 15, 2017
- *      Author: abi
+ *      Author: Eliab Erango
  */
 
-#ifndef DLMS_ABSTRACT_OBJECTS_EVENT_HANDLING_H_
-#define DLMS_ABSTRACT_OBJECTS_EVENT_HANDLING_H_
+#ifndef DLMS_ABSTRACT_OBJECTS_STANDARD_EVENT_HANDLING_H_
+#define DLMS_ABSTRACT_OBJECTS_STANDARD_EVENT_HANDLING_H_
 
 extern uint8_t standard_event_number;
 
@@ -27,4 +27,4 @@ void obj_event_log_reset(uint8_t *data,uint16_t data_len,uint8_t *response,uint1
 void obj_event_log_capture(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len);
 
 
-#endif /* DLMS_ABSTRACT_OBJECTS_EVENT_HANDLING_H_ */
+#endif /* DLMS_ABSTRACT_OBJECTS_STANDARD_EVENT_HANDLING_H_ */

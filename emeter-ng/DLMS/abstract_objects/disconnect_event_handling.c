@@ -6,7 +6,6 @@
  */
 
 #include "headers.h"
-#include "event_handling.h"
 #include "hourly_load_profile.h"
 #include "disconnect_event_handling.h"
 /*
@@ -73,7 +72,7 @@ void capture_disconnect_event_log(void *data, int direction)
     log_search_params.last_log_address   = last_disconnect_event_log_address;
     log_search_params.log_size           = DISCONNECT_EVENT_LOG_TYPE_SIZE;
     log_search_params.maximum_event_logs = MAX_DISCONNECT_EVENT_LOGS;
-    log_search_params.offset             = 3;
+    log_search_params.offset             = 2;
     log_search_params.overlap_status     = status.disconnect_event_log_overlapped;
     log_search_params.template           = disconnect_event_log_template;
     log_search_params.sz_template        = sizeof(disconnect_event_log_template);

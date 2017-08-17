@@ -14,7 +14,6 @@
 #include "clock.h"
 #include "disconnect_control_and_log.h"
 #include "error_and_alarm_handling.h"
-#include "event_handling.h"
 #include "firmware_update.h"
 #include "identification_numbers.h"
 #include "long_power_failures.h"
@@ -37,6 +36,7 @@
 #include "synchronization_event_handling.h"
 #include "disconnect_event_handling.h"
 #include "non_implemented_events.h"
+#include "standard_event_handling.h"
 
 
 

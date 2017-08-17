@@ -4,8 +4,8 @@
  *  Created on: Jun 9, 2017
  *      Author: Eliab Erango
  */
+
 #include "headers.h"
-#include "event_handling.h"
 #include "hourly_load_profile.h"
 #include "firmware_event_handling.h"
 /*
@@ -71,7 +71,7 @@ void capture_firmware_event_log(void *data, int direction)
     log_search_params.last_log_address   = last_firmware_event_log_address;
     log_search_params.log_size           = FIRMWARE_EVENT_LOG_TYPE_SIZE;
     log_search_params.maximum_event_logs = MAX_FIRMWARE_EVENT_LOGS;
-    log_search_params.offset             = 7;
+    log_search_params.offset             = 6;
     log_search_params.overlap_status     = status.firmware_event_log_overlapped;
     log_search_params.template           = firmware_event_log_template;
     log_search_params.sz_template        = sizeof(firmware_event_log_template);

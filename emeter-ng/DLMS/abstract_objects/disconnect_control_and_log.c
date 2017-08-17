@@ -2,7 +2,7 @@
  * disconnect_control_and_log.c
  *
  *  Created on: May 15, 2017
- *      Author: abi
+ *      Author: Eliab Erango
  */
 #include "headers.h"
 #include "disconnect_control_and_log.h"

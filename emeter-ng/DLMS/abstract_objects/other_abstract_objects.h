@@ -2,7 +2,7 @@
  * other_abstract_objects.h
  *
  *  Created on: May 15, 2017
- *      Author: abi
+ *      Author: Eliab Erango
  */
 
 #ifndef DLMS_ABSTRACT_OBJECTS_OTHER_ABSTRACT_OBJECTS_H_

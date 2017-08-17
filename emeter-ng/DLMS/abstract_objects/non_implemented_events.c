@@ -5,7 +5,6 @@
  *      Author: Eliab Erango
  */
 #include "headers.h"
-#include "event_handling.h"
 #include "hourly_load_profile.h"
 #include "non_implemented_events.h"
 /*

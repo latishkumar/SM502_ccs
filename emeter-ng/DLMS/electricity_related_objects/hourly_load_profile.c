@@ -2,7 +2,7 @@
  * load_profiles.c
  *
  *  Created on: May 16, 2017
- *      Author: abi
+ *      Author: Eliab Erango
  */
 #include "headers.h"
 #include "hourly_load_profile.h"

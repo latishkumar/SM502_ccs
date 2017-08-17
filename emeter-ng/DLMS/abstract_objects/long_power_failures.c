@@ -2,7 +2,7 @@
  * long_power_failures.c
  *
  *  Created on: May 15, 2017
- *      Author: abi
+ *      Author: Eliab Erango
  */
 
 #include "headers.h"

@@ -2,7 +2,7 @@
  * other_abstract_objects.c
  *
  *  Created on: May 15, 2017
- *      Author: abi
+ *      Author: Eliab Erango
  */
 #include "headers.h"
 #include "other_abstract_objects.h"

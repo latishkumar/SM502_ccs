@@ -56,6 +56,7 @@
 #define SYSRSTIV_FLLUL_RESET_EVENT        0XC5
 #define SYSRSTIV_PERF_RESET_EVENT         0XC6
 #define SYSRSTIV_PMMKEY_RESET_EVENT       0XC7
+#define SYSRSTIV_BOR_RESET_EVENT_SW       0xC8
 //#define LowVoltage 0xA2
 //#define HighVoltage 0xA3
 //#define OverCurrent 0xA4

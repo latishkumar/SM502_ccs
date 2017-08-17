@@ -2,7 +2,7 @@
  * firmware_update.c
  *
  *  Created on: May 15, 2017
- *      Author: abi
+ *      Author: Eliab Erango
  */
 #include "headers.h"
 #include "firmware_update.h"

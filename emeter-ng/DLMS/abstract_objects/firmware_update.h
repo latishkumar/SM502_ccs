@@ -2,7 +2,7 @@
  * firmware_update.h
  *
  *  Created on: May 15, 2017
- *      Author: abi
+ *      Author: Eliab Erango
  */
 
 #ifndef DLMS_ABSTRACT_OBJECTS_FIRMWARE_UPDATE_H_

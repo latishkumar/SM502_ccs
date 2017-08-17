@@ -98,7 +98,7 @@ __interrupt void AUX_ISR(void)
           //WDTCTL |= WDTPW | WDTHOLD;
         operating_mode = OPERATING_MODE_POWERFAIL;
         meter_state = HIBERNATING;
-         /* Note that a power down occured */
+         /* Note that a power down occurred */
          meter_status |= POWER_DOWN;
 
         /* Turn off all the LEDs. */

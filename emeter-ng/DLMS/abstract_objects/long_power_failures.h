@@ -2,7 +2,7 @@
  * long_power_failures.h
  *
  *  Created on: May 15, 2017
- *      Author: abi
+ *      Author: Eliab Erango
  */
 
 #ifndef DLMS_ABSTRACT_OBJECTS_LONG_POWER_FAILURES_H_

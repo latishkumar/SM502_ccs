@@ -2,7 +2,7 @@
  * disconnect_control_and_log.h
  *
  *  Created on: May 15, 2017
- *      Author: abi
+ *      Author: Eliab Erango
  */
 
 #ifndef DLMS_ABSTRACT_OBJECTS_DISCONNECT_CONTROL_AND_LOG_H_

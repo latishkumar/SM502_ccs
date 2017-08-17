@@ -691,20 +691,15 @@ static void hdlc_async_rx_end_in_hdr(async_hdlc_rx_t *rx, uint8_t byte)
        There should probably be a timeout, so on non-continuous reception we
        demand another flag as reception resumes. */
     rx->state = ASYNC_RX_STATE_FLAGGED;
-#if defined(__MSP430__)
-    P1OUT ^= BIT0;
-#endif
 }
 /*- End of function --------------------------------------------------------*/
 void iec62056_46_link_idle_timeout(iec62056_46_link_t *link)
 {
     dl_disconnect_indication(link, DL_DISCONNECT_INDICATION_LOCAL_DL);
-    link->disconnected = TRUE;
-    link->configured = FALSE;
-    link->far_msap=0;
+
     //connection released due to timeout
-	//log communication ecent - timeout
-	if(link->port == IEC_PORT )
+	//log communication event - timeout
+	if(link->port == IEC_PORT && link->disconnected == FALSE)
 	{
 		uint8_t tmp;
 		event_log l;
@@ -714,6 +709,10 @@ void iec62056_46_link_idle_timeout(iec62056_46_link_t *link)
 		tmp = 6;
 		write_to_eeprom(&l,&tmp,log_events);
 	}
+
+	link->disconnected = TRUE;
+    link->configured = FALSE;
+    link->far_msap=0;
 
 }
 /*- End of function --------------------------------------------------------*/
@@ -784,9 +783,6 @@ void iec62056_46_rx_byte(iec62056_46_link_t *link, async_hdlc_rx_t *rx, uint8_t 
         if ((byte & 0x7F) >= '0'  &&  (byte & 0x7F) <= '9')
             break;
         rx->state = ASYNC_RX_STATE_IDLE;
-#if defined(__MSP430__)
-        //P1OUT ^= BIT1;
-#endif
         break;
     case ASYNC_RX_PROTOCOL_E_STEP3:
         if ((byte & 0x7F) == '\r')
@@ -795,9 +791,6 @@ void iec62056_46_rx_byte(iec62056_46_link_t *link, async_hdlc_rx_t *rx, uint8_t 
             break;
         }
         rx->state = ASYNC_RX_STATE_IDLE;
-#if defined(__MSP430__)
-        //P1OUT ^= BIT1;
-#endif
         break;
     case ASYNC_RX_PROTOCOL_E_STEP4:
         if ((byte & 0x7F) == '\n')
@@ -823,9 +816,6 @@ printf("Got a 'Switch to mode E' request\n");
             send_frame(link, &tx[link->port]);
         }
         rx->state = ASYNC_RX_STATE_IDLE;
-#if defined(__MSP430__)
-        //P1OUT ^= BIT1;
-#endif
         break;
     case ASYNC_RX_PROTOCOL_E_STEP11:
         if ((byte & 0x7F) >= '0'  &&  (byte & 0x7F) <= '9')
@@ -855,9 +845,6 @@ printf("Got a 'Switch to mode E' stage 2 request\n");
         }
         rx->state = ASYNC_RX_STATE_IDLE;
         configure_uart_port(link->port, 2);
-#if defined(__MSP430__)
-//        P1OUT ^= BIT1;
-#endif
         break;
     case ASYNC_RX_STATE_FLAGGED:
         /* The byte after the flag should always have 1010 in the top four bits. Therefore,
@@ -868,15 +855,12 @@ printf("Got a 'Switch to mode E' stage 2 request\n");
         {
             /* The frame type bits are wrong. Back to hunting for a flag. */
             rx->state = ASYNC_RX_STATE_IDLE;
-#if defined(__MSP430__)
-            //P1OUT ^= BIT1;
-#endif
             break;
         }
         /* This is the first byte of the frame type + length field. */
         rx->crc = crc_itu16(byte, 0xFFFF);
         rx->msg_len = 0;
-        /* Initialise the header information. */
+        /* Initialize the header information. */
         rx->segmented = byte & 0x08;
         rx->expected_len = (byte & 0x7) << 8;
         rx->control_field = 0;
@@ -901,9 +885,6 @@ printf("Got a 'Switch to mode E' stage 2 request\n");
         {
             /* That's too short. Something is wrong. Give up on this frame. */
             rx->state = ASYNC_RX_STATE_IDLE;
-#if defined(__MSP430__)
-            //P1OUT ^= BIT1;
-#endif
             break;
         }
         rx->state = ASYNC_RX_STATE_AT_DEST_MSAP;
@@ -990,12 +971,6 @@ printf("Got a 'Switch to mode E' stage 2 request\n");
                 /* If things are wrong at this point, we really need to look for
                    another flag byte before proceeding. */
                 rx->state = ASYNC_RX_STATE_IDLE;
-#if defined(__MSP430__)
-                //P1OUT ^= BIT1;
-#endif
-#if defined(LOG_PACKETS)
-                printf("Header CRC failed - 0x%X (%d)\n", rx->crc, rx->msg_len);
-#endif
             }
         }
         break;
@@ -1007,14 +982,7 @@ printf("Got a 'Switch to mode E' stage 2 request\n");
             if (byte != 0x7E)
             {
                 /* The closing flag was not were it ought to be. */
-#if defined(LOG_PACKETS)
-                printf("Bad HDLC frame - %d bytes - 0x%X\n", rx->msg_len - 2, rx->crc);
-#endif
-                
                 rx->state = ASYNC_RX_STATE_IDLE;
-#if defined(__MSP430__)
-                //P1OUT ^= BIT1;
-#endif
                 break;
             }
             /* Only deduct the length of final CRC if there are two CRCs */
@@ -1023,9 +991,6 @@ printf("Got a 'Switch to mode E' stage 2 request\n");
             if ((rx->crc & 0xFFFF) == 0xF0B8)
             {
                 /* Deduct the CRC bytes from the length, to leave the actual body length */
-#if defined(LOG_PACKETS)
-                printf("Good HDLC frame - %d bytes (%d)\n", rx->msg_len, rx->expected_len - 2);
-#endif
                 rx->good_packets++;
                 iec62056_46_link_idle_restart(link);
                 Dest_MSAP_Len=rx->dest_msap_len;
@@ -1035,18 +1000,13 @@ printf("Got a 'Switch to mode E' stage 2 request\n");
             }
             else
             {
-#if defined(LOG_PACKETS)
-                printf("Bad HDLC frame - %d bytes - 0x%X\n", rx->msg_len - 2, rx->crc);
-#endif
+
             }
             /* The flag we have just seen is a perfectly good start flag for the next
                frame, so we just go back to looking for the first byte of the next frame.
                There should probably be a timeout, so on non-continuous reception we
                demand another flag as reception resumes. */
             rx->state = ASYNC_RX_STATE_FLAGGED;
-#if defined(__MSP430__)
-//            P1OUT ^= BIT0;
-#endif
             rx->crc = 0xFFFF;
             break;
         }

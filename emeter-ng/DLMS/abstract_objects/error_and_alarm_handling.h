@@ -2,7 +2,7 @@
  * error_and_alarm_handling.h
  *
  *  Created on: May 15, 2017
- *      Author: abi
+ *      Author: Eliab Erango
  */
 
 #ifndef DLMS_ABSTRACT_OBJECTS_ERROR_AND_ALARM_HANDLING_H_

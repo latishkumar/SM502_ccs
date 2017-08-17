@@ -2,11 +2,10 @@
  * synchronization_event_handling.c
  *
  *  Created on: Jun 9, 2017
- *      Author: abi
+ *      Author: Eliab Erango
  */
-
 #include "headers.h"
-#include "event_handling.h"
+#include "standard_event_handling.h"
 #include "hourly_load_profile.h"
 #include "synchronization_event_handling.h"
 /*

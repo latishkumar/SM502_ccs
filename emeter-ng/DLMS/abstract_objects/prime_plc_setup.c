@@ -2,7 +2,7 @@
  * prime_plc_setup.c
  *
  *  Created on: May 17, 2017
- *      Author: abi
+ *      Author: Eliab Erango
  */
 #include "headers.h"
 #include "prime_plc_setup.h"

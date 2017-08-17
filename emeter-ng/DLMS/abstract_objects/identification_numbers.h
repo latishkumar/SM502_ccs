@@ -2,7 +2,7 @@
  * identification_numbers.h
  *
  *  Created on: May 12, 2017
- *      Author: abi
+ *      Author: Eliab Erango
  */
 
 #ifndef DLMS_ABSTRACT_OBJECTS_IDENTIFICATION_NUMBERS_H_

@@ -2,7 +2,7 @@
  * synchronization_event_handling.h
  *
  *  Created on: Jun 9, 2017
- *      Author: abi
+ *      Author: Eliab Erango
  */
 
 #ifndef DLMS_ABSTRACT_OBJECTS_SYNCHRONIZATION_EVENT_HANDLING_H_

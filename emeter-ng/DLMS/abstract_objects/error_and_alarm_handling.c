@@ -2,7 +2,7 @@
  * error_and_alarm_handling.c
  *
  *  Created on: May 15, 2017
- *      Author: abi
+ *      Author: Eliab Erango
  */
 
 #include <stdint.h>

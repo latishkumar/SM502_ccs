@@ -2,7 +2,7 @@
  * manufacturer_specific_objects.c
  *
  *  Created on: May 26, 2017
- *      Author: abi
+ *      Author: Eliab Erango
  */
 
 #include "headers.h"

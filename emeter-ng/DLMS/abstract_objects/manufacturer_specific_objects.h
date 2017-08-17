@@ -2,7 +2,7 @@
  * manufacturer_specific_objects.h
  *
  *  Created on: May 26, 2017
- *      Author: abi
+ *      Author: Eliab Erango
  */
 
 #ifndef DLMS_ABSTRACT_OBJECTS_MANUFACTURER_SPECIFIC_OBJECTS_H_

@@ -2,7 +2,7 @@
  * non_implemented_events.h
  *
  *  Created on: Jun 11, 2017
- *      Author: MedStud
+ *      Author: Eliab Erango
  */
 
 #ifndef DLMS_ABSTRACT_OBJECTS_NON_IMPLEMENTED_EVENTS_H_

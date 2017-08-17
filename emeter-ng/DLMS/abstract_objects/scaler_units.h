@@ -2,7 +2,7 @@
  * scaler_units.h
  *
  *  Created on: May 12, 2017
- *      Author: abi
+ *      Author: Eliab Erango
  */
 
 #ifndef DLMS_ABSTRACT_OBJECTS_SCALER_UNITS_H_

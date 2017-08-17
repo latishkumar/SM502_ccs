@@ -4,9 +4,7 @@
  *  Created on: Jun 9, 2017
  *      Author: Eliab Erango
  */
-
 #include "headers.h"
-#include "event_handling.h"
 #include "hourly_load_profile.h"
 #include "fraud_event_handling.h"
 /*
@@ -61,7 +59,7 @@ void capture_fraud_event_log(void *data, int direction)
     log_search_params.last_log_address   = last_fraud_event_log_address;
     log_search_params.log_size           = EVENT_LOG_TYPE_SIZE;
     log_search_params.maximum_event_logs = MAX_FRAUD_EVENT_LOGS;
-    log_search_params.offset             = 2;
+    log_search_params.offset             = 1;
     log_search_params.overlap_status     = status.firmware_event_log_overlapped;
     log_search_params.template           = fraud_event_log_template;
     log_search_params.sz_template        = sizeof(fraud_event_log_template);

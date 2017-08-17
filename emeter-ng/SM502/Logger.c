@@ -942,12 +942,6 @@ int read_from_eeprom(void *readArgument_1,void *readArgument_2,int8_t(*read)(voi
        {
           if(v->validate == 1) //check for the argument range
           {
-           
-
-            #ifdef Log_read_from_eeprom
-               printf("\nd_s=%d",t);
-            #endif 
-               
             if(t==1)
             {        
                 uint8_t *data_8 = (uint8_t *)readArgument_1;
@@ -984,9 +978,7 @@ int read_from_eeprom(void *readArgument_1,void *readArgument_2,int8_t(*read)(voi
     if(i>=MAX_LOG_RETRAY) //the logging was not successfull 
     {
       reading_error_counter++;
-    #ifdef Log_read_from_eeprom
-          printf("\nFailer");
-    #endif      
+
       if(v->validate == 1)
       {
           if(t==1)
@@ -1008,14 +1000,7 @@ int read_from_eeprom(void *readArgument_1,void *readArgument_2,int8_t(*read)(voi
       return 0;
     }
     
-    #ifdef Log_read_from_eeprom
-      else{
-          printf("\nSUCESS");
-      }
-    #endif
-
    return 1;
-
 }
 
 rtc_t temp_rtc0;
@@ -1241,7 +1226,7 @@ int8_t log_events(void *l2,void *type)
         if(x==0)
         	return 0;
     }
-    else if(val == 6) // common event log
+    else if(val == 6) // communication event log
     {
     	event_log *l = (event_log *)l2;
     	if(last_common_event_log_address < COMMON_LOG_ADDRESS_START || last_common_event_log_address > COMMON_LOG_ADDRESS_END)
@@ -1454,39 +1439,6 @@ uint8_t get_daily_snapshot_energy(daily_energy_log_t *l,unsigned long StartAddre
 }
 
 /*
- * Get standard event log with the specified address
- */
-uint8_t get_standard_event_log(event_log *l,unsigned long StartAddres)
-{
-    uint8_t x=0,i=0;
-    for(;i<MAX_LOG_RETRAY;i++)
-    {
-        x= EEPROM2_ReadInt8(StartAddres,0,&(l->event_code));
-        if(x==0)
-            continue;
-        
-        x= EEPROM2_ReadNextLong(0,&(l->time_stamp.TimestampLow));
-        if(x==0)
-        continue;
-        
-        x = EEPROM2_ReadNextInt8(0,&(l->time_stamp.TimestampUp));
-        if(x==0)
-        continue;
-        
-        x= EEPROM2_ReadNextInt8(1,&(l->checksum));
-        if(x==0)
-            continue;
-        else
-            break;
-    }
-
-    if(i>=MAX_LOG_RETRAY)
-        return 0;
-
-    return 1;
-}
-
-/*
  * Get logs by time range
  */
 uint8_t get_captured_log_by_time_range(const sSA_Range *startRange,const sSA_Range *endRange,uint16_t *startEntryNumber,uint16_t *numOfEntries,
@@ -1510,13 +1462,26 @@ uint8_t get_captured_log_by_time_range(const sSA_Range *startRange,const sSA_Ran
     }
     else
     {
-        MAX_Entries = (search_items->last_log_address - search_items->start_log_address)/search_items->log_size;
-        if(MAX_Entries == 0)
+        int32_t x = 0;
+        //MAX_Entries = (search_items->last_log_address - search_items->start_log_address)/search_items->log_size;
+        if(search_items->last_log_address > search_items->start_log_address)
+        {
+            x = (search_items->last_log_address - search_items->start_log_address);
+        }
+        else
         {
             *startEntryNumber =0;
             *numOfEntries = 0;
             return 1;
         }
+        while(x > 0)
+        {
+            x -= search_items->log_size;
+            *numOfEntries = *numOfEntries + 1;
+        }
+        MAX_Entries = *numOfEntries;
+        *numOfEntries = 0;
+
     }
 
     rtc_t time_first;
@@ -1716,6 +1681,7 @@ void get_captured_logs(log_search_params_t *log_search_items)
         find_num_total_log_entries(&msg_info.num_entries,&msg_info.start_entry,log_search_items);
         if(SA_From_Entry <= SA_To_Entry && (SA_From_Entry <= msg_info.num_entries))
         {
+            SA_From_Entry = SA_From_Entry == 0? 1:SA_From_Entry;
             msg_info.start_entry = msg_info.start_entry > SA_From_Entry? msg_info.start_entry :SA_From_Entry;
             SA_To_Entry = SA_To_Entry > msg_info.num_entries? msg_info.num_entries : SA_To_Entry;
             SA_To_Entry -=  SA_From_Entry;
@@ -1735,7 +1701,7 @@ void get_captured_logs(log_search_params_t *log_search_items)
 /**************************************************************/
 
 /*
- * Get houlry energy profile from eeprom with
+ * Get hourly energy profile from eeprom with
  * the given address
  */
 uint8_t get_hourly_energy(hourly_energy_log_t *l,unsigned long StartAddress)
@@ -1848,6 +1814,38 @@ int8_t get_daily_snapshot_energy_profile(void *lt,uint32_t EntryNumber)
        if(get_daily_snapshot_energy(l,StartAddress) == 0 )
          return 0;
        return 1;
+}
+/*
+ * Get standard event log with the specified address
+ */
+uint8_t get_standard_event_log(event_log *l,unsigned long StartAddres)
+{
+    uint8_t x=0,i=0;
+    for(;i<MAX_LOG_RETRAY;i++)
+    {
+        x= EEPROM2_ReadInt8(StartAddres,0,&(l->event_code));
+        if(x==0)
+            continue;
+
+        x= EEPROM2_ReadNextLong(0,&(l->time_stamp.TimestampLow));
+        if(x==0)
+        continue;
+
+        x = EEPROM2_ReadNextInt8(0,&(l->time_stamp.TimestampUp));
+        if(x==0)
+        continue;
+
+        x= EEPROM2_ReadNextInt8(1,&(l->checksum));
+        if(x==0)
+            continue;
+        else
+            break;
+    }
+
+    if(i>=MAX_LOG_RETRAY)
+        return 0;
+
+    return 1;
 }
 
 /*
