@@ -141,15 +141,19 @@ void obj_load_profile_reset(uint8_t *data,uint16_t data_len,uint8_t *response,ui
  * Hourly Load Profile
  * Capture method //
  */
+__inline__ void calculate_avergae_v_pf_f();
 void obj_load_profile_capture(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len)
 {
+    // first calculate average voltage, power factor and frequency before capturing
+    calculate_avergae_v_pf_f();
+
     hourly_energy_log_t tmp;
-    tmp.inc_active_import_energy = (uint16_t) chan1.inc_import_active_energy;
-    tmp.inc_active_export_energy = (uint16_t) (chan1.readings.active_power/100);//Active power //chan1.inc_export_active_energy;
-    tmp.inc_reactive_energy_QI   = (uint16_t) chan1.inc_reactive_energy_QI;
-    tmp.inc_reactive_energy_QII  = (uint16_t) chan1.readings.V_rms;//Instant. Voltage//chan1.inc_reactive_energy_QII;
-    tmp.inc_reactive_energy_QIII = (uint16_t) (chan1.readings.I_rms/1000);//Instant. Current //chan1.inc_reactive_energy_QIII;
-    tmp.inc_reactive_energy_QIV  = (uint16_t) chan1.inc_reactive_energy_QIV;
+    tmp.inc_active_import_energy = (uint16_t) chan1.inc_import_active_energy; // Active import Energy
+    tmp.inc_active_export_energy = (uint16_t) chan1.inc_export_active_energy; // peak power
+    tmp.inc_reactive_energy_QI   = (uint16_t) chan1.inc_reactive_energy_QI;   // Reactive Energy QIV
+    tmp.inc_reactive_energy_QII  = (uint16_t) chan1.inc_reactive_energy_QII;  // average voltage
+    tmp.inc_reactive_energy_QIII = (uint16_t) chan1.inc_reactive_energy_QIII; // average power factor
+    tmp.inc_reactive_energy_QIV  = (uint16_t) chan1.inc_reactive_energy_QIV;  // average frequency
     tmp.timestamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
     tmp.crc = tmp.inc_active_import_energy + tmp.inc_reactive_energy_QIV + tmp.timestamp.TimestampLow+ tmp.timestamp.TimestampUp;
     write_to_eeprom(&tmp,(uint8_t *)0,log_hourly_energy_profile);
@@ -157,10 +161,10 @@ void obj_load_profile_capture(uint8_t *data,uint16_t data_len,uint8_t *response,
     //reset hourly energy registers
     chan1.inc_import_active_energy = 0;
     chan1.inc_export_active_energy = 0;
-    chan1.inc_reactive_energy_QI = 0;
-    chan1.inc_reactive_energy_QII = 0;
+    chan1.inc_reactive_energy_QI   = 0;
+    chan1.inc_reactive_energy_QII  = 0;
     chan1.inc_reactive_energy_QIII = 0;
-    chan1.inc_reactive_energy_QIV = 0;
+    chan1.inc_reactive_energy_QIV  = 0;
     *response_len = 0;
 }
 

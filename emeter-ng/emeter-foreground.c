@@ -574,4 +574,30 @@ int16_t power_factor()
 //    }
     return p;
 }
+/*
+ * Calculate average voltage, power factor and frequency
+ */
+__inline__ void calculate_avergae_v_pf_f()
+{
+    if(phase->average_counter <= 0)//no data so set to zero
+    {
+        phase->inc_export_active_energy = 0;    // peak power
+        phase->inc_reactive_energy_QI   = 0;    // average voltage
+        phase->inc_reactive_energy_QII  = 0;    // average power factor
+        phase->inc_reactive_energy_QIII = 0;    // average frequency
+    }
+    else
+    {
+        phase->inc_export_active_energy = phase->peak_power/100;                             // peak power
+        phase->inc_reactive_energy_QII   = phase->voltage_accum/phase->average_counter;      // average voltage
+        phase->inc_reactive_energy_QIII  = phase->power_factor_accum/phase->average_counter; // average power factor
+        phase->inc_reactive_energy_QIV = phase->frequency_accum/phase->average_counter;      // average frequency
 
+        //reset accumulators
+        phase->peak_power         = 0;
+        phase->voltage_accum      = 0;
+        phase->power_factor_accum = 0;
+        phase->frequency_accum    = 0;
+        phase->average_counter    = 0;
+    }
+}

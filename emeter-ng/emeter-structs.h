@@ -784,7 +784,7 @@ struct phase_metrology_s
 
     /*! \brief This value counts down each time an ADC sample from the voltage
                channel hits the end of the ADC range. It is used to detect an
-               overrange signal in a robust way, ignoring a small number of samples
+               over range signal in a robust way, ignoring a small number of samples
                hits the ends of the ADC range, which might just be a few noise spikes. */
     int8_t V_endstops;
 };
@@ -793,14 +793,12 @@ struct phase_metrology_s
 /*! This structure holds all the working data for one phase. */
 struct phase_parms_s
 {
-#if defined(PRECALCULATED_PARAMETER_SUPPORT)
+// PRECALCULATED_PARAMETER_SUPPORT)
     struct phase_readings_s readings;
-#endif
-#if defined(ESP_SUPPORT)
-    struct esp_phase_metrology_s metrology;
-#else
+
     struct phase_metrology_s metrology;
-#if defined(PER_PHASE_ACTIVE_ENERGY_SUPPORT)
+
+// PER_PHASE_ACTIVE_ENERGY_SUPPORT
     int32_t active_power_counter;
     //int32_t active_energy_counter;
     
@@ -824,8 +822,8 @@ struct phase_parms_s
     //uint32_t consumed_active_energy_QIII;
     //uint32_t consumed_active_energy_QIV;
       
-#endif
-#if defined(PER_PHASE_ACTIVE_ENERGY_SUPPORT)
+
+// PER_PHASE_ACTIVE_ENERGY_SUPPORT
     //int32_t reactive_power_counter;
     
     uint32_t reactive_energy_counter_QI;
@@ -841,12 +839,11 @@ struct phase_parms_s
     uint32_t consumed_reactive_energy_QIII;
     uint32_t consumed_reactive_energy_QIV;
         
-#endif
-#endif
-#if defined(PER_PHASE_ACTIVE_ENERGY_SUPPORT)
+
+// PER_PHASE_ACTIVE_ENERGY_SUPPORT
     /*! \brief This times the duration of an energy pulse */
     uint8_t active_energy_pulse_remaining_time;
-#endif
+
 #if defined(PER_PHASE_REACTIVE_ENERGY_SUPPORT)
     /*! \brief This times the duration of an energy pulse */
     uint8_t reactive_energy_pulse_remaining_time;
@@ -861,6 +858,15 @@ struct phase_parms_s
     uint32_t inc_reactive_energy_QII;
     uint32_t inc_reactive_energy_QIII;
     uint32_t inc_reactive_energy_QIV;
+
+    /*
+     * accumulators for average calculation
+     */
+    uint32_t voltage_accum;
+    uint64_t power_factor_accum;
+    uint32_t frequency_accum;
+    int32_t peak_power;
+    uint16_t average_counter;
 };
 
 #if !defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)

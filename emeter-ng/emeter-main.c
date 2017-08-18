@@ -141,7 +141,7 @@ int local_comm_exchange_mode_flag=0; //optical:0; USB:1
  */
 uint32_t eeprom_backup_energy_counter;
 uint8_t flash_backup_energy_counter;
-#define BACKUP_TIME 180000 //msec
+#define BACKUP_TIME 360000 //msec-6 minutes
 #define ENERGY_THRESHOLD_FOR_FLASH_BACKUP 54//KWH
 #define NORMAL_BACK_UP 0x02
 #define LOW_BATTERY_BACKUP 0x04
@@ -164,45 +164,24 @@ void main(void)
 {
     static int32_t x;
     
-    /*[M.G] moved this section of code(AUX supply configuration) to the begining of main function Oct 22, 2015 - 13:52, to debug LPM bug */ 
-       #if defined (__MSP430_HAS_AUX_SUPPLY__)
-       #if defined SM502_DISABLE_AUX_SWITHING
-          PMMCTL0_H = PMMPW_H;    
-          SVSMHCTL|=SVSMHRRL_5|SVSHRVL_1|SVMHE|SVSHE; //SVM monitoring level,set referance voltage for switching to auxilary supplay , 
-                                //Interrupt is generated when the supplay falls below this voltage,
-                                //Handel this interrupt to detect power failer 
-          //PMMRIE =0;//&= ~SVSHPE;
-          AUXCTL0   = AUXKEY ;
-          AUXCTL1  |= AUX1MD + AUX2MD;  /*[M.G] grouped SET and RESET operations together Oct 22, 2015 - 13:52*/
-          AUXCTL1  &= ~(AUX1OK + AUX2OK );// AUX1 and AUX2 is disabled;
-          AUXCTL2  |= AUX0LVL_7|AUX2LVL_7|AUXMR_2;
-          AUX3CHCTL = AUXCHKEY | AUXCHC_1 | AUXCHV_1 | AUXCHEN;//comment this for the board Enable Charger for AUX3 to enable RTC
-          //configure non maskable Auxilary interrupt heare 
-          AUXIE    = 0; //[M.G] Disable all interrupts for now, to debug LPM  bug &= ~AUX2DRPIE&~AUXMONIE;//|AUXMONIE; //use maskable interrupt for auxilary switching 
-          PMMCTL0_H = 0;  
+    PMMCTL0_H = PMMPW_H;
+    SVSMHCTL|=SVSMHRRL_5|SVSHRVL_1|SVMHE|SVSHE; //SVM monitoring level,set reference voltage for switching to auxiliary supply ,
+                        //Interrupt is generated when the supply falls below this voltage,
+                        //Handle this interrupt to detect power failure
 
-          AUXCTL0 = 0;       
-        #else
-          PMMCTL0_H = PMMPW_H;    
-          SVSMHCTL|=SVSMHRRL_5|SVSHRVL_1|SVMHE|SVSHE; //SVM monitoring level,set reference voltage for switching to auxiliary supply ,
-                                //Interrupt is generated when the supply falls below this voltage,
-                                //Handle this interrupt to detect power failure
-          
-          //PMMRIE =0;//&= ~SVSHPE;
-          AUXCTL0 = AUXKEY ;
-          AUXCTL1  |= AUX1MD;
-          AUXCTL1  &= ~AUX1OK;// | AUX2MD & ~AUX2OK | AUX0MD | AUX0OK; //Auxiliary supply one is disabled, set AUX1OK = 0;
-          AUXCTL2  |= AUX0LVL_7|AUX2LVL_7|AUXMR_2;
-          AUX3CHCTL = AUXCHKEY | AUXCHC_1 | AUXCHV_1 | AUXCHEN;//comment this for the board Enable Charger for AUX3 to enable RTC
-          //configure non maskable Auxiliary interrupt here
-          AUXIE    |= AUXSWGIE|AUX2SWIE|AUX0SWIE|AUX2DRPIE;
-          AUXIE    &= ~AUXMONIE;//|AUXMONIE; //use maskable interrupt for auxiliary switching
-          PMMCTL0_H = 0;  
+    //PMMRIE =0;//&= ~SVSHPE;
+    AUXCTL0 = AUXKEY ;
+    AUXCTL1  |= AUX1MD;
+    AUXCTL1  &= ~AUX1OK;// | AUX2MD & ~AUX2OK | AUX0MD | AUX0OK; //Auxiliary supply one is disabled, set AUX1OK = 0;
+    AUXCTL2  |= AUX0LVL_7|AUX2LVL_7|AUXMR_2;
+    AUX3CHCTL = AUXCHKEY | AUXCHC_1 | AUXCHV_1 | AUXCHEN;//comment this for the board Enable Charger for AUX3 to enable RTC
+    //configure non maskable Auxiliary interrupt here
+    AUXIE    |= AUXSWGIE|AUX2SWIE|AUX0SWIE|AUX2DRPIE;
+    AUXIE    &= ~AUXMONIE;//|AUXMONIE; //use maskable interrupt for auxiliary switching
+    PMMCTL0_H = 0;
 
-          AUXCTL0 = 0;
-        #endif
+    AUXCTL0 = 0;
 
-    #endif
     system_setup();
 
     uint8_t temp_did = 3;
@@ -534,9 +513,19 @@ void main(void)
 						else
 						  phase->readings.frequency = frequency();
 
-						 performPowerQualityMessurement();
-						 CalculateBilling();       //perform tariff Update and calculation
-						 UpdateDisplayProgressBar_c();
+						/*
+						 * Average voltage, power factor and frequency, and peak power calculation routine
+						 *
+						 */
+						phase->voltage_accum      += phase->readings.V_rms;
+						phase->power_factor_accum += phase->readings.power_factor;
+						phase->frequency_accum    += phase->readings.frequency;
+						phase->peak_power          = phase->readings.active_power > phase->peak_power? phase->readings.active_power : phase->peak_power;
+                        phase->average_counter++;
+
+						performPowerQualityMessurement();
+                        CalculateBilling();       //perform tariff Update and calculation
+                        UpdateDisplayProgressBar_c();
                   }
                   
                   if(status.SecondElapsed == 1)
@@ -582,12 +571,11 @@ void main(void)
                       status.task_exec_finished = 1;
                   }                  
              }
-             
              else if(operating_mode == OPERATING_MODE_POWERFAIL)
              {
             	 if(lpc == 2)
                  {
-            		 custom_power_restore_handler();
+            		 custom_power_restore_handler();//TODO
                  }
              }
 

@@ -230,7 +230,7 @@ __interrupt void Port_1(void)
    
 
 /**
-* when power failes disable all functionality and enter low power mode 
+* when power fails disable all functionality and enter low power mode
 * 
 */
 void custom_power_fail_handler() {
@@ -339,78 +339,35 @@ extern uint8_t is_time_valid(const rtc_t *time);
 */
 void custom_power_restore_handler()
 {
-    
-      #if defined(LOW_POWER_LOG_ENABLED)
-       printf("POR Reset ");
-       
-       
-       IEC_Tx_Done=0;
-       while(IEC_Tx_Done==0);
-      
-       
-       #endif
-       
-        EEPROM2Init();
+    EEPROM2Init();
                                     
-      #if defined(LOW_POWER_LOG_ENABLED)
-        printf("before reset BAKMEM0 = %d, ",BAKMEM0);
-        printf("BAKMEM1 = %d, ",BAKMEM1);
-        printf("BAKMEM2 = %d\n ",BAKMEM2);
-       
-       //_EINT();
-       IEC_Tx_Done=0;
-       while(IEC_Tx_Done==0);
-       //_DINT();
-       
-       #endif
+    //check if tamper happened during low power mode and process them
+    uint16_t test_temp = BAKMEM0;
+    test_temp         += BAKMEM1;
 
-       //check if tamper happened during low power mode and process them
-        uint16_t test_temp = BAKMEM0;
-        test_temp +=BAKMEM1;
-
-        if(BAKMEM2 == test_temp)
+    if(BAKMEM2 == test_temp)
+    {
+        //process the tamper
+        if(BAKMEM0  == LowerCoverRemovedTamperError)
         {
-           #if defined(LOW_POWER_LOG_ENABLED)
-            printf("BAKMEM0 = %d, ",BAKMEM0);
-            printf("BAKMEM1 = %d, ",BAKMEM1);
-            printf("BAKMEM2 = %d\n ",BAKMEM2);
-           
-           
-           IEC_Tx_Done=0;
-           while(IEC_Tx_Done==0);
-          
-           
-           #endif
-          //process the tamper 
-          if(BAKMEM0  == LowerCoverRemovedTamperError)
-          {   
-            
-             #if defined(LOW_POWER_LOG_ENABLED)
-               printf("Tampered Lower Cover");
-             #endif
-            
-              BAKMEM0 = 0;
-//              status.LowerCoverRemovedTamperStatus = 1;
-              LCTamperDetected();
-          }
-          if(BAKMEM1 == UpperCoverRemovedTamperError)
-          {
-             #if defined(LOW_POWER_LOG_ENABLED)
-               printf("Tampered Upper Cover");
-             #endif     
-               
-//               status.UpperCoverRemovedTamperStatus =1;
-               UCTamperDetected();
-              BAKMEM1 = 0;
-          }    
-          write_to_eeprom(&status,(uint8_t *)0,logMeterStatus);//uncomment this 
+            BAKMEM0 = 0;
+            //status.LowerCoverRemovedTamperStatus = 1;
+            LCTamperDetected();
         }
-               
-        BAKMEM2 = 0; 
-        BAKMEM3 = 0;            
-            
-        operating_mode = OPERATING_MODE_NORMAL;
-        Reset_System();
+        if(BAKMEM1 == UpperCoverRemovedTamperError)
+        {
+            //status.UpperCoverRemovedTamperStatus =1;
+            UCTamperDetected();
+            BAKMEM1 = 0;
+        }
+        write_to_eeprom(&status,(uint8_t *)0,logMeterStatus);//uncomment this
+    }
+
+    BAKMEM2 = 0;
+    BAKMEM3 = 0;
+
+    operating_mode = OPERATING_MODE_NORMAL;
+    Reset_System();
 }
 
 

@@ -293,7 +293,6 @@ void UCTamperDetected()
     l.event_code = UpperCoverRemovedTamperError;
     l.time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
     l.checksum  =(getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;
-    //l.value = 0;
     uint8_t tmp = 4;
     write_to_eeprom(&l,&tmp,log_events);
     
@@ -325,8 +324,7 @@ void LCTamperDetected()
      event_log l;
      l.event_code = LowerCoverRemovedTamperError;
      l.time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
-     l.checksum  =(getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;
-     //l.value = 0;
+     l.checksum   = (getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;
      uint8_t tmp = 4;
      write_to_eeprom(&l,&tmp,log_events);
      
