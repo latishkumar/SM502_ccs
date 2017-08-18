@@ -161,7 +161,7 @@ typedef enum{
 #define Absolute_MAX_VRMS   300
 #define Absolute_MAX_IRMS   70 
 
-#define Absolute_MAX_FREQUENCY  57  //the max tolarable frequency error 
+#define Absolute_MAX_FREQUENCY  57  //the max tolerable frequency error
 #define Absolute_MIN_FREQUENCY  42  
 
 #define MAX_ENERGY_READING  9999999 //the maximum value of energy that can be read
