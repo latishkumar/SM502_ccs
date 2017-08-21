@@ -552,16 +552,17 @@ void per_second_activity()
         status.write_status = 0;
       }
       
-      if(status.write_tamper_status == 1)
+      if(status.write_tamper_status)
       {
+          uint8_t event_code = 0;
+          event_code = status.write_tamper_status == UpperCoverRemovedTamperError?CLEAR_UPPER_COVER_REMOVED_TAMPER_ERROR:CLEAR_LOWER_COVER_REMOVED_TAMPER_ERROR;
     	  write_to_eeprom(&status,(uint8_t *)0,logMeterStatus);
     	  status.write_tamper_status = 0;
     	  // log fraud event
     	  event_log l;
-    	  l.event_code = TAMPER_EVENT_CLEARED;
+    	  l.event_code = event_code; //TAMPER_EVENT_CLEARED;
     	  l.time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
     	  l.checksum  =(getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;
-    	  // l.value = 0;
     	  tmp = 4;
     	  write_to_eeprom(&l,&tmp,log_events);
       }

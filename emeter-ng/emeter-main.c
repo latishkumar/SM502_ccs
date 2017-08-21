@@ -37,7 +37,7 @@
 #include "iec62056_46_user.h"
 #include "uart_comms.h"
 #include "daily_load_profile.h"
-
+#include "firmware_loader.h"
 void performPowerQualityMessurement(); // some of the power quality management is performed by the
 
 #if defined(TOTAL_ACTIVE_ENERGY_SUPPORT)
@@ -157,6 +157,7 @@ void log_standard_events(uint8_t event_code);
 void test_circular_buffer();
 uint16_t overflowsamples, second_counter;
 /******************************/
+
 void RESET_ISR(void);
 #pragma NOINIT(meter_state)
 METER_STATES meter_state;
@@ -583,7 +584,8 @@ void main(void)
              {
             	 configure_uart_port(1,3);  //change to USB
             	 local_comm_exchange_mode_flag = 1;
-            	 reset_firmware_upgrate_parameters();
+            	 usb_recv.recv_state = IDLE;
+            	 //reset_firmware_upgrate_parameters();
              }
              else if(local_comm_exchange_mode_flag == 1 && !(P3IN & BIT0))
              {

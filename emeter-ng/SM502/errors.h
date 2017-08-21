@@ -16,10 +16,12 @@
 
 
 //Tamper Errors 
-#define MangneticTamperError 0x1
-#define UpperCoverRemovedTamperError 0x2
-#define LowerCoverRemovedTamperError 0x3
-#define NeutralTamperError 0x04
+#define MangneticTamperError         0x01
+#define UpperCoverRemovedTamperError 0x02
+#define LowerCoverRemovedTamperError 0x03
+#define NeutralTamperError           0x04
+#define CLEAR_UPPER_COVER_REMOVED_TAMPER_ERROR 0x05
+#define CLEAR_LOWER_COVER_REMOVED_TAMPER_ERROR 0x06
 
 #define ReverseCurrentError 0x05
 #define ConfigrationPortTamperError 0x06

@@ -45,6 +45,9 @@ void reset_alarms(uint8_t *data, uint16_t data_len,uint8_t *response,uint16_t *r
     default:
         break;
   }
+
+  *response_len = 0;
+
 }
 
 /*
@@ -54,7 +57,7 @@ void reset_persistent_events(void *data, int data_direction)
 {
 	if(data_direction == ATTR_WRITE)
 	{
-		status.write_tamper_status = 1;
+
 		int16_t nv_2 = 0;
 		uint8_t *ptr2 = data;
 		nv_2 = *(ptr2+1);
@@ -63,9 +66,11 @@ void reset_persistent_events(void *data, int data_direction)
 		{
 			case 1:
 				status.UpperCoverRemovedTamperStatus = 0;
+				status.write_tamper_status = UpperCoverRemovedTamperError;
 				break;
 			case 2:
 				status.LowerCoverRemovedTamperStatus = 0;
+				status.write_tamper_status = LowerCoverRemovedTamperError;
 				break;
 			case 3:
 				status.MangneticTamperStatus = 0;

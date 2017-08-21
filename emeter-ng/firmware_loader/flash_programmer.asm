@@ -17,7 +17,7 @@
 
 
 ; void read_mem(uint8_t* buff, uint32_t start_address, uint16_t size)
-	.cdecls C, LIST, "msp430f6776.h"
+	.cdecls C, LIST, "msp430f6736.h"
 
 FLASH_PROGRAMMER_LEN .equ	(FLASH_PROGRAMMER_ADDR_END - flash_programmer + 2)/2
 

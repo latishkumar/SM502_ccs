@@ -11,7 +11,7 @@
 ;this is essentially auxiliary switch interrupt service routine which is
 ;served from user non maskable interrupt vector in RAM
 
-	.cdecls C, LIST, "msp430f6776.h"
+	.cdecls C, LIST, "msp430f6779.h"
 
 	.define 465, BATTERY_OK_THRESHOLD
 
@@ -37,8 +37,8 @@ power_handler:
 	;the routine proceeds by first monitoring the voltage level on the battery,
 	;and if the voltage is high enough to drive the external flash memory,
 	;firmware upgrade routine will be restarted.
-;	bic.b	#BIT2, &P3OUT 					;power up external flash from battery
-;	mov.w	#20000, R12						;wait for about 10msecs until flash resets
+	bic.b	#BIT2, &P3OUT 					;power up external flash from battery
+	mov.w	#20000, R12						;wait for about 10msecs until flash resets
 L1:
 	dec	R12
 	jnz	L1
