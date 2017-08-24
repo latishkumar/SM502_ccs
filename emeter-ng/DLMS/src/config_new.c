@@ -3263,8 +3263,8 @@ const struct object_desc_s object_list[] =
                                      ,(const struct attribute_desc_s[]) {
 
                                               {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[REFERENCE_OBIS_START + 7].instance_id, NULL},
-                                              {2, ACCESS_PC___MRRW_USRW, TAG_UINT32,          (void *) Data_Buffer, calibrate_neutral_power_scaler},
-                                              {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_PF, NULL}
+                                              {2, ACCESS_PC___MRRW_USRW, TAG_INT16,          (void *) Data_Buffer, calibrate_neutral_power_scaler},
+                                              {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_power_current_voltage_calib, NULL}
 
                                      }
                                      ,0
@@ -3280,8 +3280,8 @@ const struct object_desc_s object_list[] =
                                      ,(const struct attribute_desc_s[]) {
 
                                               {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[REFERENCE_OBIS_START + 8].instance_id, NULL},
-                                              {2, ACCESS_PC___MRRW_USRW, TAG_UINT32,          (void *) Data_Buffer, calibrate_neutral_current_scaler},
-                                              {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_PF, NULL}
+                                              {2, ACCESS_PC___MRRW_USRW, TAG_INT16,          (void *) Data_Buffer, calibrate_neutral_current_scaler},
+                                              {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_power_current_voltage_calib, NULL}
 
                                      }
                                      ,0

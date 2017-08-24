@@ -90,5 +90,12 @@ void LCTamperDetected();
 * @see ProcessTamperUC
 */
 void UCTamperDetected();
-
+/*
+ * Log Neutral tamper
+ */
+void log_neutral_tamper();
+/*
+ * Log upper/lower cover tamper reset event
+ */
+void reset_lower_upper_cover_tamper_error(uint8_t event_type);
 #endif

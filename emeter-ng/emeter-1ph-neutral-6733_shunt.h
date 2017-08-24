@@ -603,7 +603,7 @@
 
 /*! This is the number of successive measurement blocks which must agree the
     unbalanced status has changed before we accept it. */
-#define PHASE_UNBALANCED_PERSISTENCE_CHECK          10//5
+#define PHASE_UNBALANCED_PERSISTENCE_CHECK          15//5
 
 /*! These is the minimum current level (limp mode) and minimum power level (normal
     mode) at which we will make checks for the earthed condition. Very small
@@ -706,8 +706,8 @@
 #define custom_magnetic_sensor_test()               /**/
 
 #ifdef NEUTRAL_MONITOR_SUPPORT
-#define DEFAULT_I_RMS_SCALE_FACTOR_NEUTRAL 481//49126//49126//15150
-#define DEFAULT_P_SCALE_FACTOR_NEUTRAL     13965//55//20
+#define DEFAULT_I_RMS_SCALE_FACTOR_NEUTRAL    15457//481//49126//49126//15150
+#define DEFAULT_P_SCALE_FACTOR_NEUTRAL        13965//55//20
 #define DEFAULT_NEUTRAL_BASE_PHASE_CORRECTION 173//10//5
 #endif 
 

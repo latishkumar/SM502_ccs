@@ -491,7 +491,7 @@ void per_second_activity()
     
    
       //check for neutral tamper 
-    if(phase->status & PHASE_UNBALANCED)// neutral tamper is detected
+    /*if(phase->status & PHASE_UNBALANCED)// neutral tamper is detected
     {
         TamperCount.Neutral_Count++;
         uint8_t temp82 = TamperCount.Neutral_Count;
@@ -506,12 +506,12 @@ void per_second_activity()
         l.checksum  =(getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;
         tmp = 4;
         write_to_eeprom(&l,&tmp,log_events);
-    }
+    }*/
 
-    if(status.NeutralTamperStatus == 1 && !(phase->status & PHASE_UNBALANCED)) //tamper is restored
-    {
-        status.NeutralTamperStatus = 0; // clear tamper status
-    }
+//    if(status.NeutralTamperStatus == 1 && !(phase->status & PHASE_UNBALANCED)) //tamper is restored
+//    {
+//        status.NeutralTamperStatus = 0; // clear tamper status
+//    }
     //  test_current_balance(phase->readings.I_rms,phase->metrology.neutral.I_rms,Current_Thrushold);
    
       UpdateTamperIndicators();
@@ -554,17 +554,8 @@ void per_second_activity()
       
       if(status.write_tamper_status)
       {
-          uint8_t event_code = 0;
-          event_code = status.write_tamper_status == UpperCoverRemovedTamperError?CLEAR_UPPER_COVER_REMOVED_TAMPER_ERROR:CLEAR_LOWER_COVER_REMOVED_TAMPER_ERROR;
     	  write_to_eeprom(&status,(uint8_t *)0,logMeterStatus);
     	  status.write_tamper_status = 0;
-    	  // log fraud event
-    	  event_log l;
-    	  l.event_code = event_code; //TAMPER_EVENT_CLEARED;
-    	  l.time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
-    	  l.checksum  =(getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;
-    	  tmp = 4;
-    	  write_to_eeprom(&l,&tmp,log_events);
       }
 }
 

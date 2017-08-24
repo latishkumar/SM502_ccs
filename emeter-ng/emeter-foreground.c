@@ -85,6 +85,8 @@
 #include "emeter-structs.h"
 #include "configuration_defaults.h"
 #include "manufacturer_specific_objects.h"
+#include "Status.h"
+#include "Tamper.h"
 int32_t xxx;
 int32_t yyy;
 
@@ -177,6 +179,7 @@ static int32_t test_phase_balance(int64_t live_signal, int64_t neutral_signal, i
                 /* Things look genuinely balanced. */
                 phase->status &= ~(PHASE_UNBALANCED | CURRENT_FROM_NEUTRAL);
                 current_unbalanced = 0;
+                status.NeutralTamperStatus = 0;
             }
         }
         else
@@ -204,10 +207,12 @@ static int32_t test_phase_balance(int64_t live_signal, int64_t neutral_signal, i
                 /* Things look genuinely unbalanced. */
                 current_unbalanced = 0;
                 phase->status |= PHASE_UNBALANCED;
-                if (neutral_signal > live_signal)
+                if ((neutral_signal > live_signal) && (neutral_signal > MIN_ACTIVE_POWER_CONSIDERED_ZERO))
                     phase->status |= CURRENT_FROM_NEUTRAL;
                 else
                     phase->status &= ~CURRENT_FROM_NEUTRAL;
+                //log neutral tamper
+                log_neutral_tamper();
             }
         }
         else
@@ -220,7 +225,7 @@ static int32_t test_phase_balance(int64_t live_signal, int64_t neutral_signal, i
        imbalance. */
     if (live_signal <= threshold  &&  neutral_signal <= threshold)
         phase->status &= ~PHASE_UNBALANCED;
-    if ((phase->status & CURRENT_FROM_NEUTRAL) && (neutral_signal > MIN_ACTIVE_POWER_CONSIDERED_ZERO))
+    if (phase->status & CURRENT_FROM_NEUTRAL)
         return  neutral_signal;
     return  live_signal;
 }
@@ -288,7 +293,7 @@ rms_current_t current(void)
        (i.e. ADC clip). A side effect of this routine is it updates the dynamic
        phase correction settings, based on the newly calculated current. */
     /* We always have to work out the properly scaled current from both leads, in
-       order to work out the FIR coffients for the next block. */
+       order to work out the FIR coefficients for the next block. */
     if ((phase->status & I_NEUTRAL_OVERRANGE))
     {
         y = (rms_current_t) ~0;
@@ -305,14 +310,14 @@ rms_current_t current(void)
         {
 			y = isqrt64(tmp-neutral_nv->ac_offset) >> 26;
 			i = neutral_nv->I_rms_scale_factor;
-			y = mul48u_32_16(y, i);
+			y = mul48u_32_16(y, i)>>5;
         }
         phase->metrology.neutral.I_rms = y;
     }
 
-    #if defined(PER_SENSOR_PRECALCULATED_PARAMETER_SUPPORT)
-    phase->metrology.neutral.readings.I_rms = y;
-    #endif
+    // PER_SENSOR_PRECALCULATED_PARAMETER_SUPPORT)
+     phase->metrology.neutral.I_rms = y;
+
 
     if ((phase->status & I_OVERRANGE))
     {
@@ -336,15 +341,15 @@ rms_current_t current(void)
     }
 
 	// PRECALCULATED_PARAMETER_SUPPORT
-    phase->metrology.current.I_rms = x;
-
+   // phase->metrology.current.I_rms = x;
+    phase->readings.I_rms = x;
     /* The power calculation has provided us which is the appropriate
        current to use. */
     // NEUTRAL_MONITOR_SUPPORT
-    if((phase->status & CURRENT_FROM_NEUTRAL))
-    {
-        x = y;
-    }
+//    if((phase->status & CURRENT_FROM_NEUTRAL))
+//    {
+//        x = y;
+//    }
 
     return  x;
 }
@@ -416,22 +421,29 @@ power_t active_power(void)
     {
         phase->status &= ~I_NEUTRAL_REVERSED;  
     }
-
+/*******************************************************************************************
+ * This code section is added because of the reason that a shunt current less than 1A
+ * is not in acceptable range
+ */
+    // calculate Irms current
+    current();
     // POWER_BALANCE_DETECTION_SUPPORT
-    x = test_phase_balance(x, y, PHASE_UNBALANCED_THRESHOLD_POWER);
-    /*if ((phase->status & PHASE_UNBALANCED))
+    if(phase->metrology.neutral.I_rms < 1000 && phase->readings.I_rms < 1000)
     {
-         When the phase is unbalanced we only look for reversed current in the
-           lead with the higher current. If we do not impose this restriction, coupling
-           through a parasitic CT power supply transformer can cause the reverse condition
-           to be raised incorrectly. If there is no parasitic supply this test is probably
-           a waste of time.
-        if ((phase->status & CURRENT_FROM_NEUTRAL))
-            reversed = phase->status & I_NEUTRAL_REVERSED;
-        else
-            reversed = phase->status & I_REVERSED;
-    }*/
-
+        //Don't test power balance and reset if neutral tamper is set
+        status.NeutralTamperStatus = 0;
+        phase->status &= ~(PHASE_UNBALANCED | CURRENT_FROM_NEUTRAL);
+        current_unbalanced = 0;
+    }
+    else
+    {
+        x = test_phase_balance(x, y, PHASE_UNBALANCED_THRESHOLD_POWER);
+    }
+    if((phase->status & CURRENT_FROM_NEUTRAL))
+    {
+        phase->readings.I_rms = phase->metrology .neutral.I_rms;
+    }
+/************************************************************************************************/
 // PHASE_REVERSED_DETECTION_SUPPORT
     if ((phase->status & PHASE_REVERSED))
     {
@@ -589,9 +601,9 @@ __inline__ void calculate_avergae_v_pf_f()
     else
     {
         phase->inc_export_active_energy = phase->peak_power/100;                             // peak power
-        phase->inc_reactive_energy_QII   = phase->voltage_accum/phase->average_counter;      // average voltage
-        phase->inc_reactive_energy_QIII  = phase->power_factor_accum/phase->average_counter; // average power factor
-        phase->inc_reactive_energy_QIV = phase->frequency_accum/phase->average_counter;      // average frequency
+        phase->inc_reactive_energy_QII  = phase->voltage_accum/phase->average_counter;      // average voltage
+        phase->inc_reactive_energy_QIII = phase->power_factor_accum/phase->average_counter; // average power factor
+        phase->inc_reactive_energy_QIV  = phase->frequency_accum/phase->average_counter;      // average frequency
 
         //reset accumulators
         phase->peak_power         = 0;

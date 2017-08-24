@@ -142,6 +142,8 @@ typedef struct
   
 }MeterStatus;
 
+extern MeterStatus status;
+
 //#define M_status_default {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 
 typedef enum{

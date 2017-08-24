@@ -201,13 +201,12 @@ void main(void)
             //first time boot so there is no backup data
             log_standard_events(FIRST_BOOT);
         }
-        /*else if(backup.seg_a.s.valid_backup == LOW_BATTERY_BACKUP)
+        else if(backup.seg_a.s.valid_backup == LOW_BATTERY_BACKUP)
         {
             restoreBackup();
-            log_
             log_standard_events(BACKUP_RESTORED_FROM_FLASH_LB); //backup restored from LOW_BATTERY_BACKUP flash
-        }*/
-        else if(restore_eeprom_backup(phase,(void *)0))
+        }
+         else if(restore_eeprom_backup(phase,(void *)0))
         {
             perform_flash_backup(LOW_BATTERY_BACKUP);
             log_standard_events(BACKUP_RESTORED_FROM_EEPROM); //backup restored from eeprom
@@ -308,7 +307,7 @@ void main(void)
 							x = 0;
 						  }
 
-						  phase->readings.I_rms = current();
+						  // phase->readings.I_rms = current();
 						  phase->readings.V_rms = voltage();
 						  if(phase->readings.V_rms > MIN_PHSE_PRESENCE_RMS_VOLTAGE)//TODO. pick a better value for this
 						  {
@@ -576,7 +575,7 @@ void main(void)
              {
             	 if(lpc == 2)
                  {
-            		 custom_power_restore_handler();//TODO
+            		 custom_power_fail_handler();//custom_power_restore_handler();//TODO
                  }
              }
 

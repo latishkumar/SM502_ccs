@@ -344,3 +344,37 @@ void LCTamperDetected()
 //     LogTamperStatus();
      status.write_status = 1;
 }
+
+/*
+ * Log Neutral tamper
+ */
+void log_neutral_tamper()
+{
+
+    TamperCount.Neutral_Count++;
+    uint8_t temp82 = TamperCount.Neutral_Count;
+    uint8_t temp8 = NeutralTamperType;
+    write_to_eeprom(&temp82,&temp8,setTamperCount);
+    status.NeutralTamperStatus = 1; // set tamper status
+
+    //Log fraud event to the EEPROM
+    event_log l;
+    l.event_code = NeutralTamperError;
+    l.time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
+    l.checksum  =(getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;
+    temp8 = 4;
+    write_to_eeprom(&l,&temp8,log_events);
+}
+
+/*
+ * Log upper/lower cover tamper reset event
+ */
+void reset_lower_upper_cover_tamper_error(uint8_t event_type)
+{
+    event_log l;
+    l.event_code = event_type;
+    l.time_stamp = getTimeStamp(rtcc.year,rtcc.month,rtcc.day,rtcc.hour,rtcc.minute,rtcc.second);
+    l.checksum  =(getCheckSum(&(l.time_stamp.TimestampLow),4) + l.time_stamp.TimestampUp + l.event_code)&0xff;
+    uint8_t tmp = 4;
+    write_to_eeprom(&l,&tmp,log_events);
+}

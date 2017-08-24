@@ -8,6 +8,7 @@
 #include "headers.h"
 #include "manufacturer_specific_objects.h"
 #include "self_diagnosis.h"
+#include "Tamper.h"
 int16_t alarm_status;
 
 /*! This is a shift value for comparing currents or powers when looking for
@@ -65,12 +66,18 @@ void reset_persistent_events(void *data, int data_direction)
 		switch(nv_2)
 		{
 			case 1:
-				status.UpperCoverRemovedTamperStatus = 0;
-				status.write_tamper_status = UpperCoverRemovedTamperError;
+				if(status.UpperCoverRemovedTamperStatus)
+				{
+				    status.UpperCoverRemovedTamperStatus = 0;
+				    reset_lower_upper_cover_tamper_error(CLEAR_UPPER_COVER_REMOVED_TAMPER_ERROR);
+				}
 				break;
 			case 2:
-				status.LowerCoverRemovedTamperStatus = 0;
-				status.write_tamper_status = LowerCoverRemovedTamperError;
+				if(status.LowerCoverRemovedTamperStatus)
+				{
+				    status.LowerCoverRemovedTamperStatus = 0;
+                    reset_lower_upper_cover_tamper_error(CLEAR_LOWER_COVER_REMOVED_TAMPER_ERROR);
+				}
 				break;
 			case 3:
 				status.MangneticTamperStatus = 0;
