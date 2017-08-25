@@ -283,7 +283,7 @@ void ProcessTamperUC()
     UCTamperSchaduled = 0;
 }
 /**
-* logs the upper coover tamper event
+* logs the upper cover tamper event
 * @see ProcessTamperUC
 */
 void UCTamperDetected()

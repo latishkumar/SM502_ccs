@@ -4,10 +4,10 @@ uint16_t CurrentBatteryLevel = 7;
 uint16_t btemp;
 extern uint8_t OperatingMode;
 /**
-* checks the battery level using the internal harware battry monitor
+* checks the battery level using the internal hardware battery monitor
 * TODO. this does not tell us the correct level of the battery, Because battery's discharge 
 *       varies from one type of battery to the other.
-*       so come up with some algorithm that takes the actuall property of the battery into consideration
+*       so come up with some algorithm that takes the actual property of the battery into consideration
 *       and find the battery level. 
 *
 */

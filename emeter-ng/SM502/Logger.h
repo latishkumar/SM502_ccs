@@ -668,9 +668,9 @@ int read_from_eeprom(void *readArgument_1,void *readArgument_2,int8_t(*read)(voi
                                                 /*
                                                     Total Events = (131070  - 12622) / (11) ==> (EEPROM1_END - EVENT_Start) / EVENT_SIZE = 10,770
                                                 */
-#define MAX_STANDARD_EVENT_LOGS 5701ul
+#define MAX_STANDARD_EVENT_LOGS 6000//5701ul
 
-#define STANDARD_EVENT_LOG_SIZE 68412 //5701 LOGS * 12 BYTES //10768ul
+#define STANDARD_EVENT_LOG_SIZE 42000//68412 //5701 LOGS * 12 BYTES //10768ul
 #define STANDARD_EVENT_LOG_ADDRESS_END			STANDARD_EVENT_LOG_ADDRESS_START + STANDARD_EVENT_LOG_SIZE //+ EventLogSize * 10000ul //131071
 
 #define LAST_FRAUD_EVENT_ADDRESS_START 			STANDARD_EVENT_LOG_ADDRESS_END
@@ -680,8 +680,8 @@ int read_from_eeprom(void *readArgument_1,void *readArgument_2,int8_t(*read)(voi
 #define FRAUD_EVENT_OVERLAP_SIZE 1ul
 
 #define FRAUD_EVENT_LOG_ADDRESS_START 			FRAUD_EVENT_OVERLAP_ADDRESS_START + FRAUD_EVENT_OVERLAP_SIZE
-#define MAX_FRAUD_EVENT_LOGS 1000ul
-#define FRAUD_EVENT_LOG_SIZE 7000UL //1000LOGS * 7 bytes
+#define MAX_FRAUD_EVENT_LOGS 1773ul
+#define FRAUD_EVENT_LOG_SIZE 12411UL //1773LOGS * 7 bytes
 #define FRAUD_EVENT_LOG_ADDRESS_END 			FRAUD_EVENT_LOG_ADDRESS_START + FRAUD_EVENT_LOG_SIZE
 
 #define LAST_POWER_QUAL_EVENT_ADDRESS_START  	FRAUD_EVENT_LOG_ADDRESS_END
@@ -691,8 +691,8 @@ int read_from_eeprom(void *readArgument_1,void *readArgument_2,int8_t(*read)(voi
 #define POWER_QUAL_EVENT_OVERLAP_SIZE 1ul
 
 #define POWER_QUAL_LOG_ADDRESS_START			POWER_QUAL_EVENT_OVERLAP_ADDRESS_START + POWER_QUAL_EVENT_OVERLAP_SIZE
-#define MAX_POWER_QUAL_EVENT_LOGS 1000ul
-#define POWER_QUAL_EVENT_LOG_SIZE 7000UL //1000LOGS * 7 bytes
+#define MAX_POWER_QUAL_EVENT_LOGS 2000ul
+#define POWER_QUAL_EVENT_LOG_SIZE 14000UL //2000LOGS * 7 bytes
 #define POWER_QUAL_LOG_ADDRESS_END 				POWER_QUAL_LOG_ADDRESS_START + POWER_QUAL_EVENT_LOG_SIZE
 
 #define LAST_COMMON_EVENT_ADDRESS_START			POWER_QUAL_LOG_ADDRESS_END
@@ -702,8 +702,8 @@ int read_from_eeprom(void *readArgument_1,void *readArgument_2,int8_t(*read)(voi
 #define COMMON_EVENT_OVERLAP_SIZE 1ul
 
 #define COMMON_LOG_ADDRESS_START				COMMON_EVENT_OVERLAP_ADDRESS_START + COMMON_EVENT_OVERLAP_SIZE
-#define MAX_COMMON_EVENT_LOGS 1000ul
-#define COMMON_EVENT_LOG_SIZE 7000UL //1000LOGS * 7 bytes
+#define MAX_COMMON_EVENT_LOGS 3000ul
+#define COMMON_EVENT_LOG_SIZE 21000UL //3000LOGS * 7 bytes
 #define COMMON_LOG_ADDRESS_END 					COMMON_LOG_ADDRESS_START + COMMON_EVENT_LOG_SIZE
 
 #define LAST_FIRMWARE_EVENT_ADDRESS_START 		COMMON_LOG_ADDRESS_END
@@ -754,7 +754,7 @@ int read_from_eeprom(void *readArgument_1,void *readArgument_2,int8_t(*read)(voi
 //EnergyLogAddress_End
 //Hourly load profile
 #define HOURLY_ENERGY_LOG_ADDRESS_START 131072ul  //   262143 - 131072 / 18  = 7157 logs, log is every 15 minute,  74.5 days
-#define HOURLY_ENERGY_MAX_LOGS   7157ul//
+#define HOURLY_ENERGY_MAX_LOGS   7131ul//
 #define HOURLY_ENERGY_SIZE  128358ul  // 128358/18 = 7131 logs, every 15 minute 7131/(4*24)= 74.2 days
 #define HOURLY_ENERGY_LOG_ADDRESS_END HOURLY_ENERGY_LOG_ADDRESS_START + HOURLY_ENERGY_SIZE //262126ul//((uint32_t)((EnergyLogAddress_Start)+((uint32_t)(EnergyLog_SIZE * EnergyLogSize))))
 
@@ -817,17 +817,17 @@ void LoadConfigurations();
 *  @param minute:-
 *  @param minute:-
 *  @param second:-
-*  @return a time stump (conctinated list of bytes)from the given date and time.
+*  @return a time stump (concatenated list of bytes)from the given date and time.
 */
 TimeStump getTimeStamp(uint16_t year,uint8_t month,uint8_t date,uint8_t hour,uint8_t minute,uint8_t second);
 /**
-* coverts Timstump type to the rtc_t type 
-* @return the coverted time 
+* Converts Timestamp type to the rtc_t type
+* @return the converted time
 */
 rtc_t  getTime(TimeStump *t);  
 /**
  * Accepts a 32 bit number and returns 8bit checksum of the each byte.
- * @param number:- the nuber to calculate the checksum for 
+ * @param number:- the number to calculate the checksum for
  * @length :-  the number of bytes in the number
  */
 uint32_t getCheckSum(void *number,uint8_t length);
