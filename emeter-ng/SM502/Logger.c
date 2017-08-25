@@ -3217,7 +3217,7 @@ int8_t setEventOverlapFlag(void *data,void * type)
 		break;
 
 	case 7: // firmware event log
-		status.fraud_event_log_overlapped = val;
+		status.firmware_event_log_overlapped = val;
 		tmp = FIRMWARE_EVENT_OVERLAP_ADDRESS_START;
 		break;
 

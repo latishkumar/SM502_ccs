@@ -168,30 +168,81 @@ void obj_load_profile_capture(uint8_t *data,uint16_t data_len,uint8_t *response,
     *response_len = 0;
 }
 
-/*
-int adderr = 1000;
+void obj_common_event_log_capture(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len);
+void obj_disconnect_event_log_capture(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len);
+void obj_firmware_event_log_capture(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len);
+void obj_fraud_event_log_capture(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len);
+void obj_power_qual_event_log_capture(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len);
+void obj_event_log_capture(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len);
+void obj_synchronization_event_log_capture(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *response_len);
+
+
+int adderr = 100;
 void test_circular_buffer()
 {
-    uint32_t add_start = EnergyLogAddress_Start;
     uint16_t tmp2 = 0;
-    uint8_t day = 13;
+//    while(tmp2 < MAX_COMMON_EVENT_LOGS + 50)
+//    {
+//        obj_common_event_log_capture((uint8_t *)0,(uint16_t) 0,(uint8_t *)0,(uint16_t *) 0);
+//        tmp2++;
+//    }
+//
+//    tmp2 = 0;
+//    while(tmp2 < MAX_DISCONNECT_EVENT_LOGS + 550)
+//    {
+//        tmp2++;
+//        obj_disconnect_event_log_capture((uint8_t *)0,(uint16_t) 0,(uint8_t *)0,(uint16_t *) 0);
+//    }
+//    tmp2 = 0;
+//    while(tmp2 < MAX_FIRMWARE_EVENT_LOGS + 550)
+//    {
+//        tmp2++;
+//        obj_firmware_event_log_capture((uint8_t *)0,(uint16_t) 0,(uint8_t *)0,(uint16_t *) 0);
+//    }
+//    tmp2 = 0;
+//    while(tmp2 < MAX_FRAUD_EVENT_LOGS + 900)
+//    {
+//        tmp2++;
+//        obj_fraud_event_log_capture((uint8_t *)0,(uint16_t) 0,(uint8_t *)0,(uint16_t *) 0);
+//    }
+//    tmp2 = 0;
+//    while(tmp2 < MAX_POWER_QUAL_EVENT_LOGS + 1150)
+//    {
+//        tmp2++;
+//        obj_power_qual_event_log_capture((uint8_t *)0,(uint16_t) 0,(uint8_t *)0,(uint16_t *) 0);
+//    }
+//    tmp2 = 0;
+//    while(tmp2 < MAX_STANDARD_EVENT_LOGS + 3100)
+//    {
+//        tmp2++;
+//        obj_event_log_capture((uint8_t *)0,(uint16_t) 0,(uint8_t *)0,(uint16_t *) 0);
+//    }
+//    tmp2 = 0;
+//    while(tmp2 < MAX_SYNCHRONIZATION_EVENT_LOGS + 1150)
+//    {
+//        tmp2++;
+//        obj_synchronization_event_log_capture((uint8_t *)0,(uint16_t) 0,(uint8_t *)0,(uint16_t *) 0);
+//    }
+
+   // uint32_t add_start = EnergyLogAddress_Start;
+    uint8_t day = 8;
     uint8_t hour = 0;
     uint8_t minute = 0;
     hourly_energy_log_t tmp;
 
-    while(tmp2 < 3000)//EnergyLog_SIZE-1)
+    while(tmp2 < HOURLY_ENERGY_MAX_LOGS + 3600)//EnergyLog_SIZE-1)
     {
 
-        tmp.inc_active_import_energy = 1000 + adderr;
-        tmp.inc_active_export_energy = 2000 + adderr;
-        tmp.inc_reactive_energy_QI   = 3000 + adderr;
-        tmp.inc_reactive_energy_QII  = 4000 + adderr;
-        tmp.inc_reactive_energy_QIII = 5000 + adderr;
-        tmp.inc_reactive_energy_QIV  = 6000 + adderr;
-        tmp.time_stump = getTimeStamp(rtcc.year, rtcc.month, day, hour, minute, 0);
-        tmp.crc = tmp.inc_active_import_energy + tmp.inc_reactive_energy_QIV + tmp.time_stump.TimestampLow+ tmp.time_stump.TimestampUp;
+        tmp.inc_active_import_energy = 10 + adderr;
+        tmp.inc_active_export_energy = 20 + adderr;
+        tmp.inc_reactive_energy_QI   = 30 + adderr;
+        tmp.inc_reactive_energy_QII  = 40 + adderr;
+        tmp.inc_reactive_energy_QIII = 50 + adderr;
+        tmp.inc_reactive_energy_QIV  = 60 + adderr;
+        tmp.timestamp = getTimeStamp(rtcc.year, rtcc.month, day, hour, minute, 0);
+        tmp.crc = tmp.inc_active_import_energy + tmp.inc_reactive_energy_QIV + tmp.timestamp.TimestampLow+ tmp.timestamp.TimestampUp;
         write_to_eeprom(&tmp,(uint8_t *)0,log_hourly_energy_profile);
-        tmp2 = (LastEnergyLogAddress - add_start)/INCREMENTAL_ENERGY_LOG_SIZE;
+        //tmp2 = (LastEnergyLogAddress - add_start)/INCREMENTAL_ENERGY_LOG_SIZE;
         minute++;
         if (minute == 60)
         {
@@ -203,10 +254,41 @@ void test_circular_buffer()
                 day++;
             }
         }
-        adderr+=10;
+        adderr++;
+       tmp2++;
     }
+    tmp2 = 0;
+    adderr = 10;
+    daily_energy_log_t tmp3;
+    while(tmp2 < DAILY_SNAPSHOT_MAX_LOGS + 50)//EnergyLog_SIZE-1)
+   {
 
-    tmp2 = (LastEnergyLogAddress - add_start)/INCREMENTAL_ENERGY_LOG_SIZE;
+       tmp3.active_import_energy = 1000 + adderr;
+       tmp3.active_export_energy = 2000 + adderr;
+       tmp3.reactive_energy_QI   = 3000 + adderr;
+       tmp3.reactive_energy_QII  = 4000 + adderr;
+       tmp3.reactive_energy_QIII = 5000 + adderr;
+       tmp3.reactive_energy_QIV  = 6000 + adderr;
+       tmp3.timestamp = getTimeStamp(rtcc.year, rtcc.month, day, hour, minute, 0);
+       tmp3.crc = tmp3.active_export_energy + tmp3.reactive_energy_QI + tmp3.timestamp.TimestampLow+ tmp3.timestamp.TimestampUp;
+       write_to_eeprom(&tmp,(uint8_t *)0,log_daily_energy_snapshot);
+     //  tmp2 = (last_daily_snapshot_log_address - add_start)/DAILY_SNAPSHOT_LOG_SIZE;
+       minute+=30;
+       if (minute == 60)
+       {
+           minute = 0;
+           hour++;
+           if(hour == 24)
+           {
+               hour = 0;
+               day++;
+           }
+       }
+       adderr++;
+       tmp2++;
+   }
+
+
 
 }
-*/
+

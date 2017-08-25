@@ -105,7 +105,7 @@ void obj_firmware_event_log_capture(uint8_t *data,uint16_t data_len,uint8_t *res
 {
 	uint8_t tmp = 7;
 	firmware_event_log l;
-	l.event_code = 8;
+	l.event_code = 255;
 	memcpy((uint8_t *)l.active_firmware,(uint8_t *)&active_firmware_version[1],5);
 	l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
 	l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);

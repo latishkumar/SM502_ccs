@@ -342,7 +342,9 @@ rms_current_t current(void)
 
 	// PRECALCULATED_PARAMETER_SUPPORT
    // phase->metrology.current.I_rms = x;
+#ifdef SHUNT_SUPPORT
     phase->readings.I_rms = x;
+#endif
     /* The power calculation has provided us which is the appropriate
        current to use. */
     // NEUTRAL_MONITOR_SUPPORT
@@ -421,6 +423,7 @@ power_t active_power(void)
     {
         phase->status &= ~I_NEUTRAL_REVERSED;  
     }
+#ifdef SHUNT_SUPPORT
 /*******************************************************************************************
  * This code section is added because of the reason that a shunt current less than 1A
  * is not in acceptable range
@@ -444,7 +447,8 @@ power_t active_power(void)
         phase->readings.I_rms = phase->metrology .neutral.I_rms;
     }
 /************************************************************************************************/
-// PHASE_REVERSED_DETECTION_SUPPORT
+#endif
+    // PHASE_REVERSED_DETECTION_SUPPORT
     if ((phase->status & PHASE_REVERSED))
     {
         if (!reversed)

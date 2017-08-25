@@ -103,7 +103,7 @@ void obj_disconnect_event_log_capture(uint8_t *data,uint16_t data_len,uint8_t *r
 {
 	uint8_t tmp = 9 ;
 	disconnect_event_log l;
-	l.event_code = 8;
+	l.event_code = 255;
 	l.disconnect_control_status = 0;
 	l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
 	l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);

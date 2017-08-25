@@ -247,12 +247,12 @@ __interrupt void one_second_ticker(void)
                          
             getHardwareTime(&rtc_temp_var);
             
-            //This is used by the PLC Initializing Routine to do some waitting
+            //This is used by the PLC Initializing Routine to do some waiting
             if(plc_state  == INITIALIZING)
             {
                plc_counter ++;
             }
-            if(rtc_init == 0)//is the first inturrupt after power reset, we need to verify the consistance of the hardware rtc registers
+            if(rtc_init == 0)//is the first interrupt after power reset, we need to verify the consistency of the hardware rtc registers
             {
             	rtc_init_counter++;
                 if(rtc_init_counter == 3)
@@ -266,7 +266,6 @@ __interrupt void one_second_ticker(void)
                 //status.rtc_init = 1;
 				if(!is_time_valid(&rtc_temp_var)) //the hardware RTC registers are not fine so reset the time. to fixed set point in time
 				{                                 //this will be replaced by the RTC diagnosis if the last time stored in the EEPROM is valid
-
 					hardware_status.RTCResetToDefaultStatus = 1;
 					adjust_rtc(&default_time);
 					//TODO. //log event to synchronization
@@ -309,6 +308,10 @@ __interrupt void one_second_ticker(void)
 					//per hour activity
 				    rtc_global_temp.hour = rtcc.hour;
 				    status.UpdateDate = 1;
+				    if(rtcc.hour == 0)
+				    {
+				        status.DayChanged = 1;
+				    }
 				}
 				if(rtc_global_temp.day != rtcc.day)
 				{
@@ -331,7 +334,7 @@ __interrupt void one_second_ticker(void)
             }
                   
 		   //Since RTC will be running from them moment it is initialized, we need to wait for the
-		   //other modules to finish intializing before doing any thing that depends on them
+		   //other modules to finish initializing before doing any thing that depends on them
 		   if(SystemStatus==SYSTEM_INITIALIZING) // if the System is initializing
 			  return;
 
@@ -349,7 +352,7 @@ __interrupt void one_second_ticker(void)
 			  lpc++;
 			}
 		   status.SecondElapsed = 1;
-			set_rtc_sumcheck();
+		   set_rtc_sumcheck();
                                            
       break;
       default:

@@ -96,7 +96,7 @@ void obj_synchronization_event_log_capture(uint8_t *data,uint16_t data_len,uint8
 {
 	uint8_t tmp = 8;
 	time_bound_event_log l;
-	l.event_code = 0;
+	l.event_code = 255;
 	l.begin_time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute-1, rtcc.second);
 	l.end_time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
 	l.checksum = (int) (l.event_code + l.end_time_stamp.TimestampLow + l.end_time_stamp.TimestampUp);

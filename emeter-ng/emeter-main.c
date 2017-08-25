@@ -307,7 +307,7 @@ void main(void)
 							x = 0;
 						  }
 
-						  // phase->readings.I_rms = current();
+						  phase->readings.I_rms = current();
 						  phase->readings.V_rms = voltage();
 						  if(phase->readings.V_rms > MIN_PHSE_PRESENCE_RMS_VOLTAGE)//TODO. pick a better value for this
 						  {
@@ -522,7 +522,7 @@ void main(void)
 						phase->frequency_accum    += phase->readings.frequency;
 						phase->peak_power          = phase->readings.active_power > phase->peak_power? phase->readings.active_power : phase->peak_power;
                         phase->average_counter++;
-
+                        //test_circular_buffer();
 						performPowerQualityMessurement();
                         CalculateBilling();       //perform tariff Update and calculation
                         UpdateDisplayProgressBar_c();

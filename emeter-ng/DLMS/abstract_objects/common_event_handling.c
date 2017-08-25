@@ -90,7 +90,7 @@ void obj_common_event_log_capture(uint8_t *data,uint16_t data_len,uint8_t *respo
 {
 	uint8_t tmp = 6 ;
 	event_log l;
-	l.event_code = 0;
+	l.event_code = 255;
 	l.time_stamp = getTimeStamp(rtcc.year, rtcc.month, rtcc.day, rtcc.hour, rtcc.minute, rtcc.second);
 	l.checksum = (int) (l.event_code + l.time_stamp.TimestampLow + l.time_stamp.TimestampUp);
 	write_to_eeprom(&l,&tmp,log_events);
