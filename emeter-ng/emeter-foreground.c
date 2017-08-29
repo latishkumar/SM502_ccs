@@ -391,9 +391,9 @@ power_t active_power(void)
     if (x < 0)
     {
         // PHASE_REVERSED_IS_TAMPERING
-        x = -x;
+        //x = -x;
         phase->status |= I_REVERSED;
-        if (x > PHASE_REVERSED_THRESHOLD_POWER)
+        if (labs(x) > PHASE_REVERSED_THRESHOLD_POWER)
             reversed = TRUE;
     }
     else

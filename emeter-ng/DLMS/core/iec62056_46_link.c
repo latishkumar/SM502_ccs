@@ -259,10 +259,6 @@ void send_snrm(iec62056_46_link_t *link)
 {
     //async_hdlc_tx_t tx;
     int poll_bit;
-
-#if defined(LOG_PACKETS)
-    printf("send SNRM - 0x%X to 0x%X\n", link->local_msap, link->far_msap);
-#endif
     poll_bit = 0x10;
     hdlc_async_tx_build(&tx[link->port], link->far_msap, link->local_msap, poll_bit | UFRAME_TYPE_SNRM, NULL, 0);
     finalise_and_send_frame(link, &tx[link->port]);
@@ -273,10 +269,6 @@ void send_disc(iec62056_46_link_t *link)
 {
     //async_hdlc_tx_t tx;
     int poll_bit;
-
-#if defined(LOG_PACKETS)
-    printf("send DISC\n");
-#endif
     poll_bit = 0x10;
     hdlc_async_tx_build(&tx[link->port], link->far_msap, link->local_msap, poll_bit | UFRAME_TYPE_DISC, NULL, 0);
     finalise_and_send_frame(link, &tx[link->port]);
@@ -298,10 +290,6 @@ void send_ua(iec62056_46_link_t *link)
     };
     //async_hdlc_tx_t tx;
     int final_bit;
-
-#if defined(LOG_PACKETS)
-    printf("send UA\n");
-#endif
     final_bit = 0x10;
     hdlc_async_tx_build(&tx[link->port], link->far_msap, link->local_msap, final_bit | UFRAME_TYPE_UA, body, sizeof(body));
     finalise_and_send_frame(link, &tx[link->port]);
@@ -312,10 +300,6 @@ void send_dm(iec62056_46_link_t *link)
 {
     //async_hdlc_tx_t tx;
     int final_bit;
-
-#if defined(LOG_PACKETS)
-    printf("send DM\n");
-#endif
     final_bit = 0x10;
     hdlc_async_tx_build(&tx[link->port], link->far_msap, link->local_msap, final_bit | UFRAME_TYPE_DM, NULL, 0);
     finalise_and_send_frame(link, &tx[link->port]);
@@ -326,10 +310,6 @@ void send_frmr(iec62056_46_link_t *link)
 {
     //async_hdlc_tx_t tx;
     int final_bit;
-
-#if defined(LOG_PACKETS)
-    printf("send FRMR\n");
-#endif
     final_bit = 0x10;
     hdlc_async_tx_build(&tx[link->port], link->far_msap, link->local_msap, final_bit | UFRAME_TYPE_FRMR, NULL, 0);
     finalise_and_send_frame(link, &tx[link->port]);
@@ -340,10 +320,6 @@ void send_ui(iec62056_46_link_t *link)
 {
     //async_hdlc_tx_t tx;
     int poll_final_bit;
-
-#if defined(LOG_PACKETS)
-    printf("send UI\n");
-#endif
     poll_final_bit = 0x10;
     hdlc_async_tx_build(&tx[link->port], link->far_msap, link->local_msap, poll_final_bit | UFRAME_TYPE_UI, NULL, 0);
     finalise_and_send_frame(link, &tx[link->port]);
@@ -364,9 +340,6 @@ static int check_rx_nr(iec62056_46_link_t *link, int8_t nr)
             link->next_ns = nr;
             if (queued_tx.msg_len > 0)
             {
-#if defined(LOG_PACKETS)
-                printf("Sending queued frame\n");
-#endif
                 finalise_and_send_frame(link, &queued_tx);
                 queued_tx.msg_len = 0;
                 return -1;
@@ -374,9 +347,6 @@ static int check_rx_nr(iec62056_46_link_t *link, int8_t nr)
         }
         else
         {
-#if defined(LOG_PACKETS)
-            printf("nr seems to have jumped - %d %d %d\n", link->ns, link->next_ns, nr);
-#endif
             send_frmr(link);
             return -1;
         }
@@ -419,19 +389,6 @@ void process_rx_frame(iec62056_46_link_t *link, async_hdlc_rx_t *rx)
     uint8_t frame_type;
     int nr;
     int ns;
-#if defined(LOG_PACKETS)
-    int pf;
-    int k;
-#endif
-
-#if defined(LOG_PACKETS)
-    printf("Rx frame:\n");
-    log_header(rx->source_msap, rx->dest_msap, rx->segmented, rx->control_field);
-    printf("Body (%d) ", rx->msg_len);
-    for (k = 0;  k < rx->msg_len;  k++)
-        printf("%02x ", rx->msg[k]);
-    printf("\n");
-#endif
 #if !defined(PROMISCUOUS)
     if (rx->dest_msap != link->local_msap)
         return;
@@ -449,9 +406,6 @@ void process_rx_frame(iec62056_46_link_t *link, async_hdlc_rx_t *rx)
     }
 #endif
     frame_type = rx->control_field;
-#if defined(LOG_PACKETS)
-    pf = (frame_type >> 4) & 0x01;
-#endif
     if ((frame_type & 0x01) == 0x00)
     {
 #if !defined(PROMISCUOUS)
@@ -470,16 +424,10 @@ void process_rx_frame(iec62056_46_link_t *link, async_hdlc_rx_t *rx)
             /* Information frame. */
             nr = (frame_type >> 5) & 0x07;
             ns = (frame_type >> 1) & 0x07;
-#if defined(LOG_PACKETS)
-            printf("I frame, rx seq = %d, tx seq = %d, P/F = %d\n", nr, ns, pf);
-#endif
             if (check_rx_nr(link, nr) == 0)
             {
                 if (link->next_nr == ns)
                 {
-#if defined(LOG_PACKETS)
-printf("This appears to be a new I-frame\n");
-#endif
                     /* This is the next frame in sequence, so acknowledge and process. */
                     link->next_nr = (link->next_nr + 1) & 7;
                     if (rx->segmented)
@@ -535,16 +483,10 @@ printf("This appears to be a new I-frame\n");
             {
                 if ((frame_type & 0x04))
                 {
-#if defined(LOG_PACKETS)
-                    printf("RNR (receiver not ready) frame, seq = %d, P/F = %d\n", nr, pf);
-#endif
                     link->ready = FALSE;
                 }
                 else
                 {
-#if defined(LOG_PACKETS)
-                    printf("RR (receiver ready) frame, seq = %d, P/F = %d\n", nr, pf);
-#endif
                     send_rr(link);
                     link->ready = TRUE;
                 }
@@ -575,46 +517,28 @@ printf("This appears to be a new I-frame\n");
         {
         case UFRAME_TYPE_SNRM:
             /* This frame SHOULD contain an information field. */
-#if defined(LOG_PACKETS)
-            printf("SNRM (set normal response mode) frame, P = %d\n", pf);
-#endif
             if (link->disconnected  &&  link->far_msap == 0)
                 iec62056_46_set_far_msap(link, rx->source_msap);
             process_snrm_frame(link, rx->msg, rx->msg_len);
             break;
         case UFRAME_TYPE_DISC:
             /* This frame SHOULD NOT contain an information field. */
-#if defined(LOG_PACKETS)
-            printf("DISC (disconnect) frame, P = %d\n", pf);
-#endif
             process_disc_frame(link, rx->msg, rx->msg_len);
             break;
         case UFRAME_TYPE_UA:
             /* This frame MAY contain an information field. */
-#if defined(LOG_PACKETS)
-            printf("UA (unnumbered acknowledge) frame, F = %d\n", pf);
-#endif
             process_ua_frame(link, rx->msg, rx->msg_len);
             break;
         case UFRAME_TYPE_DM:
             /* This frame MAY contain an information field. */
-#if defined(LOG_PACKETS)
-            printf("DM (disconnected mode) frame, F = %d\n", pf);
-#endif
             process_dm_frame(link, rx->msg, rx->msg_len);
             break;
         case UFRAME_TYPE_FRMR:
             /* This frame SHOULD contain an information field. */
-#if defined(LOG_PACKETS)
-            printf("FRMR (frame reject) frame, F = %d\n", pf);
-#endif
             process_frmr_frame(link, rx->msg, rx->msg_len);
             break;
         case UFRAME_TYPE_UI:
             /* This frame SHOULD contain an information field. */
-#if defined(LOG_PACKETS)
-            printf("UI (unnumbered information) frame, P/F = %d\n", pf);
-#endif
             process_ui_frame(link, rx->msg, rx->msg_len);
             break;
         default:
@@ -623,9 +547,6 @@ printf("This appears to be a new I-frame\n");
             break;
         }
     }
-#if defined(LOG_PACKETS)
-    printf("\n\n\n");
-#endif
   }
 }
 /*- End of function --------------------------------------------------------*/
@@ -667,24 +588,17 @@ static void hdlc_async_rx_end_in_hdr(async_hdlc_rx_t *rx, uint8_t byte)
     if (byte != 0x7E)
     {
         /* The closing flag was not were it ought to be. */
-#if defined(LOG_PACKETS)
-        printf("Bad HDLC frame - %d bytes - 0x%X\n", rx->msg_len - 2, rx->crc);
-#endif
         rx->state = ASYNC_RX_STATE_IDLE;
 //P1OUT ^= BIT1;
         return;
     }
     if ((rx->crc & 0xFFFF) == 0xF0B8)
     {
-#if defined(LOG_PACKETS)
-        printf("Good HDLC frame with no body - %d bytes - 0x%X\n", rx->msg_len - 2, rx->crc);
-#endif
+        // "Good HDLC frame with no body
     }
     else
     {
-#if defined(LOG_PACKETS)
-        printf("Bad HDLC frame - %d bytes - 0x%X\n", rx->msg_len - 2, rx->crc);
-#endif
+        // Bad HDLC frame -
     }
     /* The flag we have just seen is a perfectly good start flag for the next
        frame, so we just go back to looking for the first byte of the next frame.
@@ -720,11 +634,6 @@ void iec62056_46_link_idle_timeout(iec62056_46_link_t *link)
 void iec62056_46_rx_timeout(iec62056_46_link_t *link, async_hdlc_rx_t *rx)
 {
     rx->state = ASYNC_RX_STATE_IDLE;
-/*
-#if defined(__MSP430__)
-    P1OUT ^= BIT1;
-#endif
-*/
 }
 /*- End of function --------------------------------------------------------*/
 
@@ -747,9 +656,6 @@ void iec62056_46_rx_byte(iec62056_46_link_t *link, async_hdlc_rx_t *rx, uint8_t 
         if (byte == 0x7E)
         {
             rx->state = ASYNC_RX_STATE_FLAGGED;
-#if defined(__MSP430__)
-//            P1OUT ^= BIT0;
-#endif
             break;
         }
         if ((byte & 0x7F) == '/')
@@ -770,9 +676,6 @@ void iec62056_46_rx_byte(iec62056_46_link_t *link, async_hdlc_rx_t *rx, uint8_t 
             break;
         }
         rx->state = ASYNC_RX_STATE_IDLE;
-#if defined(__MSP430__)
-        //P1OUT ^= BIT1;
-#endif
         break;
     case ASYNC_RX_PROTOCOL_E_STEP2:
         if ((byte & 0x7F) == '!')
@@ -795,15 +698,12 @@ void iec62056_46_rx_byte(iec62056_46_link_t *link, async_hdlc_rx_t *rx, uint8_t 
     case ASYNC_RX_PROTOCOL_E_STEP4:
         if ((byte & 0x7F) == '\n')
         {
-#if defined(LOG_PACKETS)
-printf("Got a 'Switch to mode E' request\n");
-#endif
             tx[link->port].msg[0] = '/';
             tx[link->port].msg[1] = 0xA0;
             tx[link->port].msg[2] = 'D';
             tx[link->port].msg[3] = 'V';
             tx[link->port].msg[4] = 'E';
-            tx[link->port].msg[5] = '6';//'5'; //9600bd
+            tx[link->port].msg[5] = (48 + optical_comm_speed);//'6';//'5'; //9600bd
             tx[link->port].msg[6] = '\\';
             tx[link->port].msg[7] = '2';
             tx[link->port].msg[8] = 'T';

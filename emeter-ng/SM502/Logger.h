@@ -350,7 +350,7 @@ int read_from_eeprom(void *readArgument_1,void *readArgument_2,int8_t(*read)(voi
 
 
 
-#define MemoryFormattedIndicatorCode {0x2d,0x2d,0x2d,0x2d,0x2d} //0x2F
+#define MemoryFormattedIndicatorCode {0x2b,0x2b,0x2b,0x2b,0x2b} //0x2F
 
 #define CONFIGURATION_BASE_ADDRESS 128ul //leave Address 0 out
 

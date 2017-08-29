@@ -12,7 +12,7 @@ extern int16_t alarm_status;
 
 extern uint8_t permitted_power_imbalance_fraction;
 
-extern int usb_comm_speed;
+extern uint8_t usb_comm_speed;
 
 void reset_persistent_events(void *data, int data_direction);
 

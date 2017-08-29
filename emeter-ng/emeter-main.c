@@ -157,7 +157,7 @@ void log_standard_events(uint8_t event_code);
 void test_circular_buffer();
 uint16_t overflowsamples, second_counter;
 /******************************/
-
+uint8_t usb_port_connection_counter;
 void RESET_ISR(void);
 #pragma NOINIT(meter_state)
 METER_STATES meter_state;
@@ -387,7 +387,7 @@ void main(void)
 
 						  if(energy_export_support == 0 &&  phase->readings.active_power < 0)
 						  {
-							  status.energy_reverse_flow_tamper = 1;
+							  // status.energy_reverse_flow_tamper = 1;
 							  phase->readings.active_power = labs(phase->readings.active_power);
 							  phase->readings.active_power_pulse = phase->readings.active_power;
 						  }
@@ -584,6 +584,11 @@ void main(void)
             	 configure_uart_port(1,3);  //change to USB
             	 local_comm_exchange_mode_flag = 1;
             	 usb_recv.recv_state = IDLE;
+            	 usb_port_connection_counter ++;
+            	 if(usb_port_connection_counter >= 5)
+            	 {
+            	     optical_comm_speed = 5;
+            	 }
             	 //reset_firmware_upgrate_parameters();
              }
              else if(local_comm_exchange_mode_flag == 1 && !(P3IN & BIT0))

@@ -32,7 +32,6 @@ volatile uint8_t IEC_Tx_Done = 1;
 uint8_t IEC_Rx_Done = 1;
 uint8_t Transmit = 0;
 unsigned int IEC_RXCount = 0;
-extern int switch_ready;
 volatile uint8_t Error_Char_Recived = 0;
 
 extern MeterStatus status;

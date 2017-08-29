@@ -267,7 +267,8 @@ void bor_reset(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *respo
 	*response_len = 0;
 }
 
-int usb_comm_speed = 7;
+uint8_t usb_comm_speed     = 7; // Default: 57600
+uint8_t optical_comm_speed = 6; // Default: 19200
 /*
  * Callback function for USB communication baud rate configuration
  */
@@ -276,7 +277,7 @@ void configure_usb_baudrate(void *data, int data_direction)
     uint8_t *datap =  data;
     if(data_direction == ATTR_WRITE)
     {
-      int8_t nv_2 = 0;
+      uint8_t nv_2 = 0;
       uint8_t *ptr2 = data;
       nv_2 = *ptr2;
       usb_comm_speed = nv_2;

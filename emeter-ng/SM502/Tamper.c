@@ -36,10 +36,10 @@ uint16_t LCTamperCounter = 0;
 uint16_t MagneticTamperCounter = 0;
 uint16_t NeutralTamperCounter = 0;
 
-#define LC_tamperVisibility 1
-#define UC_tamperVisibility 2
-#define M_tamperVisibility 4
-#define N_tamperVisibility 8
+#define LC_tamperVisibility  1
+#define UC_tamperVisibility  2
+#define M_tamperVisibility   4
+#define N_tamperVisibility   8
 #define RF_tamperVisibility 16
 
 uint8_t tamper_Visibility = 0;
@@ -51,7 +51,7 @@ uint16_t init_tamper_time=5000;
  */
 void initTamper()
 {
-    COVER_IF = 0;   //clear all pending interrupts as this might be noice
+    COVER_IF = 0;   //clear all pending interrupts as this might be nice
   	/*
 	 * make all port tamper port directions as input
 	 */
@@ -122,137 +122,110 @@ void UpdateTamperIndicators()
   
   uint8_t temp=0;
   uint8_t sc_task=0;
-  if(status.LowerCoverRemovedTamperStatus == 1)
-  {
-    temp|=0x01;
-    
-    if((tamper_Visibility & LC_tamperVisibility) != LC_tamperVisibility)
+    if(status.LowerCoverRemovedTamperStatus == 1)
     {
-      ShowTamper_c(LC_TamperType);
-      AddError(LowerCoverRemovedTamperError);
-      tamper_Visibility|=LC_tamperVisibility;
-      sc_task=1;
+        temp|=0x01;
+        if((tamper_Visibility & LC_tamperVisibility) != LC_tamperVisibility)
+        {
+            ShowTamper_c(LC_TamperType);
+            AddError(LowerCoverRemovedTamperError);
+            tamper_Visibility|=LC_tamperVisibility;
+            sc_task=1;
+        }
     }
-  }
-  else
-  {
-    if((tamper_Visibility & LC_tamperVisibility) == LC_tamperVisibility)
+    else
     {
-     ClearTamper_c(LC_TamperType);
-     RemoveError(LowerCoverRemovedTamperError);
-     tamper_Visibility &= ~LC_tamperVisibility;
+        if((tamper_Visibility & LC_tamperVisibility) == LC_tamperVisibility)
+        {
+            ClearTamper_c(LC_TamperType);
+            RemoveError(LowerCoverRemovedTamperError);
+            tamper_Visibility &= ~LC_tamperVisibility;
+        }
     }
-  }
   
-  
-  if(status.UpperCoverRemovedTamperStatus == 1)
-  {
-    temp|=0x02;
-    if((tamper_Visibility & UC_tamperVisibility) != UC_tamperVisibility)
+    if(status.UpperCoverRemovedTamperStatus == 1)
     {
-      ShowTamper_c(UC_TamperType);
-      AddError(UpperCoverRemovedTamperError);
-      tamper_Visibility|= UC_tamperVisibility;
-      sc_task=1;
+        temp|=0x02;
+        if((tamper_Visibility & UC_tamperVisibility) != UC_tamperVisibility)
+        {
+            ShowTamper_c(UC_TamperType);
+            AddError(UpperCoverRemovedTamperError);
+            tamper_Visibility|= UC_tamperVisibility;
+            sc_task=1;
+        }
     }
-  }
-  else
-  {
-    if((tamper_Visibility & UC_tamperVisibility) == UC_tamperVisibility)
+    else
     {
-      ClearTamper_c(UC_TamperType);
-      RemoveError(UpperCoverRemovedTamperError);
-      tamper_Visibility &= ~UC_tamperVisibility;
+        if((tamper_Visibility & UC_tamperVisibility) == UC_tamperVisibility)
+        {
+            ClearTamper_c(UC_TamperType);
+            RemoveError(UpperCoverRemovedTamperError);
+            tamper_Visibility &= ~UC_tamperVisibility;
+        }
     }
-  }
-  
-  
-  CheckMagneticTamper();
-  if(status.MangneticTamperStatus == 1)
-  {
-    temp|=0x04;
-    if((tamper_Visibility & M_tamperVisibility) != M_tamperVisibility)
-    {
-       ShowTamper_c(MagneticTamperType);
-       AddError(MangneticTamperError);
-       tamper_Visibility|= M_tamperVisibility;
-       sc_task=1;
-    }
-  }
-  else
-  {
-    if((tamper_Visibility & M_tamperVisibility) == M_tamperVisibility)
-    {
-      ClearTamper_c(MagneticTamperType);
-      RemoveError(MangneticTamperError);
-      tamper_Visibility&=~M_tamperVisibility;
-    }
-  }
-  
-  
-  if(status.NeutralTamperStatus == 1)
-  {
-    temp|=0x08;
-    if((tamper_Visibility & N_tamperVisibility) != N_tamperVisibility)
-    {
-      ShowTamper_c(NeutralTamperType);
-      AddError(NeutralTamperError);
-      tamper_Visibility|=N_tamperVisibility;
-      sc_task=1;
-    }
-  }
-  else
-  {
-     if((tamper_Visibility & N_tamperVisibility) == N_tamperVisibility)
-     {
-       ClearTamper_c(NeutralTamperType);
-       RemoveError(NeutralTamperError);
-       tamper_Visibility&=~N_tamperVisibility;
-     }
 
-  }
-  
-  if(status.energy_reverse_flow_tamper == 1)
-  {
-    temp|=0x10;
-    if((tamper_Visibility & RF_tamperVisibility) != RF_tamperVisibility)
+    CheckMagneticTamper();
+    if(status.MangneticTamperStatus == 1)
     {
-      ShowTamper_c(ReverseConnactionTamperType);
-      AddError(ReverseConnectionTamperError);
-      tamper_Visibility|=RF_tamperVisibility;
-      sc_task=1;
+        temp|=0x04;
+        if((tamper_Visibility & M_tamperVisibility) != M_tamperVisibility)
+        {
+            ShowTamper_c(MagneticTamperType);
+            AddError(MangneticTamperError);
+            tamper_Visibility|= M_tamperVisibility;
+            sc_task=1;
+        }
     }
-  }
-  else
-  {
-     if((tamper_Visibility & RF_tamperVisibility) == RF_tamperVisibility)
-     {
-       ClearTamper_c(ReverseConnactionTamperType);
-       RemoveError(ReverseConnectionTamperError);
-       tamper_Visibility&=~RF_tamperVisibility;
-     }
+    else
+    {
+        if((tamper_Visibility & M_tamperVisibility) == M_tamperVisibility)
+        {
+            ClearTamper_c(MagneticTamperType);
+            RemoveError(MangneticTamperError);
+            tamper_Visibility&=~M_tamperVisibility;
+        }
+    }
+  
+  
+    if(status.NeutralTamperStatus == 1)
+    {
+        temp|=0x08;
+        if((tamper_Visibility & N_tamperVisibility) != N_tamperVisibility)
+        {
+            ShowTamper_c(NeutralTamperType);
+            AddError(NeutralTamperError);
+            tamper_Visibility|=N_tamperVisibility;
+            sc_task=1;
+        }
+    }
+    else
+    {
+        if((tamper_Visibility & N_tamperVisibility) == N_tamperVisibility)
+        {
+            ClearTamper_c(NeutralTamperType);
+            RemoveError(NeutralTamperError);
+            tamper_Visibility&=~N_tamperVisibility;
+        }
+    }
 
-  }
-  
-   if(sc_task ==1)
-   {     
-    #ifdef ALARM_ON_TAMPER     
-         SecondBeeps();//initial beep when the tamper happens
-         schedule_task(ToggleBuzzer2,MINUTE,TOOGLE_BUZZER_TASK);
-    #endif     
-   }   
-  
-  
-   if(temp!=0)
-   {
-     status.TamperDetectedStatus = 1;
-   }
-   else
-   {
-     status.TamperDetectedStatus = 0;
-     cancel_task(ToggleBuzzer2);
-     BuzzerOff();
-   }
+    if(sc_task ==1)
+    {
+        #ifdef ALARM_ON_TAMPER
+        SecondBeeps();//initial beep when the tamper happens
+        schedule_task(ToggleBuzzer2,MINUTE,TOOGLE_BUZZER_TASK);
+        #endif
+    }
+
+    if(temp!=0)
+    {
+        status.TamperDetectedStatus = 1;
+    }
+    else
+    {
+        status.TamperDetectedStatus = 0;
+        cancel_task(ToggleBuzzer2);
+        BuzzerOff();
+    }
 }
 
 /**
@@ -346,11 +319,10 @@ void LCTamperDetected()
 }
 
 /*
- * Log Neutral tamper
+ * Logs Neutral tamper
  */
 void log_neutral_tamper()
 {
-
     TamperCount.Neutral_Count++;
     uint8_t temp82 = TamperCount.Neutral_Count;
     uint8_t temp8 = NeutralTamperType;
@@ -367,7 +339,7 @@ void log_neutral_tamper()
 }
 
 /*
- * Log upper/lower cover tamper reset event
+ * Logs upper/lower cover tamper reset event
  */
 void reset_lower_upper_cover_tamper_error(uint8_t event_type)
 {

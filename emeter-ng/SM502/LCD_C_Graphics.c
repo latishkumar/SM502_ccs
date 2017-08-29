@@ -733,13 +733,13 @@ void UpdateDisplay_c() {
              Relay(0);
           }
         
-         if(active_quadrant == 1 || active_quadrant == 4)
+         if(phase->status & PHASE_REVERSED)//active_quadrant == 1 || active_quadrant == 4)
          {
-           showImportIndicator;
+             showExportIndicator;
          }
          else
          {
-           showExportIndicator;
+             showImportIndicator;
          }    
 }
 /**

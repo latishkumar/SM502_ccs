@@ -220,13 +220,8 @@ void load_standard_event_to_ram(unsigned int entry_no)
                msg_info.entries_remaining = 1;
                return;
              }
-//             int8_t com3 = compare_time(&required_last_entry_time,&time_last);
-//             if(com3<0)//time_last comes after required_last_entry_time
-//              {
-//                   msg_info.entries_remaining = 1;
-//              }
            }
-          //formate the timestump and copy it to the buffer
+          //Format the timestamp and copy it to the buffer
           rtc_t time = getTime(&current_event_log.l.time_stamp);
           uint8_t currentEventLogEntryData2[] = {
             INJECT16(time.year), time.month, time.day, ((time.day - 1) > 0)?(time.day - 1):0,time.hour, time.minute,time.second, 0xFF, INJECT16(120), 0x00,
@@ -244,11 +239,6 @@ void load_fraud_event_to_ram(unsigned int entry_no)
          {
                msg_info.entries_remaining = 1;
                return;
-         }
-         int8_t com3 = compare_time(&required_last_entry_time,&time_last);
-         if(com3<0)//time_last comes after required_last_entry_time
-         {
-               msg_info.entries_remaining = 1;
          }
     }
     //format the time stamp and copy it to the buffer
@@ -270,11 +260,6 @@ void load_common_event_to_ram(unsigned int entry_no)
                msg_info.entries_remaining = 1;
                return;
          }
-         int8_t com3 = compare_time(&required_last_entry_time,&time_last);
-         if(com3<0)//time_last comes after required_last_entry_time
-         {
-               msg_info.entries_remaining = 1;
-         }
     }
     //format the time stamp and copy it to the buffer
     rtc_t time = getTime(&current_event_log.l.time_stamp);
@@ -295,11 +280,6 @@ void load_power_qual_event_to_ram(unsigned int entry_no)
                msg_info.entries_remaining = 1;
                return;
          }
-         int8_t com3 = compare_time(&required_last_entry_time,&time_last);
-         if(com3<0)//time_last comes after required_last_entry_time
-         {
-               msg_info.entries_remaining = 1;
-         }
     }
     // format the time stamp and copy it to the buffer
     rtc_t time = getTime(&current_event_log.l.time_stamp);
@@ -319,11 +299,6 @@ void load_firmware_event_to_ram(unsigned int entry_no)
          {
                msg_info.entries_remaining = 1;
                return;
-         }
-         int8_t com3 = compare_time(&required_last_entry_time,&time_last);
-         if(com3<0)//time_last comes after required_last_entry_time
-         {
-               msg_info.entries_remaining = 1;
          }
     }
     //format the time stamp and copy it to the buffer
@@ -346,22 +321,17 @@ void load_synchronization_event_to_ram(unsigned int entry_no,uint8_t type)
     	rtc_t time_last;
     	if(type == 0)
     	{
-    		 time_last = getTime(&current_time_bound_event_log.l.begin_time_stamp);
+    	    time_last = getTime(&current_time_bound_event_log.l.begin_time_stamp);
     	}
     	else if( type == 1)
     	{
-    		 time_last = getTime(&current_time_bound_event_log.l.end_time_stamp);
+    	    time_last = getTime(&current_time_bound_event_log.l.end_time_stamp);
     	}
-         if(time_last.isValid==0)
-         {
-               msg_info.entries_remaining = 1;
-               return;
-         }
-         int8_t com3 = compare_time(&required_last_entry_time,&time_last);
-         if(com3<0)//time_last comes after required_last_entry_time
-         {
-               msg_info.entries_remaining = 1;
-         }
+        if(time_last.isValid==0)
+        {
+            msg_info.entries_remaining = 1;
+            return;
+        }
     }
     //format the time stamp and copy it to the buffer
     rtc_t time;
@@ -389,11 +359,6 @@ void load_disconnect_event_to_ram(unsigned int entry_no)
          {
                msg_info.entries_remaining = 1;
                return;
-         }
-         int8_t com3 = compare_time(&required_last_entry_time,&time_last);
-         if(com3<0)//time_last comes after required_last_entry_time
-         {
-               msg_info.entries_remaining = 1;
          }
     }
     //format the time stamp and copy it to the buffer
