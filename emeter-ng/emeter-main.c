@@ -953,7 +953,7 @@ void time_validity_checker_and_corrector(TimeStump t)
 /**
 *  this should be executed before loading configurations from EEPROM, because
 *  this will log power out events. it also logs the last energy values to EEPROM.
-*  this routin//if(labs(gete reads the last event log address from EEPROM. So EEPROM ports have to be
+*  this routine//if(labs(get reads the last event log address from EEPROM. So EEPROM ports have to be
 *  initialized before calling this method.
 *
 *  writes back up parameters from flash to EEPROM and to the current working variables

@@ -36,8 +36,8 @@ uint8_t Nominal_Frequency = 50;//HZ
 uint16_t Nominal_ActivePower = 5000; //KW
 
 
-uint16_t ActivePowerTripDuration    =  5; //in seconds 
-uint16_t OverCurrentTripDuration    =  1;
+uint16_t ActivePowerTripDuration    =  5; // seconds
+uint16_t OverCurrentTripDuration    =  10; // seconds
 //uint16_t OverVoltageTripDuration    =  1; //n
 
 uint16_t OverFrequencyTripDuration  =  10;

@@ -77,6 +77,34 @@ const uint8_t scalar_unit_V[] =
             TAG_ENUM, OBIS_UNIT_VOLTAGE_VOLT
 };
 
+const uint8_t scalar_unit_10mV[] =
+{
+    5,
+        2,
+            TAG_INT8, INJECT8(0),
+            TAG_ENUM, OBIS_UNIT_VOLTAGE_VOLT
+};
+const uint8_t scalar_unit_100uPF[] =
+{
+    5,
+        2,
+            TAG_INT8, INJECT8(0),
+            TAG_ENUM, OBIS_UNIT_UNITLESS_COUNT
+};
+const uint8_t scalar_unit_10mFrequency[] =
+{
+    5,
+        2,
+            TAG_INT8, INJECT8(0),
+            TAG_ENUM, OBIS_UNIT_FREQUENCY_HERTZ
+};
+const uint8_t scalar_unit_W[] =
+{
+    5,
+        2,
+            TAG_INT8, INJECT8(0),
+            TAG_ENUM, OBIS_UNIT_ACTIVE_POWER_WATT
+};
 const uint8_t scalar_unit_I[] =
 {
     5,

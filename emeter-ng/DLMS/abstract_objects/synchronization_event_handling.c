@@ -56,7 +56,7 @@ const uint8_t synchronization_event_log_objects[] =
 };
 
 /*
- * Call back function for synchronization event lof
+ * Call back function for synchronization event log
  */
 void capture_synchronization_event_log(void *data, int direction)
 {

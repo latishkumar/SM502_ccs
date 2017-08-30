@@ -137,16 +137,17 @@ typedef struct
 	uint8_t disconnect_control_status; // 1 byte
 	TimeStump time_stamp;			   // 5 byte
 }disconnect_event_log;
-#define EVENT_LOG_TYPE_SIZE 7
-#define TIME_BOUND_EVENT_LOG_TYPE_SIZE 12
-#define FIRMWARE_EVENT_LOG_TYPE_SIZE 12
-#define DISCONNECT_EVENT_LOG_TYPE_SIZE 8
 
+#define EVENT_LOG_TYPE_SIZE             7
+#define DISCONNECT_EVENT_LOG_TYPE_SIZE  8
+#define TIME_BOUND_EVENT_LOG_TYPE_SIZE 12
+#define FIRMWARE_EVENT_LOG_TYPE_SIZE   12
+
+#define init_EventLog {0, 0,0, 0, { 0, 0}}
 #define init_common_event_logs {0, 0, {0, 0}}
+#define init_disconnect_event_log {0, 0, 0, {0, 0}}
 #define init_time_bounded_event_logs {0, 0, {0, 0}, {0, 0}}
 #define init_firmware_event_log {0, 0, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0}}
-#define init_disconnect_event_log {0, 0, 0, {0, 0}}
-#define init_EventLog {0, 0,0, 0, { 0, 0}}
 
 enum EventGroup_Types{
  

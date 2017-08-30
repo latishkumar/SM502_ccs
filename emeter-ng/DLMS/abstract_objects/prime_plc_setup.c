@@ -16,7 +16,7 @@ uint16_t plc_vendor_id = 1234;
 
 uint8_t plc_product_id = 234;
 
-uint8_t mac_address[]={6,0x0E,0x0B,0x0A,0,0,0x11}; //6 octect string -EUI48
+uint8_t mac_address[]={6,0x30,0x30,0x30,0x30,0x30,0x30}; //6 octect string -EUI48
 /*
  * Callback function for PLC frimware version
  */

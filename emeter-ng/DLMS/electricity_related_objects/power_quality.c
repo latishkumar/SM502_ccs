@@ -14,7 +14,7 @@
 #include "long_power_failures.h"
 uint16_t nominal_voltage = 230;//V
 
-uint16_t max_vrms = 280;  // maximum vrms voltage the meter support in V
+uint16_t max_vrms = 276;  // 120% of reference voltage: maximum vrms voltage the meter support in V
 
 uint8_t min_vrms = 170;   // minimum vrms voltage the meter starts functioning
 
@@ -22,7 +22,7 @@ uint8_t  max_irms = 80;   // maximum irms current the meter support in A
 
 uint16_t under_voltage_trip_duration =  10; // Time threshold for the detection of voltage sags
 
-uint16_t over_voltage_trip_duration =  1;
+uint16_t over_voltage_trip_duration =  10;
 
 uint16_t voltage_sag_threshold = 3000; //Default: 7,00% of decrement over Vref.
 

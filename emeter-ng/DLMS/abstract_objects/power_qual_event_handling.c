@@ -57,7 +57,7 @@ void capture_power_qual_event_log(void *data, int direction)
     log_search_params.start_log_address  = POWER_QUAL_LOG_ADDRESS_START;
     log_search_params.end_log_address    = POWER_QUAL_LOG_ADDRESS_END;
     log_search_params.last_log_address   = last_power_qual_event_log_address;
-    log_search_params.log_size           = TIME_BOUND_EVENT_LOG_TYPE_SIZE;
+    log_search_params.log_size           = EVENT_LOG_TYPE_SIZE;
     log_search_params.maximum_event_logs = MAX_POWER_QUAL_EVENT_LOGS;
     log_search_params.offset             = 1;
     log_search_params.overlap_status     = status.power_qual_event_log_overlapped;

@@ -74,7 +74,7 @@ void capture_standard_event_log(void *data, int direction)
     log_search_params.start_log_address  = STANDARD_EVENT_LOG_ADDRESS_START;
     log_search_params.end_log_address    = STANDARD_EVENT_LOG_ADDRESS_END;
     log_search_params.last_log_address   = last_standard_event_log_address;
-    log_search_params.log_size           = EVENT_LOG_TYPE_SIZE;//EventLogSize;
+    log_search_params.log_size           = EVENT_LOG_TYPE_SIZE;
     log_search_params.maximum_event_logs = MAX_STANDARD_EVENT_LOGS;
     log_search_params.offset             = 1;
     log_search_params.overlap_status     = status.standard_event_log_overlapped;
