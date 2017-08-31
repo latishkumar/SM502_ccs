@@ -34,12 +34,12 @@ extern MeterStatus status;
  *  which gives
  *
  * a total of
- * 16 * 5 = 80 bytes we will use one page for all the  passwrods
+ * 16 * 5 = 80 bytes we will use one page for all the  passwords
  *
  The following passwords are supported
                  ==>Public Password                   :- has the permission to read what is displayed on the LCD 
-                 ==>Reading password                  :- has the permission to read configration and setting of the meter, except password reading and setting 
-                 ==>Management Password               :- has the permission to read and write configration data and Reading and Tamper Clearing Password,and also meter resetting to the manufacturer's default setting and configration 
+                 ==>Reading password                  :- has the permission to read configuration and setting of the meter, except password reading and setting
+                 ==>Management Password               :- has the permission to read and write configuration data and Reading and Tamper Clearing Password,and also meter resetting to the manufacturer's default setting and configration
                  ==>firmware upgrading password       :- has the permission to to upgrade the meter firmware and to change its own password 
 
  */
@@ -303,7 +303,7 @@ typedef struct{
 
 /*
 *  Data written from eeprom 
-*  outputData : data read frpm eeprom 
+*  outputData : data read from eeprom
 *  type : data size , 8 byte(1),16 byte(2). 32 byte(3)
 *  address:- where to read the data 
 */
@@ -316,7 +316,7 @@ typedef struct{
 }WriteArgument_t;
 
 /*
-* max:- the maxium allowed value for this data
+* max:- the maximum allowed value for this data
 * min:- the minimum allowed value for the data
 * default_val :- 
 */
@@ -351,7 +351,7 @@ int read_from_eeprom(void *readArgument_1,void *readArgument_2,int8_t(*read)(voi
 
 
 
-#define MemoryFormattedIndicatorCode {0x2b,0x2b,0x2b,0x2b,0x2b} //0x2F
+#define MemoryFormattedIndicatorCode {0x2e,0x2e,0x2e,0x2e,0x2e} //0x2F
 
 #define CONFIGURATION_BASE_ADDRESS 128ul //leave Address 0 out
 
