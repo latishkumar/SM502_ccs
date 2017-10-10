@@ -85,9 +85,9 @@ void change_meter_serial_number(void *data,int data_direction)
 
 //      for(;i<=Meter_Sr_No[0];i++)
 //        Meter_Sr_No[i] = *datap++;
-      if(length < Meter_Sr_No[0])
+      if(length == Meter_Sr_No[0])
       {
-        memcpy(&(Meter_Sr_No[1]),data,length+1);
+        memcpy(&(Meter_Sr_No[1]),datap,length);
         //setDeviceIDs(Meter_Sr_No,0);
         uint8_t temp8 = 0;
         write_to_eeprom(&Meter_Sr_No,&temp8,setDeviceIDs);

@@ -2301,7 +2301,7 @@ int8_t setDeviceIDs(void *id2,void *type2)
 //        {
           
             z = EEPROM2_WriteInt8(*data++,address, 0); // write length
-            length-=1;
+            length-=2;
             for(j=0;j<length;j++)
             {
                z = EEPROM2_WriteNextInt8(*data++, 0); //write middle data
@@ -2380,7 +2380,7 @@ int8_t getDeviceIDs(void *id2,void *type2)
           *id = temp;
            id++;
            
-          for( j=0;j<length-1;j++)
+          for( j=0;j<length-2;j++)
           {           
             z = EEPROM2_ReadNextInt8( 0,&temp);
             *id = temp;

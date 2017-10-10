@@ -9,7 +9,7 @@
 
 uint8_t plc_firmware_Version[] =
 {
-  6,'0','0','0','7','0','0'//,'0','1','0','0','0','9','0','0','0','1'16
+  12,'1','.','3','.','6','0','b','.','8','2','2','4'//'0','0','0','7','0','0'//,'0','1','0','0','0','9','0','0','0','1'16
 };
 
 uint16_t plc_vendor_id = 1234;
@@ -20,18 +20,18 @@ uint8_t mac_address[]={6,0x30,0x30,0x30,0x30,0x30,0x30}; //6 octet string -EUI48
 /*
  * Callback function for PLC firmware version
  */
-void get_set_firmware_version(void *data,int data_direction)
+void get_set_plc_firmware_version(void *data,int data_direction)
 {
-
+    uint8_t *datap =  data;
     if(data_direction == ATTR_WRITE)
     {
-       int x=0;
-       x++;
+      datap++;
+      //setMacAddress(datap,(uint8_t *)0);
+      memcpy(&plc_firmware_Version[1],datap,plc_firmware_Version[0]);
     }
     else if(data_direction == ATTR_READ)
     {
-       int y=0;
-       y++;
+       memcpy(datap,plc_firmware_Version,plc_firmware_Version[0]+1);
     }
 }
 

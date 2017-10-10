@@ -3093,7 +3093,7 @@ const struct object_desc_s object_list[] =
                                      ,(const struct attribute_desc_s[]) {
 
                                              {1, ACCESS_PCR__MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[PRIME_PLC_START].instance_id, NULL},
-                                             {2, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) &plc_firmware_Version, get_set_firmware_version},
+                                             {2, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) &plc_firmware_Version, get_set_plc_firmware_version},
                                              {3, ACCESS_PC___MRR__USR_, TAG_UINT16,          (void *) &plc_vendor_id, NULL},
                                              {4, ACCESS_PC___MRR__USR_, TAG_UINT16,          (void *) &plc_product_id, NULL}
 

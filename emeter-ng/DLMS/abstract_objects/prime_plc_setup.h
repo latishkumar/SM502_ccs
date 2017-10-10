@@ -18,7 +18,7 @@ extern uint8_t mac_address[];
 
 extern uint8_t EUI[];
 
-void get_set_firmware_version(void *data,int data_direction);
+void get_set_plc_firmware_version(void *data,int data_direction);
 
 void get_set_mac_address(void *data,int data_direction);
 
