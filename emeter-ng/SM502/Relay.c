@@ -15,7 +15,7 @@ extern MeterStatus status;
 extern uint32_t ConsumptionSinceLastBilling;
 extern uint32_t power_brakes[];
 int Disconnect = 0;
-uint8_t temp;
+uint8_t relay_temp;
 extern rtc_t rtcc;
 
 uint8_t AutoConnect = 1; 
@@ -125,18 +125,18 @@ void UpdateRelayStatus()
      }
      else if(status.RelayStatus == 1) //relay is connected 
      {
-        if(IsDisconnectRequired(&temp))
+        if(IsDisconnectRequired(&relay_temp))
         {
             status.DisconnectCommandRecived = 0;
             status.ConnectCommandRecived = 0;
             
-            LastDisconnectReason = temp;
-            DisconnectMeter(temp);	            
+            LastDisconnectReason = relay_temp;
+            DisconnectMeter(relay_temp);
         }
      }
-     else if(status.RelayStatus == 2) //relay is ready to AutoConnect, the realy will connect if the reason for the disconnect is removed 
+     else if(status.RelayStatus == 2) //relay is ready to AutoConnect, the relay will connect if the reason for the disconnect is removed
      {
-       if(CheckConnectionIsEnabled(&temp) == 1)
+       if(CheckConnectionIsEnabled(&relay_temp) == 1)
        {
          if(start_connect_timeout ==0)
          {
@@ -145,7 +145,7 @@ void UpdateRelayStatus()
          if(connect_counter >= connect_timeout) 
          {
             
-            ConnectMeter(temp);
+            ConnectMeter(relay_temp);
             connect_counter = 0;
             disconnect_verified = 0;
             start_connect_timeout = 0;
@@ -175,14 +175,14 @@ uint8_t CheckConnectionIsEnabled(uint8_t *EventCode)
   //check for the tariff rate
   //chekc for connect command 
   //configration removed
-  uint8_t tm= 0;
+  int8_t tm = 0;
   if(RelayTariffAutoConDisconEnabled == 1)
-    tm = CheckTariff(power_brakes,&ConsumptionSinceLastBilling);//status.LowTariff;
+    tm = CheckTariff(power_brakes,&ConsumptionSinceLastBilling);//status.LowTariff;//TODO
   
   if( (tm == 0 && status.ConfigurationDetectedStatus == 0 && status.OverCurrentStatus == 0 && status.OverVoltageStatus == 0 &&
        status.ActivePowerExcededStatus == 0 ))
   {
-    *EventCode = LastDisconnectReason;//modify this 
+    (*EventCode) = LastDisconnectReason;//modify this
     return 1;
   }
   

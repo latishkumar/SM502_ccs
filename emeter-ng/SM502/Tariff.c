@@ -33,9 +33,9 @@ uint32_t rates[40] = {2730,3564,4993,5500,5666,5880,6943,6943,6943,6943,
                       2730,3564,4993,5500,5666,5880,6943,6943,6943,6943,
                       2730,3564,4993,5500,5666,5880,6943,6943,6943,6943,
                       2730,3564,4993,5500,5666,5880,6943,6943,6943,6943
-                     }; //according to the current EEPCO ratting 1/1/2014
+                     }; //according to the current EEPCO rating 1/1/2014
 
-uint32_t power_brakes[10]={50,100,200,300,400,500,100000,100000,100000,100000};//current ratting 
+uint32_t power_brakes[10]={50,100,200,300,400,500,100000,100000,100000,100000};//current rating
 uint32_t ConsumptionSinceLastBilling=0;
 
 //extern __monitor void perform_low_battry_backup();
@@ -94,7 +94,7 @@ void CalculateBilling()
        
 }
 
-uint8_t getRateStartIndex(const uint32_t *rates_start_array10, unsigned long EnergySinceLastBillingCuttoff)
+uint8_t getRateStartIndex(uint32_t *rates_start_array10, uint32_t EnergySinceLastBillingCuttoff)
 {
   uint8_t i =0;
    for(;i<10;i++)
@@ -374,30 +374,30 @@ void per_month_activity()
 *            0: otherwise 
 */
 
-int CheckTariff(const uint32_t *power_brakes,unsigned long *ConsumptionSinceLastBilling)
+int CheckTariff(uint32_t *power_brakes , uint32_t *ConsumptionSinceLastBilling)
 {
-  if(billingSchema == PRE_PAID)
-  { // Low tariff exists only in PRE_PAID meters
-    
-    uint8_t tariffslot = GetCurrentMinuteTariffTimeSlot();  //on which 4 slots of the day the tariff is found 
-    uint8_t rateIndex = getRateStartIndex(power_brakes,*ConsumptionSinceLastBilling);
-    int32_t charge = rates[rateIndex+(tariffslot*10)];
-     
-    if(Current_balance.balance >= charge)
+    if(billingSchema == PRE_PAID)
     {
-      status.LowTariff = 0;
-      return 0;
+        // Low tariff exists only in PRE_PAID meters
+        uint8_t tariffslot = GetCurrentMinuteTariffTimeSlot();  //on which 4 slots of the day the tariff is found
+        uint8_t rateIndex  = getRateStartIndex(power_brakes,*ConsumptionSinceLastBilling);
+        int32_t charge     = rates[rateIndex+(tariffslot*10)];
+
+        if(Current_balance.balance >= charge)
+        {
+        status.LowTariff = 0;
+        return 0;
+        }
+        else
+        {
+        status.LowTariff = 1;
+        lowtariff_temp = Current_balance.balance;
+        return 1;
+        }
     }
     else
     {
-      status.LowTariff = 1;
-      lowtariff_temp = Current_balance.balance;
-      return 1;
-    }
-  }
-  else
-  {
     status.LowTariff  = 0 ;
     return 1;
-  }
+    }
 }

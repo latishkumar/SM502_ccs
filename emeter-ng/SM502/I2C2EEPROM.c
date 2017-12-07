@@ -110,10 +110,10 @@ uint8_t EEPROM2_WriteInt8(uint8_t c,uint32_t Address, uint8_t end) {
         CurrentPage = CurrentWriteAddress>>7;
         #ifdef EEPROM_REV_2 
           CurrentPage = CurrentWriteAddress>>8;
-          CurrentSlaveAddress = Slave_Address((AddHigh&0x04)>>2,AddHigh & 0x3);
+          CurrentSlaveAddress = slave_address((AddHigh&0x04)>>2,AddHigh & 0x3);
         #else
           CurrentPage = CurrentWriteAddress>>7;
-          CurrentSlaveAddress = Slave_Address((AddHigh&0x02)>>1,AddHigh & 0x01);
+          CurrentSlaveAddress = slave_address((AddHigh&0x02)>>1,AddHigh & 0x01);
         #endif 
 	//check for bit 17 to determine witch EEPROM to USE
 //	if ((Address >> 16 ) != 0) {
@@ -177,12 +177,12 @@ uint8_t EEPROM2_ReadInt8(uint32_t Address, uint8_t end, uint8_t *data) {
         
     #ifdef EEPROM_REV_2 
          CurrentReadPage = CurrentReadAddress>>8;
-         slaveAddress = Slave_Address((AddHigh&0x04)>>2,AddHigh & 0x3);
+         slaveAddress = slave_address((AddHigh&0x04)>>2,AddHigh & 0x3);
     #else
          CurrentReadPage = CurrentReadAddress>>7;
-         slaveAddress = Slave_Address((AddHigh&0x02)>>1,AddHigh & 0x01);
+         slaveAddress = slave_address((AddHigh&0x02)>>1,AddHigh & 0x01);
     #endif
-//        slaveAddress = Slave_Address((AddHigh&0x02)>>1,AddHigh & 0x01);
+//        slaveAddress = slave_address((AddHigh&0x02)>>1,AddHigh & 0x01);
         
 
 	//check for bit 17  to determine witch EEPROM to USE

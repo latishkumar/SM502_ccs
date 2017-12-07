@@ -40,7 +40,7 @@ void init_scheduler()
 * @return -1 if the task is not scheduled
 *          xx: if the task is scheduled successfully, returns the task slot number
 */
-__monitor int8_t schedule_task(void(*Task)(),uint32_t time_in_ms,uint8_t task_slot)
+__monitor int8_t schedule_task(void(*Task)(void),uint32_t time_in_ms,uint8_t task_slot)
 {
   
   if(task_slot < MaxScheduledTasks)

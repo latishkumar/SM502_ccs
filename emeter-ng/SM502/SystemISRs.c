@@ -8,7 +8,8 @@
 #include <Scheduler.h>
 #include "iec62056_uart.h"
 #include "PLC/PLC_UART.h"
-
+#include "hal_UCS.h"
+#include "hal_pmm.h"
 extern METER_STATES meter_state;
 extern MeterStatus status;
 extern CurrentBalance Current_balance;
@@ -32,7 +33,7 @@ uint16_t UC_ISR_Counter = 0;
 uint8_t test_temp22 = 0;
 extern EventLog PowerOutlog;
 extern volatile uint8_t IEC_Tx_Done;
-
+extern void perform_flash_backup(uint8_t backup_type);
 extern __monitor void perform_low_battry_backup();
 
 /**
@@ -48,74 +49,59 @@ __interrupt void AUX_ISR(void)
  {
    
   case AUXIV_AUX0SWIFG://             /* Switched to DVCC interrupt flag */   
+
+    //switch_to_normal_mode();
+    meter_state = RESTARTING;
+    /* Take control of the EEPROM signals again. */
+    enable_eeprom_port();
+
+    #if defined(USE_WATCHDOG)
+    kick_watchdog();
+    #endif
+
+    //Enable RTC Interrupt
+    RTCCTL0_H = RTCKEY_H;
+    RTCCTL0_L |= RTCRDYIE_L;
+    RTCCTL0_H = 0;   // LOCK RTC
+    custom_power_restore_handler();  /*[M.G] Uncommented this line Oct 24, 2015 17:06 */
     
-       
-      //switch_to_normal_mode();
-      
-      #if defined(LOW_POWER_LOG_ENABLED)      
-      printf("Waking Up Low Power Mode");
-      _EINT();
-      IEC_Tx_Done=0;
-      while(IEC_Tx_Done==0);
-      _DINT();
-      
-      #endif
-      
-      
-      
-      
-         meter_state = RESTARTING;
-         /* Take control of the EEPROM signals again. */
-          enable_eeprom_port();
-
-          #if defined(USE_WATCHDOG)
-          kick_watchdog();
-          #endif
-
-          
-        //Enable RTC Interrupt 
-            RTCCTL0_H = RTCKEY_H;
-            RTCCTL0_L |= RTCRDYIE_L;
-            RTCCTL0_H = 0;   // LOCK RTC
-            custom_power_restore_handler();  /*[M.G] Uncommented this line Oct 24, 2015 17:06 */
-          
-       _BIC_SR_IRQ(LPM4_bits);//wake up from low power mode    
+    _BIC_SR_IRQ(LPM4_bits);//wake up from low power mode
             
     break;
   case AUXIV_AUX1SWIFG://             /* Switched to AUX1 interrupt flag */
     break;
-  case AUXIV_AUX2SWIFG://             /* Switched to AUX2 interrupt flag */    
-       #if defined(LOW_POWER_LOG_ENABLED)
-         printf("Entering Low Power Mode");
-         _EINT();
-         IEC_Tx_Done=0;
-         while(IEC_Tx_Done==0);
-         _DINT();
-       
-       #endif
+  case AUXIV_AUX2SWIFG://             /* Switched to AUX2 interrupt flag */
+      __bic_SR_register(GIE);
 
+    disable_analog_front_end();
 
-          //WDTCTL |= WDTPW | WDTHOLD;
-        operating_mode = OPERATING_MODE_POWERFAIL;
-        meter_state = HIBERNATING;
-         /* Note that a power down occurred */
-         meter_status |= POWER_DOWN;
+    custom_power_fail_handler();
 
-        /* Turn off all the LEDs. */
-        meter_status &= ~(STATUS_REVERSED | STATUS_EARTHED | STATUS_PHASE_VOLTAGE_OK);
+    //WDTCTL |= WDTPW | WDTHOLD;
 
-        #if defined(__HAS_SD_ADC__)
-        disable_analog_front_end();
-        #endif
-        #if defined(PWM_DITHERING_SUPPORT)
-        /* Disable dithering, by disabling Timer B */
-        TBCTL = TBCLR | TBSSEL_2;
-        #endif
+    //Init_FLL_Settle(MCLK_DEF_1MHZ*8388608/8/1000, MCLK_DEF_1MHZ*32768*32/32768);
+    //while(SetVCore(0));
 
-        custom_power_fail_handler();
-        _BIS_SR_IRQ(LPM4_bits);
+    if(meter_state == OPERATIONAL)
+    {
+        perform_flash_backup(0x08);
+    }
+    operating_mode = OPERATING_MODE_POWERFAIL;
+    meter_state = HIBERNATING;
+    /* Note that a power down occurred */
+    meter_status |= POWER_DOWN;
 
-        __no_operation(); 
+    /* Turn off all the LEDs. */
+    meter_status &= ~(STATUS_REVERSED | STATUS_EARTHED | STATUS_PHASE_VOLTAGE_OK);
+
+    #if defined(PWM_DITHERING_SUPPORT)
+    /* Disable dithering, by disabling Timer B */
+    TBCTL = TBCLR | TBSSEL_2;
+    #endif
+
+    _BIS_SR_IRQ(LPM4_bits);
+
+    __no_operation();
     break;
 
   case AUXIV_AUX2DRPIFG://            /* AUX2 dropped below its threshold interrupt flag */    
@@ -159,7 +145,7 @@ __interrupt void Port_1(void)
 {
   switch(P1IV)
   {
-    case P1IV_P1IFG1:  //lowercover
+    case P1IV_P1IFG1:  //lower cover
       
       if(operating_mode == OPERATING_MODE_POWERFAIL)//temp_pfm==1)//
       {
@@ -180,13 +166,13 @@ __interrupt void Port_1(void)
               _DINT();
           #endif
               status.LowerCoverRemovedTamperStatus = 1;
-           write_to_eeprom(&status,(uint8_t *)0,logMeterStatus);   //comment this 
+           //write_to_eeprom(&status,(uint8_t *)0,logMeterStatus);   //comment this
       }
       else
       {
         if(LCTamperSchaduled == 0)
         {
-            LCTamperSchaduled =1;
+            LCTamperSchaduled = 1;
             schedule_task(ProcessTamperLC,100,PROCESS_TAMPER_LC_TASK);//SchaduleTask(&ProcessTamperLC,100);
         }
       }
@@ -213,7 +199,7 @@ __interrupt void Port_1(void)
           _DINT();
       #endif       
               status.UpperCoverRemovedTamperStatus = 1;
-           write_to_eeprom(&status,(uint8_t *)0,logMeterStatus);   //comment this        
+         //  write_to_eeprom(&status,(uint8_t *)0,logMeterStatus);   //comment this
       }
       else
       {
@@ -360,7 +346,11 @@ void custom_power_restore_handler()
             UCTamperDetected();
             BAKMEM1 = 0;
         }
-        write_to_eeprom(&status,(uint8_t *)0,logMeterStatus);//uncomment this
+        if(test_temp) //Reject logging if there was no tamper detection
+        {
+            write_to_eeprom(&status,(uint8_t *)0,logMeterStatus);//uncomment this
+        }
+
     }
 
     BAKMEM2 = 0;

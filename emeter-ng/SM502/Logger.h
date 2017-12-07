@@ -349,9 +349,9 @@ int read_from_eeprom(void *readArgument_1,void *readArgument_2,int8_t(*read)(voi
  * Checksum is placed as the last byte of each memory
  */
 
-
-
-#define MemoryFormattedIndicatorCode {0x2e,0x2e,0x2e,0x2e,0x2e} //0x2F
+#define A_INDICATOR {0x2a,0x2a,0x2a,0x2a,0x2a}
+#define E_INDICATOR {0x2e,0x2e,0x2e,0x2e,0x2e}
+#define MemoryFormattedIndicatorCode E_INDICATOR //{0x2a,0x2a,0x2a,0x2a,0x2a}
 
 #define CONFIGURATION_BASE_ADDRESS 128ul //leave Address 0 out
 

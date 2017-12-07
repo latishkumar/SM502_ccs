@@ -9,6 +9,7 @@
 #include "manufacturer_specific_objects.h"
 #include "self_diagnosis.h"
 #include "Tamper.h"
+#include <msp430f6736.h>
 int16_t alarm_status;
 
 /*! This is a shift value for comparing currents or powers when looking for
@@ -28,7 +29,6 @@ void reset_alarms(uint8_t *data, uint16_t data_len,uint8_t *response,uint16_t *r
   x= *data << 8;
   x |= *(++data);//x is the tamper type from 1 --- 4
   status.write_tamper_status = 1;
-  *response_len = 0;
   switch(x)
   {
     case 1:
@@ -88,6 +88,7 @@ void reset_persistent_events(void *data, int data_direction)
 			default:
 				break;
 		  }
+		status.write_tamper_status = 1;
 	}
 	else if(data_direction == ATTR_READ)
 	{
@@ -211,7 +212,7 @@ void calibrate_voltage(uint8_t *data, uint16_t data_len,uint8_t *response,uint16
 
 extern uint32_t power_brakes[];
 extern uint32_t ConsumptionSinceLastBilling;
-extern int CheckTariff(const uint32_t *power_brakes,unsigned long *ConsumptionSinceLastBilling);
+extern int CheckTariff(uint32_t *power_brakes,unsigned long *ConsumptionSinceLastBilling);
 /*
  * Method for incrementing balance
  */
@@ -254,7 +255,17 @@ void decrement_balance(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_
     CheckTariff(power_brakes,&ConsumptionSinceLastBilling);
     *response_len = 0;
 }
-
+/*
+ * Reset balance
+ */
+void reset_balance()
+{
+    Current_balance.balance = 99990000;
+    write_to_eeprom(&Current_balance,(uint8_t *)0,setCurrentBalance);
+    ConsumptionSinceLastBilling = 0;
+    write_to_eeprom(&ConsumptionSinceLastBilling,(uint8_t *)0,setConsumptionSinceLastBilling);
+    CheckTariff(power_brakes,&ConsumptionSinceLastBilling);
+}
 /*
  * Method for BOR reset
  */
@@ -265,6 +276,45 @@ void bor_reset(uint8_t *data,uint16_t data_len,uint8_t *response,uint16_t *respo
     perform_flash_backup(0x04); //low battery backup
 	Reset_System();
 	*response_len = 0;
+}
+void reset_meter(void *data, int data_direction)
+{
+    if(data_direction == ATTR_WRITE)
+    {
+
+        int16_t nv_2 = 0;
+        uint8_t *ptr2 = data;
+        nv_2 = *(ptr2+1);
+        nv_2 |= ((*(ptr2))<<8);
+        switch(nv_2)
+        {
+        case 1: //SWBOR
+            PMMCTL0_H = PMMPW_H;
+            PMMCTL0  |= PMMSWBOR; //PMMSWPOR;//
+            //PMMCTL0_H = 0;
+            break;
+        case 2: //SWPOR
+            PMMCTL0_H = PMMPW_H;
+            PMMCTL0  |= PMMSWPOR;//
+            //PMMCTL0_H = 0;
+            break;
+        case 3: //PMM pass violation
+            PMMCTL0 = 0xB6;
+            break;
+        case 4: //Flash pass violation
+            FCTL3 = 0xB600;
+            break;
+        default:
+            break;
+      }
+    }
+    else if(data_direction == ATTR_READ)
+    {
+        uint8_t *datap =  data;
+        *datap = 1 & 0xFF;
+        datap++;
+        *datap = (1>>8) & 0xFF;
+    }
 }
 
 uint8_t usb_comm_speed     = 7; // Default: 57600

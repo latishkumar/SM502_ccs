@@ -295,16 +295,16 @@ void Init_FLL(unsigned int fsystem, const unsigned int ratio)
 	UCSCTL1= DCORSEL_6 ;
   else
 	UCSCTL1= DCORSEL_7 ;
-/*
-  while (SFRIFG1 & OFIFG) {                               // check OFIFG fault flag
-    UCSCTL7 &= ~(DCOFFG+XT1LFOFFG+XT1HFOFFG+XT2OFFG);     // Clear OSC flaut Flags
+
+  do {                               // check OFIFG fault flag
+    UCSCTL7 &= ~(DCOFFG+XT1LFOFFG+XT2OFFG);     // XT1HFOFFG+ Clear OSC fault Flags
     SFRIFG1 &= ~OFIFG;                                    // Clear OFIFG fault flag
-  }
-*/
+  }while (SFRIFG1 & OFIFG);
+
   if (mode == 1)                           				  // fsystem > 16000
     SELECT_MCLK_SMCLK(SELM__DCOCLK + SELS__DCOCLK);       // select DCOCLK
   else
-    SELECT_MCLK_SMCLK(SELM__DCOCLKDIV + SELS__DCOCLKDIV); // selcet DCODIVCLK
+    SELECT_MCLK_SMCLK(SELM__DCOCLKDIV + SELS__DCOCLKDIV); // Select DCODIVCLK
 
   __bis_SR_register(globalInterruptState);                // restore previous state
 #endif
@@ -323,5 +323,5 @@ void Init_FLL_Settle(unsigned int fsystem, const unsigned int ratio)
   volatile unsigned int x = ratio * 10;       // we have 32 steps in the DCO / loop takes at least three cycles
                                               // (int)(32/3) = 10
   Init_FLL(fsystem, ratio);
-  while (x--);
+  //while (x--);
 }

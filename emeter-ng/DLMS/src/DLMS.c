@@ -114,125 +114,52 @@ void init_dlms()
 
 uint8_t  process_dlms_frame()
 {
-  
-#ifdef DLMS_IEC_21
-   if(Frame_Received[IEC_PORT]==1)
-   {
-           rx[IEC_PORT].state=0;
-           Frame_Received[IEC_PORT]=0;
-           
-//           //test
-//           if(rx[IEC_PORT].control_field != 0x93){
-//             rx[IEC_PORT].msg[59] = 0;
-//             rx[IEC_PORT].msg[60] = 0;
-//             rx[IEC_PORT].control_field = 0;
-//           }
-//           //delete this 
-           
-           process_rx_frame(&link[IEC_PORT], &rx[IEC_PORT]);
-           return 1;
-   }
-#endif 
-  
+    if(Frame_Received[IEC_PORT]==1)
+    {
+        rx[IEC_PORT].state=0;
+        Frame_Received[IEC_PORT]=0;
+        process_rx_frame(&link[IEC_PORT], &rx[IEC_PORT]);
+        return 1;
+    }
+
+    if(Frame_Received[PLC_PORT]==1)
+    {
+        rx[PLC_PORT].state=0;
+        Frame_Received[PLC_PORT]=0;
+        process_rx_frame(&link[PLC_PORT], &rx[PLC_PORT]);
+        return 1;
+    }
    
-#ifdef DLMS
-   if(Frame_Received[PLC_PORT]==1)
-   {
-           rx[PLC_PORT].state=0;
-           Frame_Received[PLC_PORT]=0;
-           process_rx_frame(&link[PLC_PORT], &rx[PLC_PORT]);
-           return 1;
-   }   
-#endif   
-  
-  
-//   if(Frame_Received[PREFERRED_PORT]==1)
-//   {
-//           rx[PREFERRED_PORT].state=0;
-//           Frame_Received[PREFERRED_PORT]=0;
-//           process_rx_frame(&link[PREFERRED_PORT], &rx[PREFERRED_PORT]);
-//           return 1;
-//   }
-   return 0;
+    return 0;
 }
 
 
 int dl_connect_indication(iec62056_46_link_t *linkp)
 {
-  
-#ifdef DLMS_IEC_21
-     if(linkp->port == IEC_PORT)
-     {
-#if defined(DLMS) 
-       if(link[PLC_PORT].configured == TRUE)
-       {
-         link[PLC_PORT].disconnected = TRUE;
-         link[PLC_PORT].configured = FALSE;
-         return DL_CONNECT_RESPONSE_NOK;
-       }
-#endif     
-       return DL_CONNECT_RESPONSE_OK;  
-     }
-     else 
-#endif 
-                 
-       
-#ifdef DLMS
-      if(linkp->port == PLC_PORT)
-      {
-#ifdef DLMS_IEC_21
-       if(link[IEC_PORT].configured == TRUE)
-       {
-         link[IEC_PORT].disconnected = TRUE;
-         link[IEC_PORT].configured = FALSE;
-         return DL_CONNECT_RESPONSE_NOK;
-       }   
-#endif 
-       return DL_CONNECT_RESPONSE_OK;  
-      }     
-#endif 
-     
-#ifdef DLMS_IEC_21
-     {}
-#endif      
-  
-  
-//  uint16_t i;
-//   if(linkp->port==PREFERRED_PORT)
-//    { 
-//      for(i=0;i<MAX_USCI_PORTS;i++)
-//       { 
-//         if(i==linkp->port)
-//            continue;
-//         else
-//            if(link[i].configured==TRUE)
-//            {
-//               // send_dm(&link[i]);
-//                link[i].disconnected = TRUE;
-//                link[i].configured = FALSE;
-//              //  link[i].far_msap = 0;
-//            }
-//       }
-//      return DL_CONNECT_RESPONSE_OK;
-//    }
-//    else
-//    {
-//       for(i=0;i<MAX_USCI_PORTS;i++)
-//       { 
-//         if(linkp->port==i)
-//            continue;
-//         else
-//            if(link[i].configured==TRUE)
-//            {
-//                linkp->disconnected = TRUE;
-//                linkp->configured = FALSE;
-//               // linkp->far_msap = 0;
-//              return DL_CONNECT_RESPONSE_NOK;  
-//            }
-//        }
-//      return DL_CONNECT_RESPONSE_OK;  
-//    } 
-   return DL_CONNECT_RESPONSE_OK;
+    // DLMS_IEC_21
+    if(linkp->port == IEC_PORT)
+    {
+        // DLMS
+        if(link[PLC_PORT].configured == TRUE)
+        {
+            link[PLC_PORT].disconnected = TRUE;
+            link[PLC_PORT].configured = FALSE;
+            return DL_CONNECT_RESPONSE_NOK;
+        }
+        return DL_CONNECT_RESPONSE_OK;
+    }
+    else if(linkp->port == PLC_PORT)
+    {
+        // DLMS_IEC_21
+        if(link[IEC_PORT].configured == TRUE)
+        {
+            link[IEC_PORT].disconnected = TRUE;
+            link[IEC_PORT].configured = FALSE;
+            return DL_CONNECT_RESPONSE_NOK;
+        }
+        return DL_CONNECT_RESPONSE_OK;
+    }
+    return DL_CONNECT_RESPONSE_OK;
 }
 
 void dl_connect_confirm(iec62056_46_link_t *link, int response)

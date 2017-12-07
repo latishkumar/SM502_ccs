@@ -80,7 +80,7 @@ read_write_blob read_write_blob_msg;
   uint8_t log_now=0;
 #endif 
 
-void ResetPLC_StateFlow()
+void reset_plc_state_flow(void)
 {
   MessageStatus = WaittingNewFrame;
   RXCount =0;
@@ -106,7 +106,7 @@ void PLC_Byte_Recived(uint8_t data)
             switch(RXCount)
             {
               case 0:   
-                 schedule_task(ResetPLC_StateFlow,PLC_Frame_Timeout,IEC_REST_TASK);
+                 schedule_task(reset_plc_state_flow,PLC_Frame_Timeout,IEC_REST_TASK);
  
                  if ( data > 0x14 && ( data != 0x97 && data != 0x96 )) //Valid range is 0x00-0x14
                  {

@@ -12,15 +12,15 @@ uint8_t ProductID[16];
 void GetSystemInfoRequest()
 {
     PLC_Message m;
-    m.header.Message_Type = PLC_GET_SYSTEM_INFO;
-    m.header.Message_flags = ORG_flag |SEQ_flag(0)& ~RPY_flag;
+    m.header.Message_Type   = PLC_GET_SYSTEM_INFO;
+    m.header.Message_flags  = ORG_flag | SEQ_flag(0) & ~RPY_flag;
     m.header.Payload_Length = 0;
     SendMessage(&m);
 }
 
 void GetSystemInfoResponse()
 {
-  //the information is in system_info structur so process it 
+  //the information is in system_info structure so process it
   
 }
 

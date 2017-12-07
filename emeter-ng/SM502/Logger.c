@@ -244,8 +244,8 @@ void InitLogg()
       
 	EEPROM2Init();
     int8_t MemNotFormatted = 0;//memory is not formatted
-    MemNotFormatted = isMFormatRequired();//0;
-      //  MemNotFormatted=1; //format
+    MemNotFormatted = isMFormatRequired();
+     
         
 	if(MemNotFormatted == 1) //Format is required
 	{
@@ -2943,19 +2943,19 @@ int8_t setRate(void *rate2,void *rateNumber2 )
 */
 int8_t  getPowerBreaks(void *value2,void *Number2 )
 {
-  	uint8_t z,Number;//i=0;
-        uint32_t *value = (uint32_t *)value2;
-        uint8_t *ptr = (uint8_t*)Number2;
-        Number = *ptr;
-	unsigned long address=power_breaks_start +(Number*4);
-//        for(;i<MAX_LOG_RETRAY;i++)
-//        {
-	z= EEPROM2_ReadLong(address,1,value);
-	if(z==0)
-		return FALSE;
+    uint8_t z,Number;//i=0;
+    uint32_t *value = (uint32_t *)value2;
+    uint8_t *ptr = (uint8_t*)Number2;
+    Number = *ptr;
+    unsigned long address=power_breaks_start +(Number*4);
+    //        for(;i<MAX_LOG_RETRAY;i++)
+    //        {
+    z= EEPROM2_ReadLong(address,1,value);
+    if(z==0)
+    return FALSE;
 
-        
-	return TRUE;
+
+    return TRUE;
 }
                          
 /*
@@ -5141,20 +5141,34 @@ int8_t getMeterStatus(void *m_status2,void *dummy)
 
       if((status_temp & 0x01) != 0 )
           m_status->AutoDisconnectEnabled = 1;
+      else
+          m_status->AutoDisconnectEnabled = 0;
       if((status_temp & 0x02) != 0)
           m_status->BattryStatus = 1;
+      else
+          m_status->BattryStatus = 0;
       if((status_temp & 0x04) != 0)
           m_status->ConfigrationPortTamperStatus = 1;
+      else
+          m_status->ConfigrationPortTamperStatus = 0;
 
       if((status_temp & 0x10) != 0)
           m_status->LowerCoverRemovedTamperStatus = 1;
+      else
+          m_status->LowerCoverRemovedTamperStatus = 0;
       if((status_temp & 0x20) != 0)
         m_status->MangneticTamperStatus = 1;
+      else
+          m_status->MangneticTamperStatus = 0;
       if((status_temp & 0x40) != 0)
         m_status->NeutralTamperStatus =1;
+      else
+          m_status->NeutralTamperStatus = 0;
+
       if((status_temp & 0x80) != 0)
         m_status->UpperCoverRemovedTamperStatus = 1;
-
+      else
+          m_status->UpperCoverRemovedTamperStatus = 0;
 
        
         return 1;

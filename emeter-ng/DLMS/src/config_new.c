@@ -3297,8 +3297,8 @@ const struct object_desc_s object_list[] =
                                      ,(const struct attribute_desc_s[]) {
 
                                               {1, ACCESS_PC___MRR__USR_, TAG_OCTET_STRING,    (void *) object_list[REFERENCE_OBIS_START + 9].instance_id, NULL},
-                                              {2, ACCESS_PC___MRR__USR_, TAG_UINT32,          (void *) Data_Buffer, NULL},
-                                              {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_PF, NULL}
+                                              {2, ACCESS_PC___MRRW_USRW, TAG_UINT16,          (void *) Data_Buffer, reset_meter},
+                                              {3, ACCESS_PC___MRR__USR_, TAG_STRUCTURE,       (void *) &scalar_unit_referance_voltage, NULL}
 
                                      }
                                      ,1

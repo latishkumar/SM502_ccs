@@ -42,7 +42,7 @@
 
 void I2C2Init();
 
-uint8_t Slave_Address(uint8_t sn,uint8_t b16);
+uint8_t slave_address(uint8_t sn,uint8_t b16);
 /**
  * The method writes 8 bit number to the EEPROM
  * The method does not end the write Process

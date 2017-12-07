@@ -675,12 +675,12 @@
 
 #define DEFAULT_ROOM_TEMPERATURE                    250
 
-#define DEFAULT_V_RMS_SCALE_FACTOR_A                14438//14432//14432// 14480//ee//14564//m.g//11208//9520
+#define DEFAULT_V_RMS_SCALE_FACTOR_A                14466//14432//14432// 14480//ee//14564//m.g//11208//9520
 #define DEFAULT_V_RMS_LIMP_SCALE_FACTOR             21280
-#define DEFAULT_I_RMS_SCALE_FACTOR_A                15396//15414//11750//7613//ee//15150//5348
+#define DEFAULT_I_RMS_SCALE_FACTOR_A                15434//15414//11750//7613//ee//15150//5348
 #define DEFAULT_I_RMS_LIMP_SCALE_FACTOR             3537
 
-#define DEFAULT_P_SCALE_FACTOR_A_LOW                6941//6947//5296//3450//ee//5300//5308//6365        /* Low current, high gain, range. Test at 2A on 30A max meter */
+#define DEFAULT_P_SCALE_FACTOR_A_LOW                6966//6947//5296//3450//ee//5300//5308//6365        /* Low current, high gain, range. Test at 2A on 30A max meter */
 
 #define DEFAULT_V_PRESCALE_FACTOR                   53//34
 
@@ -1122,7 +1122,7 @@
 #endif
 
 
-//#define MCLK_DEF 8   /* 8MHz */
+#define MCLK_DEF_1MHZ 1   /* 8MHz */
 #define MCLK_DEF 16   /* 16 MHz */
 
 //#define USE_LPM

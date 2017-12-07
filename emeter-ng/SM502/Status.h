@@ -63,7 +63,7 @@ typedef struct
   volatile uint8_t ConfigurationDetectedStatus:1;
 
   volatile uint8_t KeyReleased:1;
-  volatile uint8_t KeyPressed ;
+  volatile uint8_t KeyPressed:1;
   
   //volatile uint8_t LoggingTimeIsUp:1;
 
@@ -73,7 +73,7 @@ typedef struct
   volatile uint8_t DisplayUpdateRequired:1;//used to indicate that the power and message area of the LCD needs to be updated
   volatile uint8_t UpdateTime:1;//to indicate the Time on the LCD needs to be Updated
   volatile uint8_t UpdateDate:1;//to indicate the Date on the LCD needs to be updated
-  volatile uint8_t DisplayMode;  //0 Auto mode 
+  volatile uint8_t DisplayMode:2;  //0 Auto mode
                         //1 Manual mode 
                        
   
@@ -113,7 +113,7 @@ typedef struct
    0 :Disconnected
   */
   volatile uint8_t RelayStatus:2;
-  volatile uint8_t BattryStatus;
+  volatile uint8_t BattryStatus:1;
   
   volatile uint8_t energy_reverse_flow_tamper:1;
   volatile uint8_t energy_reverse_flow_logged_status:1;

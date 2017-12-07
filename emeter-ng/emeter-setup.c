@@ -84,314 +84,6 @@
 
 extern rtc_t rtcc;
 
-
-
-#if defined(__MSP430_HAS_SD16_2__)  ||  defined(__MSP430_HAS_SD16_3__)
-
-#define SD16CONF0_FUDGE     0x70
-#define SD16CONF1_FUDGE     0x48    //0x38
-
-
-
-/*
- * Analog front-end initialization routine.
- *
- * Configures the sigma-delta ADC module as analog front-end for
- * a tamper-resistant meter using a current transformer and a
- * shunt as current sensors (see configuration of channel 0 and 1).
- */
-static __inline__ void init_analog_front_end_normal(void)
-{
-    /*
-     * First it makes sure that the Embedded Signal Processing is
-     * disabled, otherwise it will not be possible to modify the
-     * SD16 registers.
-     */
-    #if defined(__MSP430_HAS_ESP430E__)
-    ESPCTL &= ~ESPEN;
-    #endif
-
-    /*
-     * The general configuration of the analog front-end,
-     * that applies to all channels: clock selection (SMCLK) and divider
-     * settings (depending on SMCLK frequency) and reference voltage
-     * selections.
-     */
-
-    SD16CCTL_VOLTAGE &= ~SD16SC;
-    SD16CCTL_LIVE &= ~SD16SC;
-    #if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)
-    SD16CCTL_NEUTRAL &= ~SD16SC;
-    #endif
-
-    SD16CTL = SD16SSEL_1  /* Clock is SMCLK */
-            | SD16DIV_3   /* Divide by 8 => ADC clock: 1.048576MHz */
-            | SD16REFON;  /* Use internal reference */
-
-    SD16INCTL_LIVE = SD16INCH_CURRENT | CURRENT_LIVE_GAIN;          /* Set gain for channel 0 (I1) */
-    SD16CCTL_LIVE = SD16OSR_256 | SD16DF | SD16GRP | SD16IE;        /* Set oversampling ratio to 256 (default) */
-    SD16PRE_LIVE = 0;
-
-        #if defined(NEUTRAL_MONITOR_SUPPORT)
-    SD16INCTL_NEUTRAL = SD16INCH_CURRENT | CURRENT_NEUTRAL_GAIN;    /* Set gain for channel 1 (I2) */
-    SD16CCTL_NEUTRAL = SD16OSR_256 | SD16DF | SD16GRP | SD16IE;     /* Set oversampling ratio to 256 (default) */
-    SD16PRE_NEUTRAL = 0;
-        #endif
-
-    /* Configure analog front-end channel 2 - Voltage */
-    SD16INCTL_VOLTAGE = SD16INCH_0 | VOLTAGE_GAIN;                  /* Set gain for channel 2 (V) */
-    SD16CCTL_VOLTAGE = SD16OSR_256 | SD16DF | SD16SC | SD16IE;      /* Set oversampling ratio to 256 (default) */
-    SD16PRE_VOLTAGE = DEFAULT_V_PRESCALE_FACTOR;
-    #if defined(SD16CONF1_FUDGE)
-    SD16CONF1 = SD16CONF1_FUDGE;
-    #endif
-
-    #if !defined(ESP_SUPPORT)  &&  defined(SINGLE_PHASE)
-    chan1.metrology.current.in_phase_correction[0].sd16_preloaded_offset = 0;
-        #if defined(NEUTRAL_MONITOR_SUPPORT)
-    chan1.metrology.neutral.in_phase_correction[0].sd16_preloaded_offset = 0;
-        #endif
-    #endif
-    /*
-     * \note
-     * Please note, the oversampling ratio should be the same
-     * for all channels. Default is 256.
-     */
-}
-
-    #if defined(LIMP_MODE_SUPPORT)
-static __inline__ void init_analog_front_end_limp(void)
-{
-        #if defined(__MSP430_HAS_ESP430E__)
-    ESPCTL &= ~ESPEN;
-        #endif
-    SD16CCTL_VOLTAGE &= ~SD16SC;
-    SD16CCTL_LIVE &= ~SD16SC;
-        #if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)
-    SD16CCTL_NEUTRAL &= ~SD16SC;
-        #endif
-    SD16CTL = SD16SSEL_1  /* Clock is SMCLK */
-            | SD16DIV_3   /* Divide by 8 => ADC clock: 1.048576MHz */
-            | SD16REFON   /* Use internal reference */
-            | SD16LP;
-    SD16INCTL_LIVE = SD16INCH_CURRENT | CURRENT_LIVE_GAIN;                  /* Set gain for channel 0 (I1) */
-    SD16CCTL_LIVE = SD16OSR_32 | SD16DF | SD16SNGL | SD16GRP | SD16IE;      /* Set oversampling ratio to 32 */
-    SD16PRE_LIVE = 0;
-    #if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)
-    SD16INCTL_NEUTRAL = SD16INCH_CURRENT | CURRENT_NEUTRAL_GAIN;            /* Set gain for channel 1 (I2) */
-    SD16CCTL_NEUTRAL = SD16OSR_32 | SD16DF | SD16SNGL | SD16GRP | SD16IE;   /* Set oversampling ratio to 32 */
-    SD16PRE_NEUTRAL = 0;
-    #endif
-    SD16INCTL_VOLTAGE = SD16INCH_0 | VOLTAGE_GAIN;                          /* Set gain for channel 2 (V) */
-    SD16CCTL_VOLTAGE = SD16OSR_32 | SD16DF | SD16SNGL | SD16IE;             /* Set oversampling ratio to 32 */
-    SD16PRE_VOLTAGE = DEFAULT_V_PRESCALE_FACTOR;
-    #if defined(SD16CONF0_FUDGE)
-    SD16CONF0 = SD16CONF0_FUDGE;
-    #endif
-    #if defined(SD16CONF1_FUDGE)
-    SD16CONF1 = SD16CONF1_FUDGE;
-    #endif
-    chan1.metrology.current.in_phase_correction[0].sd16_preloaded_offset = 0;
-        #if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)
-    chan1.metrology.neutral.in_phase_correction[0].sd16_preloaded_offset = 0;
-        #endif
-}
-    #endif
-
- void disable_analog_front_end(void)//static __inline__
-{
-    #if defined(__MSP430_HAS_ESP430E__)
-    ESPCTL &= ~ESPEN;
-    #endif
-
-    SD16INCTL_VOLTAGE = 0;
-    SD16CCTL_VOLTAGE = 0;
-    SD16PRE_VOLTAGE = DEFAULT_V_PRESCALE_FACTOR;
-
-    SD16INCTL_LIVE = 0;
-    SD16CCTL_LIVE = 0;
-    SD16PRE_LIVE = 0;
-
-    #if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)
-    SD16INCTL_NEUTRAL = 0;
-    SD16CCTL_NEUTRAL = 0;
-    SD16PRE_NEUTRAL = 0;
-    #endif
-
-    SD16CTL = 0;
-    #if defined(SD16CONF0_FUDGE)
-    SD16CONF0 = SD16CONF0_FUDGE;
-    #endif
-    #if defined(SD16CONF1_FUDGE)
-    SD16CONF1 = SD16CONF1_FUDGE;
-    #endif
-
-    #if !defined(ESP_SUPPORT)  &&  defined(SINGLE_PHASE)
-    chan1.metrology.current.in_phase_correction[0].sd16_preloaded_offset = 0;
-        #if defined(NEUTRAL_MONITOR_SUPPORT)
-    chan1.metrology.neutral.in_phase_correction[0].sd16_preloaded_offset = 0;
-        #endif
-    #endif
-}
-#endif
-
-#if defined(__MSP430_HAS_SD24_A2__)  ||  defined(__MSP430_HAS_SD24_A3__)
-
-#define SD24CONF0_FUDGE     0x70
-#define SD24CONF1_FUDGE     0x48    //0x38
-
-/*
- * Analog front-end initialization routine.
- *
- * Configures the sigma-delta ADC module as analog front-end for
- * a tamper-resistant meter using a current transformer and a
- * shunt as current sensors (see configuration of channel 0 and 1).
- */
-static __inline__ void init_analog_front_end_normal(void)
-{
-    /*
-     * The general configuration of the analog front-end,
-     * that applies to all channels: clock selection (SMCLK) and divider
-     * settings (depending on SMCLK frequency) and reference voltage
-     * selections.
-     */
-
-    SD16CCTL_VOLTAGE &= ~SD24SC;
-    SD16CCTL_LIVE &= ~SD24SC;
-    #if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)
-    SD16CCTL_NEUTRAL &= ~SD24SC;
-    #endif
-
-#if MCLK_DEF == 16
-    SD24CTL = SD24SSEL_1  /* Clock is SMCLK */
-            | SD24DIV_4   /* Divide by 16 => ADC clock: 1.048576MHz */
-            | SD24REFON;  /* Use internal reference */
-#endif
-#if MCLK_DEF == 8
-    SD24CTL = SD24SSEL_1  /* Clock is SMCLK */
-            | SD24DIV_3   /* Divide by 8 => ADC clock: 1.048576MHz */
-            | SD24REFON;  /* Use internal reference */
-#endif
-
-    SD16INCTL_LIVE = SD16INCH_CURRENT | CURRENT_LIVE_GAIN;          /* Set gain for channel 0 (I1) */
-    SD16CCTL_LIVE = SD24OSR_256 | SD24DF | SD24GRP | SD24IE;        /* Set oversampling ratio to 256 (default) */
-    SD16PRE_LIVE = 0;
-
-        #if defined(NEUTRAL_MONITOR_SUPPORT)
-    SD16INCTL_NEUTRAL = SD16INCH_CURRENT | CURRENT_NEUTRAL_GAIN;    /* Set gain for channel 1 (I2) */
-    SD16CCTL_NEUTRAL = SD24OSR_256 | SD24DF | SD24GRP | SD24IE;     /* Set oversampling ratio to 256 (default) */
-    SD16PRE_NEUTRAL = 0;
-        #endif
-
-    /* Configure analog front-end channel 2 - Voltage */
-    SD16INCTL_VOLTAGE = SD24INCH_0 | VOLTAGE_GAIN;                  /* Set gain for channel 2 (V) */
-    SD16CCTL_VOLTAGE = SD24OSR_256 | SD24DF | SD24SC | SD24IE;      /* Set oversampling ratio to 256 (default) */
-    SD16PRE_VOLTAGE = DEFAULT_V_PRESCALE_FACTOR;
-    #if defined(SD24CONF1_FUDGE)
-    SD24CONF1 = SD24CONF1_FUDGE;
-    #endif
-
-    #if !defined(ESP_SUPPORT)  &&  defined(SINGLE_PHASE)
-    chan1.metrology.current.in_phase_correction[0].sd16_preloaded_offset = 0;
-        #if defined(NEUTRAL_MONITOR_SUPPORT)
-    chan1.metrology.neutral.in_phase_correction[0].sd16_preloaded_offset = 0;
-        #endif
-    #endif
-    /*
-     * \note
-     * Please note, the oversampling ratio should be the same
-     * for all channels. Default is 256.
-     */
-}
-
-    #if defined(LIMP_MODE_SUPPORT)
-static __inline__ void init_analog_front_end_limp(void)
-{
-        #if defined(__MSP430_HAS_ESP430E__)
-    ESPCTL &= ~ESPEN;
-        #endif
-    SD24CCTL_VOLTAGE &= ~SD24SC;
-    SD24CCTL_LIVE &= ~SD24SC;
-        #if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)
-    SD24CCTL_NEUTRAL &= ~SD24SC;
-        #endif
-#if MCLK_DEF == 16
-    SD24CTL = SD24SSEL_1  /* Clock is SMCLK */
-            | SD24DIV_3   /* Divide by 16 => ADC clock: 1.048576MHz */
-            | SD24REFON   /* Use internal reference */
-            | SD24LP;
-#endif
-#if MCLK_DEF == 8
-    SD24CTL = SD24SSEL_1  /* Clock is SMCLK */
-            | SD24DIV_3   /* Divide by 8 => ADC clock: 1.048576MHz */
-            | SD24REFON   /* Use internal reference */
-            | SD24LP;
-#endif
-    SD24INCTL_LIVE = SD24INCH_CURRENT | CURRENT_LIVE_GAIN;                  /* Set gain for channel 0 (I1) */
-    SD24CCTL_LIVE = SD24OSR_32 | SD24DF | SD24SNGL | SD24GRP | SD24IE;      /* Set oversampling ratio to 32 */
-    SD24PRE_LIVE = 0;
-    #if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)
-    SD24INCTL_NEUTRAL = SD24INCH_CURRENT | CURRENT_NEUTRAL_GAIN;            /* Set gain for channel 1 (I2) */
-    SD24CCTL_NEUTRAL = SD24OSR_32 | SD24DF | SD24SNGL | SD24GRP | SD24IE;   /* Set oversampling ratio to 32 */
-    SD24PRE_NEUTRAL = 0;
-    #endif
-    SD24INCTL_VOLTAGE = SD24INCH_0 | VOLTAGE_GAIN;                          /* Set gain for channel 2 (V) */
-    SD24CCTL_VOLTAGE = SD24OSR_32 | SD24DF | SD24SNGL | SD24IE;             /* Set oversampling ratio to 32 */
-    SD24PRE_VOLTAGE = 0;
-    #if defined(SD24CONF0_FUDGE)
-    SD24CONF0 = SD24CONF0_FUDGE;
-    #endif
-    #if defined(SD24CONF1_FUDGE)
-    SD24CONF1 = SD24CONF1_FUDGE;
-    #endif
-    chan1.metrology.current.in_phase_correction[0].sd16_preloaded_offset = 0;
-        #if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)
-    chan1.metrology.neutral.in_phase_correction[0].sd16_preloaded_offset = 0;
-        #endif
-}
-    #endif
-
-void disable_analog_front_end(void)//static __inline__ 
-{
-    #if defined(__MSP430_HAS_ESP430E__)
-    ESPCTL &= ~ESPEN;
-    #endif
-
-    SD16INCTL_VOLTAGE = 0;
-    SD16CCTL_VOLTAGE = 0;
-    SD16PRE_VOLTAGE = DEFAULT_V_PRESCALE_FACTOR;
-
-    SD16INCTL_LIVE = 0;
-    SD16CCTL_LIVE = 0;
-    SD16PRE_LIVE = 0;
-
-    #if defined(SINGLE_PHASE)  &&  defined(NEUTRAL_MONITOR_SUPPORT)
-    SD16INCTL_NEUTRAL = 0;
-    SD16CCTL_NEUTRAL = 0;
-    SD16PRE_NEUTRAL = 0;
-    #endif
-
-    SD24CTL = 0;
-    #if defined(SD24CONF0_FUDGE)
-    SD24CONF0 = SD24CONF0_FUDGE;
-    #endif
-    #if defined(SD24CONF1_FUDGE)
-    SD24CONF1 = SD24CONF1_FUDGE;
-    #endif
-
-    #if !defined(ESP_SUPPORT)  &&  defined(SINGLE_PHASE)
-    chan1.metrology.current.in_phase_correction[0].sd16_preloaded_offset = 0;
-        #if defined(NEUTRAL_MONITOR_SUPPORT)
-    chan1.metrology.neutral.in_phase_correction[0].sd16_preloaded_offset = 0;
-        #endif
-    #endif
-}
-#endif
-
-#if defined(__MSP430_HAS_SD16_A3__)  ||  defined(__MSP430_HAS_SD16_A4__)
-#error TBD
-#endif
-
 #if defined (__MSP430_HAS_SD24_B__)
 //#define SD16CONF0_FUDGE     0x70
 //#define SD16CONF1_FUDGE     0x48    //0x38
@@ -403,7 +95,7 @@ void disable_analog_front_end(void)//static __inline__
  * a tamper-resistant meter using a current transformer and a
  * shunt as current sensors (see configuration of channel 0 and 1).
  */
-static __inline__ void init_analog_front_end_normal(void)
+__inline__ void init_analog_front_end_normal(void)
 {
     /*
      * First it makes sure that the Embedded Signal Processing is
@@ -538,10 +230,6 @@ static __inline__ void init_analog_front_end_limp(void)
 
 void disable_analog_front_end(void)//static __inline__ 
 {
-    #if defined(__MSP430_HAS_ESP430E__)
-    ESPCTL &= ~ESPEN;
-    #endif
-
     SD16INCTL_VOLTAGE = 0;
     SD16CCTL_VOLTAGE = 0;
     SD16PRE_VOLTAGE = DEFAULT_V_PRESCALE_FACTOR;
@@ -557,12 +245,6 @@ void disable_analog_front_end(void)//static __inline__
     #endif
 
     SD24BCTL0 = 0;
-    #if defined(SD16CONF0_FUDGE)
-    SD16CONF0 = SD16CONF0_FUDGE;
-    #endif
-    #if defined(SD16CONF1_FUDGE)
-    SD16CONF1 = SD16CONF1_FUDGE;
-    #endif
 
     #if !defined(ESP_SUPPORT)  &&  defined(SINGLE_PHASE)
     chan1.metrology.current.in_phase_correction[0].sd16_preloaded_offset = 0;
@@ -573,166 +255,6 @@ void disable_analog_front_end(void)//static __inline__
 }
 #endif
 
-#if defined(__MSP430_HAS_SD16_A6__)  ||  defined(__MSP430_HAS_SD16_A7__)
-static __inline__ void init_analog_front_end_normal(void)
-{
-    int i;
-
-    /*
-     * The general configurations of the analog front-end,
-     * that applies to all channels: clock selection (SMCLK) and divider
-     * settings (depending on SMCLK frequency) and reference voltage
-     * selections.
-     */
-
-    #if defined(SINGLE_PHASE)
-    SD16CCTL_VOLTAGE &= ~SD16SC;
-    SD16CCTL_LIVE &= ~SD16SC;
-    #else
-    SD16CCTL_VOLTAGE_1 &= ~SD16SC;
-    SD16CCTL_VOLTAGE_2 &= ~SD16SC;
-    SD16CCTL_VOLTAGE_3 &= ~SD16SC;
-    SD16CCTL_CURRENT_1 &= ~SD16SC;
-    SD16CCTL_CURRENT_2 &= ~SD16SC;
-    SD16CCTL_CURRENT_3 &= ~SD16SC;
-    #endif
-    #if defined(__MSP430_HAS_SD16_A7__)
-    SD16CCTL_NEUTRAL &= ~SD16SC;
-    #endif
-
-    SD16CTL = SD16SSEL_1  /* Clock is SMCLK */
-            | SD16XDIV_2  /* Divide by 16 => ADC clock: 1.048576MHz */
-            | SD16REFON;  /* Use internal reference */
-
-    #if defined(SINGLE_PHASE)
-    SD16INCTL_LIVE = SD16INCH_CURRENT | CURRENT_PHASE_GAIN;        /* Set gain for channel 1 */
-    SD16CCTL_LIVE = SD16OSR_256 | SD16DF | SD16GRP | SD16IE;       /* Set oversampling ratio to 256 (default) */
-    SD16PRE_LIVE = 0;
-
-    #else
-    SD16INCTL_CURRENT_1 = SD16INCH_CURRENT | CURRENT_PHASE_GAIN;        /* Set gain for channel 1 */
-    SD16CCTL_CURRENT_1 = SD16OSR_256 | SD16DF | SD16GRP | SD16IE;       /* Set oversampling ratio to 256 (default) */
-    SD16PRE_CURRENT_1 = 0;
-
-    SD16INCTL_CURRENT_2 = SD16INCH_CURRENT | CURRENT_PHASE_GAIN;        /* Set gain for channel 2 */
-    SD16CCTL_CURRENT_2 = SD16OSR_256 | SD16DF | SD16GRP | SD16IE;       /* Set oversampling ratio to 256 (default) */
-    SD16PRE_CURRENT_2 = 0;
-
-    SD16INCTL_CURRENT_3 = SD16INCH_CURRENT | CURRENT_PHASE_GAIN;        /* Set gain for channel 3 */
-    SD16CCTL_CURRENT_3 = SD16OSR_256 | SD16DF | SD16GRP | SD16IE;       /* Set oversampling ratio to 256 (default) */
-    SD16PRE_CURRENT_3 = 0;
-    #endif
-
-    #if defined(__MSP430_HAS_SD16_A7__)
-    SD16INCTL_NEUTRAL = SD16INCH_CURRENT | CURRENT_NEUTRAL_GAIN;        /* Set gain for channel neutral */
-    SD16CCTL_NEUTRAL = SD16OSR_256 | SD16DF | SD16GRP; // | SD16IE;         /* Set oversampling ratio to 256 (default) */
-    SD16PRE_NEUTRAL = 0;
-    #endif
-
-    /* Configure analog front-end channel 2 - Voltage */
-    #if defined(SINGLE_PHASE)
-    SD16INCTL_VOLTAGE = SD16INCH_0 | VOLTAGE_GAIN;
-    SD16CCTL_VOLTAGE = SD16OSR_256 | SD16DF | SD16GRP | SD16IE;
-    SD16PRE_VOLTAGE = DEFAULT_V_PRESCALE_FACTOR;
-
-    #else
-    SD16INCTL_VOLTAGE_1 = SD16INCH_0 | VOLTAGE_GAIN;
-    SD16CCTL_VOLTAGE_1 = SD16OSR_256 | SD16DF | SD16GRP | SD16IE;
-    SD16PRE_VOLTAGE_1 = 0;
-
-    SD16INCTL_VOLTAGE_2 = SD16INCH_0 | VOLTAGE_GAIN;
-    SD16CCTL_VOLTAGE_2 = SD16OSR_256 | SD16DF | SD16GRP; // | SD16IE;
-    SD16PRE_VOLTAGE_2 = 0;
-
-    SD16INCTL_VOLTAGE_3 = SD16INCH_0 | VOLTAGE_GAIN;
-    SD16CCTL_VOLTAGE_3 = SD16OSR_256 | SD16DF | SD16GRP; // | SD16IE;
-    SD16PRE_VOLTAGE_3 = 0;
-    #endif
-
-    #if defined(__MSP430_HAS_SD16_A3__)
-    SD16CCTL2 |= SD16SC;
-    #elif defined(__MSP430_HAS_SD16_A4__)
-    SD16CCTL3 |= SD16SC;
-    #elif defined(__MSP430_HAS_SD16_A6__)
-    SD16CCTL5 |= SD16SC;
-    #elif defined(__MSP430_HAS_SD16_A7__)
-    SD16CCTL6 |= SD16SC;
-    #endif
-
-    #if defined(SINGLE_PHASE)
-        chan1.metrology.current.in_phase_correction[0].sd16_preloaded_offset = 0;
-    #else
-    for (i = 0;  i < NUM_PHASES;  i++)
-        chan[i].metrology.current.in_phase_correction[0].sd16_preloaded_offset = 0;
-    #endif
-}
-
-    #if defined(LIMP_MODE_SUPPORT)
-static __inline__ void init_analog_front_end_limp(void)
-{
-}
-    #endif
-
-void disable_analog_front_end(void)//static __inline__ 
-{
-    int i;
-    #if defined(SINGLE_PHASE)
-
-    SD16INCTL_VOLTAGE = 0;
-    SD16CCTL_VOLTAGE = 0;
-    SD16PRE_VOLTAGE = DEFAULT_V_PRESCALE_FACTOR;
-
-    SD16INCTL_LIVE = 0;
-    SD16CCTL_LIVE = 0;
-    SD16PRE_LIVE = 0;
-
-    #else
-    SD16INCTL_VOLTAGE_1 = 0;
-    SD16CCTL_VOLTAGE_1 = 0;
-    SD16PRE_VOLTAGE_1 = 0;
-
-    SD16INCTL_VOLTAGE_2 = 0;
-    SD16CCTL_VOLTAGE_2 = 0;
-    SD16PRE_VOLTAGE_2 = 0;
-
-    SD16INCTL_VOLTAGE_3 = 0;
-    SD16CCTL_VOLTAGE_3 = 0;
-    SD16PRE_VOLTAGE_3 = 0;
-
-    SD16INCTL_CURRENT_1 = 0;
-    SD16CCTL_CURRENT_1 = 0;
-    SD16PRE_CURRENT_1 = 0;
-
-    SD16INCTL_CURRENT_2 = 0;
-    SD16CCTL_CURRENT_2 = 0;
-    SD16PRE_CURRENT_2 = 0;
-
-    SD16INCTL_CURRENT_3 = 0;
-    SD16CCTL_CURRENT_3 = 0;
-    SD16PRE_CURRENT_3 = 0;
-    #endif
-    #if defined(__MSP430_HAS_SD16_A7__)
-    SD16INCTL_NEUTRAL = 0;
-    SD16CCTL_NEUTRAL = 0;
-    SD16PRE_NEUTRAL = 0;
-    #endif
-
-    SD16CTL = 0;
-    #if defined(SD16CONF0_FUDGE)
-    SD16CONF0 = SD16CONF0_FUDGE;
-    #endif
-    #if defined(SD16CONF1_FUDGE)
-    SD16CONF1 = SD16CONF1_FUDGE;
-    #endif
-
-    #if defined(SINGLE_PHASE)
-        chan1.metrology.current.in_phase_correction[0].sd16_preloaded_offset = 0;
-    #else
-    for (i = 0;  i < NUM_PHASES;  i++)
-        chan[i].metrology.current.in_phase_correction[0].sd16_preloaded_offset = 0;
-    #endif
-}
-#endif
 
 #if defined(__MSP430__)
 extern rtc_t rtc;
@@ -742,20 +264,28 @@ void system_setup(void)
 {
     WDTCTL = (WDTCTL & 0xFF) | WDTPW | WDTHOLD;
 
-    SetVCore(2);
+    if( SetVCore(2) == PMM_STATUS_ERROR)
+    {
+        /*
+        * system fails to increase core voltage
+        * retry by resetting the system
+        */
+        PMMCTL0_H = 0xA5;
+        PMMCTL0 |= PMMSWBOR; /*generate BOR*/
+    };
+
     LFXT_Start(XT1DRIVE_3);
 
     Init_FLL_Settle(MCLK_DEF*8388608/8/1000, MCLK_DEF*32768*32/32768);
     /* There seems no benefit in waiting for the FLL to settle at this point. */
     UCSCTL8 &=~MODOSCREQEN & ~SMCLKREQEN & ~MCLKREQEN & ~ACLKREQEN;
 
-
     #if defined (__MSP430_HAS_AUX_SUPPLY__)
 
           PMMCTL0_H = PMMPW_H;    
-         // SVSMHCTL|=SVSMHRRL_5|SVSHRVL_1|SVMHE|SVSHE; //SVM monitoring level,set referance voltage for switching to auxilary supplay , 
-                                //Interrupt is generated when the supplay falls below this voltage,
-                                //Handel this interrupt to detect power failer 
+         // SVSMHCTL|=SVSMHRRL_5|SVSHRVL_1|SVMHE|SVSHE; //SVM monitoring level,set reference voltage for switching to auxilary supplay ,
+                                //Interrupt is generated when the supply falls below this voltage,
+                                //Handel this interrupt to detect power failure
           
           //PMMRIE =0;//&= ~SVSHPE;
           AUXCTL0 = AUXKEY ;
@@ -768,9 +298,9 @@ void system_setup(void)
 
           AUXCTL0 = 0;
     #endif
-
+          SFRIE1 |= ACCVIE | OFIE | WDTIE |  NMIIE ;
+          SFRIE1 |= VMAIE;
         
-    
 
     #if defined(__MSP430_HAS_RTC_C__)
 #ifdef LOCKBAK

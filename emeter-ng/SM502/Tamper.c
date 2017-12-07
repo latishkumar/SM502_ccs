@@ -234,7 +234,7 @@ void UpdateTamperIndicators()
 */
 void ProcessTamperLC()
 {             
-    uint16_t z=LC_TamperPIN;
+    uint16_t z = LC_TamperPIN;
     if((z & LC_TamperBIT) == LC_TamperBIT)//!=
     {
       LCTamperDetected();   

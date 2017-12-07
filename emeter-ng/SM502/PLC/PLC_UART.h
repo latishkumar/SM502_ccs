@@ -76,7 +76,7 @@ extern void InitPLCUART();
   data : The data removed from the buffer 
 */
 int removeFromBuffer(int *data);
-void ResetPLC_StateFlow();
+void reset_plc_state_flow(void);
 /*
 * put a data to the TX bufer this method should be used to put data to the tx buffer 
 * because the method properrly adds data to the buffer by incrimenting the buffer index

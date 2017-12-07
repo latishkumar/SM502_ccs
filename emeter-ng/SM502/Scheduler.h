@@ -50,13 +50,13 @@ void init_scheduler();
 * @return -1 if the task is not scaduled 
 *          xx: if the task is schaduled succfully, returns the task slot number 
 */
-__monitor int8_t schedule_task(void(*Task)(),uint32_t time_in_ms,uint8_t task_slot);
+__monitor int8_t schedule_task(void(*Task)(void),uint32_t time_in_ms,uint8_t task_slot);
 
 /**
-*  cancels a shaduled task 
+*  cancels a scheduled task
 *  @param Task the task to cancel 
-*  @return 1 if the task was canceled sucessfully
-*          0 if the task was not scaduled before 
+*  @return 1 if the task was canceled successfully
+*          0 if the task was not scheduled before
 */
 __monitor uint8_t cancel_task( void(*Task)() );
 

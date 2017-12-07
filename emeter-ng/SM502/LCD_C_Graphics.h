@@ -31,7 +31,7 @@ void WriteFloat_c(long number, uint8_t decimalPoint);
 /**
 * initializes the lcd hardware and variables 
 */
-void InitGLCD_c();
+void init_GLCD_c();
 /**
 * updates the display based on the system status 
 */
@@ -47,7 +47,7 @@ void switch_to_manual_mode_c();
 /**
 * disables manual scrolling and switches the display to auto mode
 */
-void swtch_to_auto_mode_c();
+void switch_to_auto_mode_c();
 
 /**
 * updates the Consumed energy progress bar

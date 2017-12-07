@@ -28,7 +28,7 @@ void I2C2Init()
 
 }
 
-uint8_t Slave_Address(uint8_t sn,uint8_t b16)
+uint8_t slave_address(uint8_t sn,uint8_t b16)
 {
   #ifdef EEPROM_REV_2 
      return (0x50 | ((b16)&0x3) | (sn<<2));

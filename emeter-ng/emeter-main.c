@@ -143,8 +143,9 @@ uint32_t eeprom_backup_energy_counter;
 uint8_t flash_backup_energy_counter;
 #define BACKUP_TIME 360000 //msec-6 minutes
 #define ENERGY_THRESHOLD_FOR_FLASH_BACKUP 54//KWH
-#define NORMAL_BACK_UP 0x02
+#define NORMAL_BACK_UP     0x02
 #define LOW_BATTERY_BACKUP 0x04
+#define ON_BATTERY_BACKUP  0x08
 const uint32_t ENERGY_KWATT_HOUT_THRESHOLD = ENERGY_WATT_HOUR_THRESHOLD_CUSTOME*1000;
 void check_for_backup();
 void backup_energy_parameters();
@@ -163,8 +164,9 @@ void RESET_ISR(void);
 METER_STATES meter_state;
 void main(void)
 {
+    WDTCTL = WDTPW | WDTHOLD;
     static int32_t x;
-    
+
     PMMCTL0_H = PMMPW_H;
     SVSMHCTL|=SVSMHRRL_5|SVSHRVL_1|SVMHE|SVSHE; //SVM monitoring level,set reference voltage for switching to auxiliary supply ,
                         //Interrupt is generated when the supply falls below this voltage,
@@ -189,6 +191,7 @@ void main(void)
     validation_arg_t noValidation = validation_arg_t_default;
     read_from_eeprom(&last_standard_event_log_address,&temp_did,getLastLogAddress,&noValidation);
     RESET_ISR();
+
     if(SystemStatus == SYSTEM_RUNNING)
     {
        /* Restore backup
@@ -200,6 +203,11 @@ void main(void)
         {
             //first time boot so there is no backup data
             log_standard_events(FIRST_BOOT);
+        }
+        else if(backup.seg_a.s.valid_backup == ON_BATTERY_BACKUP)
+        {
+            restoreBackup();
+            log_standard_events(BACKUP_RESTORED_FROM_FLASH_ONB); //backup restored from on battery backup flash
         }
         else if(backup.seg_a.s.valid_backup == LOW_BATTERY_BACKUP)
         {
@@ -739,18 +747,15 @@ void custom_initialisation() {
         BAKMEM1  = 0;
         BAKMEM2  = 0;
         //BAKMEM3  = 0; /*[M.G] Commented out this line. to use this memory for LPM bug debugging Oct 24,2015 17:53 */
-        
+        init_scheduler();
         init_ErrorList();
-        InitGLCD_c();
+        init_GLCD_c();
         all_segments_on();
        __bis_SR_register(GIE);
         InitLogg();
        __bic_SR_register(GIE);          
         status.UpdateDate = 1;        
-     
         
-        
-        init_scheduler();
         initTampperSwitchs();//should be initialized after scheduler because of its dependency
         InitUI();//should be initialized after scheduler because of its dependency
         
@@ -911,7 +916,7 @@ void verify_normal_operations()
 void time_validity_checker_and_corrector(TimeStump t)
 {
     rtc_t time =  getTime(&t);
-    uint64_t td = labs(getTimeDifferenceInMinutes(&rtcc,&time));
+    uint64_t td = getTimeDifferenceInMinutes(&rtcc,&time);//labs(getTimeDifferenceInMinutes(&rtcc,&time));
     if(time.isValid)
     {
         if(compare_time(&rtcc,&time) < 0)
@@ -1029,7 +1034,7 @@ void restoreBackup()
     memcpy(x,y,sizeof(backup));
 
     backup2.seg_a.s.valid_backup = NORMAL_BACK_UP;
-    flashBackup(x,24);
+    flashBackup(x,22);
 
     #if defined(USE_WATCHDOG)
     kick_watchdog();

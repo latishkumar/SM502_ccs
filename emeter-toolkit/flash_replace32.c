@@ -161,7 +161,7 @@ void flashBackup(int32_t *data,uint8_t length)
     //Copy block A to B, slipping in the new value at the right location
     read_ptr = (int*)data;
     write_ptr = (int *) FSEG_B;
-    length <<= 2;
+    length <<= 1;
     for (w = 0;  w < length;  w++, read_ptr++, write_ptr++)
     {
 //        if (write_ptr == (int *) ptr)

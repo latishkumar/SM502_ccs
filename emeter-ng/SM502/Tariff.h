@@ -207,11 +207,11 @@ void switch_billing_schema(uint8_t schema);
 *    returns 1: if less than the minimum tariff 
 *            0: otherwise 
 */
-int CheckTariff(const uint32_t *power_brakes,unsigned long *ConsumptionSinceLastBilling);
+int CheckTariff(uint32_t *power_brakes,uint32_t *ConsumptionSinceLastBilling);
 /**
 * returns the start index for the current users billing profile 
 * @param rates_start_array10: the configured rate switching energy values array
 * @param EnergySinceLastBillingCuttoff: consumed energy since last billing
 */
-uint8_t getRateStartIndex(const uint32_t *rates_start_array10, unsigned long EnergySinceLastBillingCuttoff);
+uint8_t getRateStartIndex(uint32_t *rates_start_array10, uint32_t EnergySinceLastBillingCuttoff);
 #endif /* TARIFF_H_ */

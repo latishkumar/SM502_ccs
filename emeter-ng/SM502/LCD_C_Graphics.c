@@ -63,7 +63,7 @@ uint8_t SelectedCalender = AM;
 /**
 * initializes the lcd hardware and variables 
 */
-void InitGLCD_c() {
+void init_GLCD_c() {
 
     init_lcd_c();
     
@@ -73,13 +73,12 @@ void InitGLCD_c() {
     status.UpdateTime = 1;
     //status.DisplayState = 0;
     status.DisplayUpdateRequired = 1;
-    swtch_to_auto_mode_c();
-    //ScaduleTask(display_next_item_c,AutoDisplayTime,AUTO_DISPLAY_TASK);
+    switch_to_auto_mode_c();
 }
 /**
 * disables manual scrolling and switches the display to auto mode
 */
-void swtch_to_auto_mode_c()
+void switch_to_auto_mode_c()
 {
   
   status.DisplayMode  = 0;
@@ -93,7 +92,7 @@ void swtch_to_auto_mode_c()
 void switch_to_manual_mode_c()
 {
   status.DisplayMode = 1;
-//  ScaduleTask(swtch_to_auto_mode_c,BackToAutoModeTime,AUTO_MANUAL_DISPLAY_END_TASK);
+//  ScaduleTask(switch_to_auto_mode_c,BackToAutoModeTime,AUTO_MANUAL_DISPLAY_END_TASK);
 }
 /**
 * updates the display and shows the next item inline to be displayd
@@ -131,8 +130,8 @@ void display_next_item_c()
       }
       else if(status.DisplayMode == 1) //manual Mode 
       {
-          cancel_task(swtch_to_auto_mode_c);
-          schedule_task(swtch_to_auto_mode_c,BackToAutoModeTime,AUTO_MANUAL_DISPLAY_END_TASK);
+          cancel_task(switch_to_auto_mode_c);
+          schedule_task(switch_to_auto_mode_c,BackToAutoModeTime,AUTO_MANUAL_DISPLAY_END_TASK);
       }     
 }
 

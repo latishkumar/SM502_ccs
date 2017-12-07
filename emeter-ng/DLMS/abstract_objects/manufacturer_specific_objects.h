@@ -44,4 +44,8 @@ void calibrate_neutral_current_scaler(void *data, int data_direction);
 
 void configure_permitted_power_imbalance_fraction(void *data, int data_direction);
 
+void reset_meter(void *data, int data_direction);
+
+void reset_balance();
+
 #endif /* DLMS_ABSTRACT_OBJECTS_MANUFACTURER_SPECIFIC_OBJECTS_H_ */

@@ -28,7 +28,7 @@ typedef struct
 *  @param time2 the second time 
 *  @return the Time difference in minute between the two dates 
 */
-int64_t getTimeDifferenceInMinutes(const rtc_t *time1,const rtc_t *time2);
+int64_t getTimeDifferenceInMinutes(const rtc_t *time1, const rtc_t *time2);
 
 
 /**

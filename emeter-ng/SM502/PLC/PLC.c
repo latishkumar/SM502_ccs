@@ -418,7 +418,7 @@ uint8_t processStatus()
   return 1;
 }
 
-void CRC16_UpdateChecksum(unsigned short *pcrcvalue, const void *data, int length)
+void CRC16_UpdateChecksum(unsigned short *pcrcvalue, void *data, int length)
 {
   unsigned short crc;
   const unsigned char *buf = (const unsigned char *) data;
@@ -431,13 +431,23 @@ void CRC16_UpdateChecksum(unsigned short *pcrcvalue, const void *data, int lengt
   *pcrcvalue = crc ;//^0xEC06
 }
 
-unsigned short CRC16_BlockChecksum(const void *data, int length)
+//unsigned short CRC16_BlockChecksum(void *data, int length)
+//{
+//  unsigned short crc;
+//
+//  crc = 0;
+//  CRC16_UpdateChecksum(&crc, data, length);
+//  return crc;
+//}
+unsigned short CRC16_BlockChecksum(unsigned char *data, int length)
 {
-  unsigned short crc;
-
-  crc = 0;
-  CRC16_UpdateChecksum(&crc, data, length);
-  return crc;
+    unsigned short crc = 0;
+    const unsigned char *buf = (const unsigned char *) data;
+    while (length--)
+     {
+       crc = (crc << 8) ^ crctable[(crc >> 8) ^ *buf++];
+     }
+   return crc;
 }
 extern volatile funcPointers tasks[MaxScheduledTasks];
 extern uint8_t jump_cancel_getMACPIB;
@@ -469,12 +479,12 @@ int SendMessage(PLC_Message *Message)
     header_array[0] = (Message->header.Message_Type);
     header_array[1] = (Message->header.Message_flags);
     
-    x= Message->header.Payload_Length +4; //add the length of the CRC filds
+    x= Message->header.Payload_Length +4; //add the length of the CRC fields
     header_array[2] = (x);
     header_array[3] = (x>>8);
 
 
-    Message->header.Message_HeaderCRC= CRC16_BlockChecksum(header_array, 4);
+    Message->header.Message_HeaderCRC  = CRC16_BlockChecksum(header_array, 4);
     Message->header.Message_PayloadCRC = CRC16_BlockChecksum(Message->Payload, Message->header.Payload_Length);
         //header.Message_HeaderCRC = CRC16_BlockChecksum(header_array, 8);
     

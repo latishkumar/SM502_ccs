@@ -11,14 +11,8 @@
 */
 __monitor int queue_reinit(Queue *queue)
 {
-	istate_t istate;
-	istate = __get_interrupt_state();
-	__disable_interrupt();
-
   queue->tail = 0;
   queue->head = 0;
-
-  __set_interrupt_state(istate);
   return 1;
 }
 /**
@@ -30,25 +24,18 @@ __monitor int queue_reinit(Queue *queue)
 */
 __monitor int queue_enqueue(Queue *queue, const uint8_t *data)
 {
-	istate_t istate;
-	istate = __get_interrupt_state();
-	__disable_interrupt();
-
   if(queue_isFull(queue) == 1)
   {
-	__set_interrupt_state(istate);
     return -1;
   }
   else
   {
-    //#pragma message("compiling 1")
-
+   
       queue->tail += 1;
       if(queue->tail>=Max_Buff_Length)
          queue->tail = 0;
     
     queue->buffer[queue->tail]= *data;
-    __set_interrupt_state(istate);
     return 1;
   }
 }
@@ -62,13 +49,9 @@ __monitor int queue_enqueue(Queue *queue, const uint8_t *data)
 */
 __monitor int queue_dequeue(Queue *queue, uint8_t *data)
 {
-	istate_t istate;
-	istate = __get_interrupt_state();
-	__disable_interrupt();
 
   if(queue_isEmpty(queue) == 1)
   {
-	 __set_interrupt_state(istate);
     return -1;
   }
   else
@@ -78,7 +61,6 @@ __monitor int queue_dequeue(Queue *queue, uint8_t *data)
       queue->head = 0;
     
     *data = queue->buffer[queue->head];
-    __set_interrupt_state(istate);
     return 1;
   }
 }
@@ -89,13 +71,9 @@ __monitor int queue_dequeue(Queue *queue, uint8_t *data)
 */
 __monitor int queue_size(const Queue *queue)
 {
-	istate_t istate;
-	istate = __get_interrupt_state();
-	__disable_interrupt();
 
   int x = queue->head - queue->tail;
 
-  __set_interrupt_state(istate);
   return x>0?x:-x;
 }
 
@@ -107,20 +85,15 @@ __monitor int queue_size(const Queue *queue)
 */
 __monitor int queue_isFull(const Queue *queue)
 {
-	istate_t istate;
-	istate = __get_interrupt_state();
-	__disable_interrupt();
 
    if(queue->head < queue->tail)
    {
      int x = queue->tail - queue->head;
      if(x == Max_Buff_Length-1){
-    	  __set_interrupt_state(istate);
     	  return 1;
      }
 
      else {
-    	  __set_interrupt_state(istate);
     	  return -1;
      }
 
@@ -128,12 +101,9 @@ __monitor int queue_isFull(const Queue *queue)
    else
    {
      if(queue->tail == (queue->head-1)){
-    	 __set_interrupt_state(istate);
     	 return 1;
      }
-
      else {
-    	 __set_interrupt_state(istate);
     	 return -1;
      }
 
@@ -146,16 +116,9 @@ __monitor int queue_isFull(const Queue *queue)
 */
 __monitor int queue_isEmpty(const Queue *queue)
 {
-
-	istate_t istate;
-	istate = __get_interrupt_state();
-	__disable_interrupt();
-
    if(queue->head == queue->tail){
-	   __set_interrupt_state(istate);
 	   return 1;
    }
-   __set_interrupt_state(istate);
    return -1;
   
 }

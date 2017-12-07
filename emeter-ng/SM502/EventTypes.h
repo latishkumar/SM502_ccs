@@ -57,6 +57,14 @@
 #define SYSRSTIV_PERF_RESET_EVENT         0XC6
 #define SYSRSTIV_PMMKEY_RESET_EVENT       0XC7
 #define SYSRSTIV_BOR_RESET_EVENT_SW       0xC8
+#define BACKUP_RESTORED_FROM_FLASH_ONB    0xC9
+#define VACANT_MEMORY_ACCESS_VIOLATION    0xCA
+#define FLASH_ACCESS_VIOLATION            0xCB
+#define WDT_INTERRUPT_FLAG                0xCC
+#define OSCILLATOR_FAULT_FLAG             0xCD
+#define NMIPIN_INTERRUPT_FLAG             0xCE
+#define OTHER_UNHANDLED_VIOLATION         0xCF
+
 //#define LowVoltage 0xA2
 //#define HighVoltage 0xA3
 //#define OverCurrent 0xA4
